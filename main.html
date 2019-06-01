@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    -->
+    <title>Document</title>
+    <style>
+        table {
+            border-radius: 0.5%;            
+            background-color: rgb(68, 117, 221);
+            border-collapse: collapse;
+            text-align: center;
+        }
+        td {
+            padding: 0;
+        }
+        .row {
+            height: 8vmin;
+        }
+        .col {
+            width: 8vmin;
+        }
+        .between_rows {
+            height: 2.5vmin;
+        }
+        .between_cols {
+            width: 2.5vmin;
+        }
+        .row .col {
+            background-color: rgb(207, 207, 207);
+            border-radius: 5%;
+        }
+        .pawn {
+            display: inline-block;
+            width: 6vmin;
+            height: 6vmin;
+            border-radius: 50%;
+            vertical-align: middle;
+        }
+        #pawn0 {
+            background-color: rgb(195, 164, 23);
+        }
+        #pawn1 {
+            background-color: rgb(51, 25, 25);
+        }
+
+    </style>
+    <script src="model.js"></script>
+    <script src="view.js"></script>
+    <script src="controller.js"></script>
+</head>
+<body>
+    <table id="board_table">
+        <tr class="row row0">
+            <td class="col col0"><div class="pawn" id="pawn0"></div></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"><div class="pawn" id="pawn1"></div></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>  
+        <tr class="between_rows row0">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row1">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>  
+        <tr class="between_rows row1">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row2">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="between_rows row2">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row3">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>  
+        <tr class="between_rows row3">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row4">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="between_rows row4">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row5">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>  
+        <tr class="between_rows row5">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row6">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="between_rows row6">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row7">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>  
+        <tr class="between_rows row7">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+        <tr class="row row8">
+            <td class="col col0"></td>
+            <td class="between_cols col0"></td>
+            <td class="col col1"></td>
+            <td class="between_cols col1"></td>
+            <td class="col col2"></td>
+            <td class="between_cols col2"></td>
+            <td class="col col3"></td>
+            <td class="between_cols col3"></td>
+            <td class="col col4"></td>
+            <td class="between_cols col4"></td>
+            <td class="col col5"></td>
+            <td class="between_cols col5"></td>
+            <td class="col col6"></td>
+            <td class="between_cols col6"></td>
+            <td class="col col7"></td>
+            <td class="between_cols col7"></td>
+            <td class="col col8"></td>
+        </tr>
+    </table>
+    <script>
+        var game = new Game();
+        var view = new View(game);
+        view.render();
+    </script>
+</body>
+</html>

@@ -11,7 +11,7 @@ class Controller {
 
     putHorizontalWall(e) {
         let x;
-        if (x = e.target) {
+        if (x = e.currentTarget) {
             let row = (x.parentElement.rowIndex - 1) / 2;
             let col; 
             if (x.cellIndex === 0) {
@@ -26,7 +26,7 @@ class Controller {
 
     putVerticalWall(e) {
         let x;
-        if (x = e.target) {
+        if (x = e.currentTarget) {
             let col = (x.cellIndex - 1) / 2;
             let row;
             if (x.parentElement.rowIndex === 0) {

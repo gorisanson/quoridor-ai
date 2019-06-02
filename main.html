@@ -50,9 +50,18 @@
         div.horizontal_wall, div.vertical_wall {
             display: inline-block;
             position: absolute;
-            top: 0.5vmin;
-            left: 0.5vmin;
+            right: 0.5vmin;
+            bottom: 0.5vmin;
             background-color: rgb(202, 168, 106);
+        }
+
+        div.horizontal_wall.leftmost {
+            right: unset;
+            left: 0.5vmin;
+        }
+        div.vertical_wall.topmost {
+            bottom: unset;
+            top: 0.5vmin;
         }
         div.horizontal_wall {
             width: 17.5vmin;

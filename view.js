@@ -36,16 +36,16 @@ class View {
             for (let j = 0; j < 8; j++) {
                 if(this.game.board.walls.horizontal[i][j] === true) {
                     let horizontalWall = document.createElement("div");
-                    horizontalWall.className = "horizontal_wall";
-                    if (!this.htmlBoardTable.rows[i*2+1].cells[j*2].hasChildNodes()) {
-                        this.htmlBoardTable.rows[i*2+1].cells[j*2].appendChild(horizontalWall);
+                    horizontalWall.classList.add("horizontal_wall");
+                    if (!this.htmlBoardTable.rows[i*2+1].cells[j*2+2].hasChildNodes()) {
+                        this.htmlBoardTable.rows[i*2+1].cells[j*2+2].appendChild(horizontalWall);
                     }
                 }
                 if(this.game.board.walls.vertical[i][j] === true) {
                     let verticalWall = document.createElement("div");
-                    verticalWall.className = "vertical_wall";
-                    if (!this.htmlBoardTable.rows[i*2].cells[j*2+1].hasChildNodes()) {
-                        this.htmlBoardTable.rows[i*2].cells[j*2+1].appendChild(verticalWall);
+                    verticalWall.classList.add("vertical_wall");
+                    if (!this.htmlBoardTable.rows[i*2+2].cells[j*2+1].hasChildNodes()) {
+                        this.htmlBoardTable.rows[i*2+2].cells[j*2+1].appendChild(verticalWall);
                     }
                 }
             }
@@ -54,11 +54,11 @@ class View {
 
     _renderValidNextWalls() {
         let onclickHorizontalFunc = function(e) {
-            View.horizontalWallShadow(e.target, 'out');
+            View.horizontalWallShadow(e.currentTarget, 'out');
             this.controller.putHorizontalWall(e);
         }
         let onclickVerticalFunc = function(e) {
-            View.verticalWallShadow(e.target, 'out');
+            View.verticalWallShadow(e.currentTarget, 'out');
             this.controller.putVerticalWall(e);
         }
         for (let i = 0; i < 8; i++) {
@@ -119,53 +119,32 @@ class View {
     static horizontalWallShadow(x, mode) {
         let foo;
         if (mode === "in") {
-            foo = function(a) {
-                console.log("create" + i++);
-                console.log(a.parentElement.rowIndex, a.cellIndex)
-                //if (!a.hasChildNodes()) {
-                    let _horizontalWallShadow = document.createElement("div");
-                    _horizontalWallShadow.className = "horizontal_wall shadow";
-                    //_horizontalWallShadow.onmouseenter = e => {alert(e.currentTarget)};
-                    a.appendChild(_horizontalWallShadow);
-                //}
+            let _horizontalWallShadow = document.createElement("div");
+            _horizontalWallShadow.classList.add("horizontal_wall");
+            _horizontalWallShadow.classList.add("shadow");
+            if (x.cellIndex === 0) {
+                _horizontalWallShadow.classList.add("leftmost");
             }
+            x.appendChild(_horizontalWallShadow);
         } else {
-            foo = function(a) {
-                console.log("remove" + a.childNodes[0] + i);
-                console.log(a.parentElement.rowIndex, a.cellIndex)
-                console.log("");
-                a.removeChild(a.childNodes[0]);
-            }
-        }
-
-        if (x.cellIndex === 0) {
-            foo(x);
-        } else {
-            let htmlBoardTable = x.parentElement.parentElement;
-            foo(htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex - 2]);
+            x.removeChild(x.childNodes[0]);  
         }
     }
     
     static verticalWallShadow(x, mode) {
         let foo;
         if (mode === "in") {
-            foo = function(a) {
-                let _verticalWallShadow = document.createElement("div");
-                _verticalWallShadow.className = "vertical_wall shadow";
-                a.appendChild(_verticalWallShadow);
+            let _verticalWallShadow = document.createElement("div");
+            _verticalWallShadow.classList.add("vertical_wall");
+            _verticalWallShadow.classList.add("shadow");
+            if (x.parentElement.rowIndex === 0) {
+                _verticalWallShadow.classList.add("topmost");
             }
+            x.appendChild(_verticalWallShadow);
         } else {
-            foo = function(a) {
-                a.removeChild(a.childNodes[0]);
-            }
+            x.removeChild(x.childNodes[0]);
         }
-
-        if (x.parentElement.rowIndex === 0) {
-            foo(x);
-        } else {
-            let htmlBoardTable = x.parentElement.parentElement;
-            foo(htmlBoardTable.rows[x.parentElement.rowIndex - 2].cells[x.cellIndex]);
-        }
+   
     }
 }
 

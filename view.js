@@ -1,49 +1,91 @@
+i = 0;
+
 class View {
-    constructor(game) {
+    constructor(controller, game) {
+        this.controller = controller;
         this.game = game;
         this.htmlBoardTable = document.getElementById("board_table");
+        this.htmlPawn0 = document.getElementById("pawn0");
+        this.htmlPawn1 = document.getElementById("pawn1");
     }
 
     render() {
         for (let i = 0; i < this.htmlBoardTable.rows.length; i++) {
             for (let j = 0; j < this.htmlBoardTable.rows[0].cells.length; j++) {
                 let element = this.htmlBoardTable.rows[i].cells[j];
+                element.classList.remove("wall_shadow");
                 element.removeAttribute("onmouseenter");
-                element.removeAttribute("onmouseout");
+                element.removeAttribute("onmouseleave");
+                element.onclick = () => {};
             }
         }
         
-        const pawn0 = document.getElementById("pawn0");
-        const pawn1 = document.getElementById("pawn1");
-        this.htmlBoardTable.rows[this.game.board.pawns[0].position.row * 2].cells[this.game.board.pawns[0].position.col * 2].appendChild(pawn0);
-        this.htmlBoardTable.rows[this.game.board.pawns[1].position.row * 2].cells[this.game.board.pawns[1].position.col * 2].appendChild(pawn1);
-        
+        this._renderPawnPositions();
+        this._renderWalls();
         this._renderValidNextWalls();
         this._renderValidNextPositions();
     }
 
+    _renderPawnPositions() {
+        this.htmlBoardTable.rows[this.game.board.pawns[0].position.row * 2].cells[this.game.board.pawns[0].position.col * 2].appendChild(this.htmlPawn0);
+        this.htmlBoardTable.rows[this.game.board.pawns[1].position.row * 2].cells[this.game.board.pawns[1].position.col * 2].appendChild(this.htmlPawn1);
+    }
+
+    _renderWalls() {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if(this.game.board.walls.horizontal[i][j] === true) {
+                    let horizontalWall = document.createElement("div");
+                    horizontalWall.className = "horizontal_wall";
+                    if (!this.htmlBoardTable.rows[i*2+1].cells[j*2].hasChildNodes()) {
+                        this.htmlBoardTable.rows[i*2+1].cells[j*2].appendChild(horizontalWall);
+                    }
+                }
+                if(this.game.board.walls.vertical[i][j] === true) {
+                    let verticalWall = document.createElement("div");
+                    verticalWall.className = "vertical_wall";
+                    if (!this.htmlBoardTable.rows[i*2].cells[j*2+1].hasChildNodes()) {
+                        this.htmlBoardTable.rows[i*2].cells[j*2+1].appendChild(verticalWall);
+                    }
+                }
+            }
+        }        
+    }
+
     _renderValidNextWalls() {
+        let onclickHorizontalFunc = function(e) {
+            View.horizontalWallShadow(e.target, 'out');
+            this.controller.putHorizontalWall(e);
+        }
+        let onclickVerticalFunc = function(e) {
+            View.verticalWallShadow(e.target, 'out');
+            this.controller.putVerticalWall(e);
+        }
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.game.validNextWalls.horizontal[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2 + 1].cells[j * 2 + 2];
-                    element.setAttribute("onmouseenter", "horizontalWallShadow(this, 'in')");
-                    element.setAttribute("onmouseleave", "horizontalWallShadow(this, 'out')");
+                    element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, 'in')");
+                    element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, 'out')");                    
+                    element.onclick = onclickHorizontalFunc.bind(this);
                     if (j === 0) {
                         element = this.htmlBoardTable.rows[i * 2 + 1].cells[j * 2];
-                        element.setAttribute("onmouseenter", "horizontalWallShadow(this, 'in')");
-                        element.setAttribute("onmouseleave", "horizontalWallShadow(this, 'out')");
+                        element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, 'in')");
+                        element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, 'out')");
+                        element.onclick = onclickHorizontalFunc.bind(this);
                     }
                 }
                 
                 if (this.game.validNextWalls.vertical[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2 + 2].cells[j * 2 + 1];
-                    element.setAttribute("onmouseenter", "verticalWallShadow(this, 'in')");
-                    element.setAttribute("onmouseleave", "verticalWallShadow(this, 'out')");
+                    element.setAttribute("onmouseenter", "View.verticalWallShadow(this, 'in')");
+                    element.setAttribute("onmouseleave", "View.verticalWallShadow(this, 'out')");
+                    element.onclick = onclickVerticalFunc.bind(this);
                     if (i === 0) {
                         element = this.htmlBoardTable.rows[i * 2].cells[j * 2 + 1];
-                        element.setAttribute("onmouseenter", "verticalWallShadow(this, 'in')");
-                        element.setAttribute("onmouseleave", "verticalWallShadow(this, 'out')");
+                        element.setAttribute("onmouseenter", "View.verticalWallShadow(this, 'in')");
+                        element.setAttribute("onmouseleave", "View.verticalWallShadow(this, 'out')");
+                        element.onclick = onclickVerticalFunc.bind(this);
                     }
                 }
             }
@@ -55,57 +97,79 @@ class View {
             for (let j = 0; j < 9; j++) {
                 if (this.game.validNextPositions[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2].cells[j * 2];
-                    element.setAttribute("onmouseenter", "pawnShadow(this," + this.game.turn + ",'in')");
-                    element.setAttribute("onmouseleave", "pawnShadow(this," + this.game.turn + ",'out')");
+                    element.setAttribute("onmouseenter", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",'in')");
+                    element.setAttribute("onmouseleave", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",'out')");
                 }
             }
         }
     }
+
+    static pawnShadow(x, pawnIndex, mode) {
+        if (mode === "in") {
+            let pawnId = "pawn" + pawnIndex;
+            let pawn = document.getElementById(pawnId);
+            let pawnSh = pawn.cloneNode(true);
+            pawnSh.style.opacity = 0.3;
+            x.appendChild(pawnSh);
+        } else {
+            x.removeChild(x.childNodes[0]);
+        }
+    }
+    
+    static horizontalWallShadow(x, mode) {
+        let foo;
+        if (mode === "in") {
+            foo = function(a) {
+                console.log("create" + i++);
+                console.log(a.parentElement.rowIndex, a.cellIndex)
+                //if (!a.hasChildNodes()) {
+                    let _horizontalWallShadow = document.createElement("div");
+                    _horizontalWallShadow.className = "horizontal_wall shadow";
+                    //_horizontalWallShadow.onmouseenter = e => {alert(e.currentTarget)};
+                    a.appendChild(_horizontalWallShadow);
+                //}
+            }
+        } else {
+            foo = function(a) {
+                console.log("remove" + a.childNodes[0] + i);
+                console.log(a.parentElement.rowIndex, a.cellIndex)
+                console.log("");
+                a.removeChild(a.childNodes[0]);
+            }
+        }
+
+        if (x.cellIndex === 0) {
+            foo(x);
+        } else {
+            let htmlBoardTable = x.parentElement.parentElement;
+            foo(htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex - 2]);
+        }
+    }
+    
+    static verticalWallShadow(x, mode) {
+        let foo;
+        if (mode === "in") {
+            foo = function(a) {
+                let _verticalWallShadow = document.createElement("div");
+                _verticalWallShadow.className = "vertical_wall shadow";
+                a.appendChild(_verticalWallShadow);
+            }
+        } else {
+            foo = function(a) {
+                a.removeChild(a.childNodes[0]);
+            }
+        }
+
+        if (x.parentElement.rowIndex === 0) {
+            foo(x);
+        } else {
+            let htmlBoardTable = x.parentElement.parentElement;
+            foo(htmlBoardTable.rows[x.parentElement.rowIndex - 2].cells[x.cellIndex]);
+        }
+    }
 }
 
-function pawnShadow(x, pawnIndex, mode) {
-    if (mode === "in") {
-        let pawnId = "pawn" + pawnIndex;
-        let pawn = document.getElementById(pawnId);
-        let pawnSh = pawn.cloneNode(true);
-        pawnSh.style.opacity = 0.3;
-        x.appendChild(pawnSh);
-    } else {
-        x.removeChild(x.childNodes[0]);
-    }
-}
 
-function horizontalWallShadow(x, mode) {
-    let color = "";
-    if (mode === "in") {
-        color = "rgba(222, 184, 135, 0.7)";
-    }
-    x.style.backgroundColor = color;
-    let htmlBoardTable = x.parentElement.parentElement;
-    if (x.cellIndex === 0) {
-        htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex + 1].style.backgroundColor = color;
-        htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex + 2].style.backgroundColor = color;
-    } else {
-        htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex - 1].style.backgroundColor = color;
-        htmlBoardTable.rows[x.parentElement.rowIndex].cells[x.cellIndex - 2].style.backgroundColor = color;
-    }
-}
-
-function verticalWallShadow(x, mode) {
-    let color = "";
-    if (mode === "in") {
-        color = "rgba(222, 184, 135, 0.7)";
-    }
-    x.style.backgroundColor = color;
-    let htmlBoardTable = x.parentElement.parentElement;
-    if (x.parentElement.rowIndex === 0) {
-        htmlBoardTable.rows[x.parentElement.rowIndex + 1].cells[x.cellIndex].style.backgroundColor = color;
-        htmlBoardTable.rows[x.parentElement.rowIndex + 2].cells[x.cellIndex].style.backgroundColor = color;
-    } else {
-        htmlBoardTable.rows[x.parentElement.rowIndex - 1].cells[x.cellIndex].style.backgroundColor = color;
-        htmlBoardTable.rows[x.parentElement.rowIndex - 2].cells[x.cellIndex].style.backgroundColor = color;
-    }
-}
 
 
 

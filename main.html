@@ -15,6 +15,7 @@
             text-align: center;
         }
         td {
+            position: relative;
             padding: 0;
         }
         .row {
@@ -33,7 +34,7 @@
             background-color: rgb(207, 207, 207);
             border-radius: 5%;
         }
-        .pawn {
+        div.pawn {
             display: inline-block;
             width: 6vmin;
             height: 6vmin;
@@ -45,6 +46,24 @@
         }
         #pawn1 {
             background-color: rgb(51, 25, 25);
+        }
+        div.horizontal_wall, div.vertical_wall {
+            display: inline-block;
+            position: absolute;
+            top: 0.5vmin;
+            left: 0.5vmin;
+            background-color: rgb(202, 168, 106);
+        }
+        div.horizontal_wall {
+            width: 17.5vmin;
+            height: 1.5vmin;
+        }
+        div.vertical_wall {
+            width: 1.5vmin;
+            height: 17.5vmin;
+        }
+        div.shadow {
+            opacity: 0.5
         }
 
     </style>
@@ -379,9 +398,7 @@
         </tr>
     </table>
     <script>
-        var game = new Game();
-        var view = new View(game);
-        view.render();
+        var controller = new Controller();
     </script>
 </body>
 </html>

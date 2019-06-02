@@ -100,14 +100,24 @@ class Game {
     set turn(newTurn) {
         this._turn = newTurn;
         this._validNextWallsUpdated = false;
+        this._openWaysUpdated = false;
+        this._validNextPositionsUpdated = false;
+    }
+
+    get pawnIndexOfTurn() {
+        return this.turn % 2;
+    }
+
+    get pawnIndexOfNotTurn() {
+        return (this.turn + 1) % 2;
     }
 
     get pawnOfTurn() {
-        return this.board.pawns[this.turn];
+        return this.board.pawns[this.pawnIndexOfTurn];
     }
 
     get pawnOfNotTurn() {
-        return this.board.pawns[(this.turn + 1) % 2];
+        return this.board.pawns[this.pawnIndexOfNotTurn];
     }
 
     // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid location.
@@ -120,7 +130,7 @@ class Game {
         if (this.pawnOfTurn.numberOfLeftWalls <= 0) {
             set2DArrayEveryElementToValue(this._validNextWalls.horizontal, false);
             set2DArrayEveryElementToValue(this._validNextWalls.vertical, false);
-            return this._validNextHorizontalWalls;
+            return this._validNextWalls;
         }
         else {
             set2DArrayEveryElementToValue(this._validNextWalls.horizontal, true);
@@ -130,6 +140,7 @@ class Game {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.board.walls.horizontal[i][j] === true) {
+                    this._validNextWalls.vertical[i][j] = false;
                     this._validNextWalls.horizontal[i][j] = false;
                     if (j > 0) {
                         this._validNextWalls.horizontal[i][j - 1] = false;
@@ -139,6 +150,7 @@ class Game {
                     }   
                 }
                 if (this.board.walls.vertical[i][j] === true) {
+                    this._validNextWalls.horizontal[i][j] = false;
                     this._validNextWalls.vertical[i][j] = false;
                     if (i > 0) {
                         this._validNextWalls.vertical[i-1][j] = false;
@@ -240,6 +252,18 @@ class Game {
         else if (moveArr[0] === 0 && moveArr[1] === 1) { // right
             return (currentPosition.col < 8 && this.openWays.leftRight[currentPosition.row][currentPosition.col]);
         }
+    }
+
+    putHorizontalWall(row, col) {
+        this.board.walls.horizontal[row][col] = true;
+        this.pawnOfTurn.numberOfLeftWalls--;
+        this.turn++;
+    }
+
+    putVerticalWall(row, col) {
+        this.board.walls.vertical[row][col] = true;
+        this.pawnOfTurn.numberOfLeftWalls--;
+        this.turn++;
     }
 }
 

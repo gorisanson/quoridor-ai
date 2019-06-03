@@ -8,9 +8,14 @@
 *       ...
 *        8
 * 
-*  Follow above notation.
+*  Follow the notation above.
 */
 
+// moveArr: represent pawn move
+const MOVE_UP = [-1, 0];
+const MOVE_DOWN = [1, 0];
+const MOVE_LEFT = [0, -1];
+const MOVE_RIGHT = [0, 1];
 
 function create2DArrayInitializedTo(numOfRow, numOfCol, initialValue) {
     let arr2D = [];
@@ -28,6 +33,14 @@ function set2DArrayEveryElementToValue(arr2D, value) {
     for (let i = 0; i < arr2D.length; i++) {
         arr2D[i].fill(value);
     }
+}
+
+function create2DArrayClonedFrom(arr2D) {
+    let arr2DCloned = [];
+    for (let i = 0; i < arr2D.length; i++) {
+        arrr2DCloned.push([...arr2D[i]]);
+    }
+    return arr2DCloned;
 }
 
 
@@ -56,8 +69,16 @@ class PawnPosition {
 * initial_col: initial col position
 */
 class Pawn {
-    constructor(initialRow, initialCol) {
-        this.position = new PawnPosition(initialRow, initialCol);
+    constructor(isPlayer) {
+        if (isPlayer === true) {
+            this.isPlayer = true;
+            this.position = new PawnPosition(8, 4);
+            this.goalLineRow = 0;
+        } else {
+            this.isPlayer = false;
+            this.position = new PawnPosition(0, 4);
+            this.goalLineRow = 8;
+        }
         this.numberOfLeftWalls = 10;
     }
 }
@@ -67,8 +88,12 @@ class Pawn {
 * Represents a Board
 */
 class Board {
-    constructor() {
-        this.pawns = [new Pawn(8, 4), new Pawn(0, 4)];
+    constructor(isPlayerFirst) {
+        if (isPlayerFirst === true) {
+            this.pawns = [new Pawn(true), new Pawn(false)];
+        } else {
+            this.pawns = [new Pawn(false), new Pawn(true)];
+        }
         // horizontal, vertical: each is a 8 by 8 2D array, true: there is a wall, false: there is not a wall.
         this.walls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
     }
@@ -79,8 +104,9 @@ class Board {
 * Represents a Quoridor game and the rule
 */
 class Game {
-    constructor() {
-        this.board = new Board();
+    constructor(isPlayerFirst) {
+        this.board = new Board(isPlayerFirst);
+        this.winner = null;
         this._turn = 0;
         this._validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
         this._validNextWallsUpdated = false;
@@ -99,9 +125,9 @@ class Game {
 
     set turn(newTurn) {
         this._turn = newTurn;
+        this._validNextPositionsUpdated = false;
         this._validNextWallsUpdated = false;
         this._openWaysUpdated = false;
-        this._validNextPositionsUpdated = false;
     }
 
     get pawnIndexOfTurn() {
@@ -196,17 +222,12 @@ class Game {
         this._validNextPositionsUpdated = true;
 
         set2DArrayEveryElementToValue(this._validNextPositions, false);
-
-        const moveUp = [-1, 0];
-        const moveDown = [1, 0];
-        const moveLeft = [0, -1];
-        const moveRight = [0, 1];
         
-        this._set_validNextPositionsToward(moveUp, moveLeft, moveRight);
-        this._set_validNextPositionsToward(moveDown, moveLeft, moveRight);
+        this._set_validNextPositionsToward(MOVE_UP, MOVE_LEFT, MOVE_RIGHT);
+        this._set_validNextPositionsToward(MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT);
        
-        this._set_validNextPositionsToward(moveLeft, moveUp, moveDown);
-        this._set_validNextPositionsToward(moveRight, moveUp, moveDown);
+        this._set_validNextPositionsToward(MOVE_LEFT, MOVE_UP, MOVE_DOWN);
+        this._set_validNextPositionsToward(MOVE_RIGHT, MOVE_UP, MOVE_DOWN);
         
         return this._validNextPositions;
     }
@@ -236,7 +257,6 @@ class Game {
         }
     }
 
-
     // this method checks if the moveArr of the pawn of this turn is valid against walls on the board and the board size.
     // and this method do not check the validity against the other pawn's position. 
     isValidNextMoveNotConsideringOtherPawn(currentPosition, moveArr) {
@@ -251,19 +271,83 @@ class Game {
         }
         else if (moveArr[0] === 0 && moveArr[1] === 1) { // right
             return (currentPosition.col < 8 && this.openWays.leftRight[currentPosition.row][currentPosition.col]);
+        } else {
+            throw "moveArr should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
         }
+    }
+
+    isOpenWay(currentRow, currentCol, moveArr) {
+        if (moveArr[0] === -1 && moveArr[1] === 0)  {   // up
+            return (currentRow > 0 && this.openWays.upDown[currentRow - 1][currentCol]);
+        } else if (moveArr[0] === 1 && moveArr[1] === 0) {  //down
+            return (currentRow < 8 && this.openWays.upDown[currentRow][currentCol]);
+        } else if (moveArr[0] === 0 && moveArr[1] === -1) {  // left
+            return (currentCol > 0 && this.openWays.leftRight[currentRow][currentCol - 1]);
+        } else if (moveArr[0] === 0 && moveArr[1] === 1) {  // right
+            return (currentCol < 8 && this.openWays.leftRight[currentRow][currentCol]);
+        } else {
+            throw "moveArr should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
+        }
+    }
+
+    movePawn(row, col) {
+        this.pawnOfTurn.position.row = row;
+        this.pawnOfTurn.position.col = col;
+        if (this.pawnOfTurn.goalLineRow === this.pawnOfTurn.position.row) {
+            this.winner = this.pawnOfTurn;
+        }
+        this.turn++;
     }
 
     putHorizontalWall(row, col) {
         this.board.walls.horizontal[row][col] = true;
         this.pawnOfTurn.numberOfLeftWalls--;
         this.turn++;
+        if (!this._existPathsToGoalLines()) {
+            this.turn--;
+            this.pawnOfTurn.numberOfLeftWalls++;
+            this.board.walls.horizontal[row][col] = false;
+            throw "NO_PATH_ERROR"
+        }
     }
 
     putVerticalWall(row, col) {
         this.board.walls.vertical[row][col] = true;
         this.pawnOfTurn.numberOfLeftWalls--;
         this.turn++;
+        if (!this._existPathsToGoalLines()) {
+            this.turn--;
+            this.pawnOfTurn.numberOfLeftWalls++;
+            this.board.walls.vertical[row][col] = false;
+            throw "NO_PATH_ERROR"
+        }
+    }
+
+    _existPathsToGoalLines() {
+        return (this._existPathToGoalLineFor(this.pawnOfTurn) && this._existPathToGoalLineFor(this.pawnOfNotTurn))
+    }
+
+    _existPathToGoalLineFor(pawn) {
+        let visited = create2DArrayInitializedTo(9, 9, false);
+        let depthFirstSearch = function(currentRow, currentCol, goalLineRow) {
+            for (const moveArr of [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN]) {
+                const nextRow = currentRow + moveArr[0];
+                const nextCol = currentCol + moveArr[1];
+                if (nextRow >= 0 && nextRow <= 8 && nextCol >=0 && nextCol <= 8
+                    && !visited[nextRow][nextCol]
+                    && this.isOpenWay(currentRow, currentCol, moveArr)) {
+                    visited[nextRow][nextCol] = true;
+                    if (nextRow === goalLineRow) {
+                        return true;
+                    }
+                    if(depthFirstSearch.bind(this)(nextRow, nextCol, goalLineRow)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        return depthFirstSearch.bind(this)(pawn.position.row, pawn.position.col, pawn.goalLineRow);
     }
 }
 

@@ -9,6 +9,10 @@ class View {
         this.htmlPawn1 = document.getElementById("pawn1");
     }
 
+    printMessage(message) {
+        alert(message);
+    }
+
     render() {
         for (let i = 0; i < this.htmlBoardTable.rows.length; i++) {
             for (let j = 0; j < this.htmlBoardTable.rows[0].cells.length; j++) {
@@ -16,19 +20,47 @@ class View {
                 element.classList.remove("wall_shadow");
                 element.removeAttribute("onmouseenter");
                 element.removeAttribute("onmouseleave");
-                element.onclick = () => {};
+                element.onclick = null;
             }
         }
-        
+
         this._renderPawnPositions();
         this._renderWalls();
-        this._renderValidNextWalls();
-        this._renderValidNextPositions();
+        if (this.game.winner !== null) {
+            if (this.game.winner.isPlayer) {
+                this.printMessage("You win!")
+            } else {
+                this.printMessage("AI wins!")
+            }
+        } else {
+            this._renderValidNextPawnPositions();
+            this._renderValidNextWalls();
+        }
     }
 
     _renderPawnPositions() {
         this.htmlBoardTable.rows[this.game.board.pawns[0].position.row * 2].cells[this.game.board.pawns[0].position.col * 2].appendChild(this.htmlPawn0);
         this.htmlBoardTable.rows[this.game.board.pawns[1].position.row * 2].cells[this.game.board.pawns[1].position.col * 2].appendChild(this.htmlPawn1);
+    }
+
+    _renderValidNextPawnPositions() {
+        let onclickNextPawnPosition = function(e) {
+            const x = e.currentTarget;
+            View.pawnShadow(x, this.game.pawnIndexOfTurn, false);
+            const row = x.parentElement.rowIndex / 2;
+            const col = x.cellIndex / 2;
+            this.controller.movePawn(row, col);
+        }
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                if (this.game.validNextPositions[i][j] === true) {
+                    let element = this.htmlBoardTable.rows[i * 2].cells[j * 2];
+                    element.setAttribute("onmouseenter", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",true)");
+                    element.setAttribute("onmouseleave", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",false)");
+                    element.onclick = onclickNextPawnPosition.bind(this);
+                }
+            }
+        }
     }
 
     _renderWalls() {
@@ -53,73 +85,67 @@ class View {
     }
 
     _renderValidNextWalls() {
-        let onclickHorizontalFunc = function(e) {
-            View.horizontalWallShadow(e.currentTarget, 'out');
-            this.controller.putHorizontalWall(e);
+        let onclickNextHorizontalWall = function(e) {
+            const x = e.currentTarget;
+            View.horizontalWallShadow(x, false);
+            const row = (x.parentElement.rowIndex - 1) / 2;
+            const col = (x.cellIndex === 0) ? 0 : ((x.cellIndex - 2) / 2);
+            this.controller.putHorizontalWall(row, col);
         }
-        let onclickVerticalFunc = function(e) {
-            View.verticalWallShadow(e.currentTarget, 'out');
-            this.controller.putVerticalWall(e);
+        let onclickNextVerticalWall = function(e) {
+            const x = e.currentTarget;
+            View.verticalWallShadow(x, false);
+            const row = (x.parentElement.rowIndex === 0) ? 0 : ((x.parentElement.rowIndex - 2) / 2);
+            const col = (x.cellIndex - 1) / 2;
+            this.controller.putVerticalWall(row, col);
         }
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.game.validNextWalls.horizontal[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2 + 1].cells[j * 2 + 2];
-                    element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, 'in')");
-                    element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, 'out')");                    
-                    element.onclick = onclickHorizontalFunc.bind(this);
+                    element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, true)");
+                    element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, false)");                    
+                    element.onclick = onclickNextHorizontalWall.bind(this);
                     if (j === 0) {
-                        element = this.htmlBoardTable.rows[i * 2 + 1].cells[j * 2];
-                        element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, 'in')");
-                        element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, 'out')");
-                        element.onclick = onclickHorizontalFunc.bind(this);
+                        element = this.htmlBoardTable.rows[i * 2 + 1].cells[0];
+                        element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, true)");
+                        element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, false)");
+                        element.onclick = onclickNextHorizontalWall.bind(this);
                     }
                 }
                 
                 if (this.game.validNextWalls.vertical[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2 + 2].cells[j * 2 + 1];
-                    element.setAttribute("onmouseenter", "View.verticalWallShadow(this, 'in')");
-                    element.setAttribute("onmouseleave", "View.verticalWallShadow(this, 'out')");
-                    element.onclick = onclickVerticalFunc.bind(this);
+                    element.setAttribute("onmouseenter", "View.verticalWallShadow(this, true)");
+                    element.setAttribute("onmouseleave", "View.verticalWallShadow(this, false)");
+                    element.onclick = onclickNextVerticalWall.bind(this);
                     if (i === 0) {
-                        element = this.htmlBoardTable.rows[i * 2].cells[j * 2 + 1];
-                        element.setAttribute("onmouseenter", "View.verticalWallShadow(this, 'in')");
-                        element.setAttribute("onmouseleave", "View.verticalWallShadow(this, 'out')");
-                        element.onclick = onclickVerticalFunc.bind(this);
+                        element = this.htmlBoardTable.rows[0].cells[j * 2 + 1];
+                        element.setAttribute("onmouseenter", "View.verticalWallShadow(this, true)");
+                        element.setAttribute("onmouseleave", "View.verticalWallShadow(this, false)");
+                        element.onclick = onclickNextVerticalWall.bind(this);
                     }
                 }
             }
         }
     }
 
-    _renderValidNextPositions() {
-        for (let i = 0; i < 9; i++) {
-            for (let j = 0; j < 9; j++) {
-                if (this.game.validNextPositions[i][j] === true) {
-                    let element = this.htmlBoardTable.rows[i * 2].cells[j * 2];
-                    element.setAttribute("onmouseenter", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",'in')");
-                    element.setAttribute("onmouseleave", "View.pawnShadow(this," + this.game.pawnIndexOfTurn + ",'out')");
-                }
-            }
-        }
-    }
-
-    static pawnShadow(x, pawnIndex, mode) {
-        if (mode === "in") {
-            let pawnId = "pawn" + pawnIndex;
-            let pawn = document.getElementById(pawnId);
-            let pawnSh = pawn.cloneNode(true);
-            pawnSh.style.opacity = 0.3;
-            x.appendChild(pawnSh);
+    static pawnShadow(x, pawnIndex, turnOn) {
+        if (turnOn === true) {
+            const pawnId = "pawn" + pawnIndex;
+            const pawn = document.getElementById(pawnId);
+            const _pawnShadow = pawn.cloneNode(true);
+            _pawnShadow.style.opacity = 0.3;
+            x.appendChild(_pawnShadow);
         } else {
             x.removeChild(x.childNodes[0]);
         }
     }
     
-    static horizontalWallShadow(x, mode) {
+    static horizontalWallShadow(x, turnOn) {
         let foo;
-        if (mode === "in") {
-            let _horizontalWallShadow = document.createElement("div");
+        if (turnOn === true) {
+            const _horizontalWallShadow = document.createElement("div");
             _horizontalWallShadow.classList.add("horizontal_wall");
             _horizontalWallShadow.classList.add("shadow");
             if (x.cellIndex === 0) {
@@ -127,14 +153,16 @@ class View {
             }
             x.appendChild(_horizontalWallShadow);
         } else {
-            x.removeChild(x.childNodes[0]);  
+            while (x.firstChild) {
+                x.removeChild(x.firstChild);
+            }  
         }
     }
     
-    static verticalWallShadow(x, mode) {
+    static verticalWallShadow(x, turnOn) {
         let foo;
-        if (mode === "in") {
-            let _verticalWallShadow = document.createElement("div");
+        if (turnOn === true) {
+            const _verticalWallShadow = document.createElement("div");
             _verticalWallShadow.classList.add("vertical_wall");
             _verticalWallShadow.classList.add("shadow");
             if (x.parentElement.rowIndex === 0) {
@@ -142,7 +170,9 @@ class View {
             }
             x.appendChild(_verticalWallShadow);
         } else {
-            x.removeChild(x.childNodes[0]);
+            while (x.firstChild) {
+                x.removeChild(x.firstChild);
+            }
         }
    
     }

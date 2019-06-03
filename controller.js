@@ -1,41 +1,40 @@
 class Controller {
-    constructor() {
-        this.game = new Game();
+    constructor(isPlayerFirst = true) {
+        this.game = new Game(isPlayerFirst);
         this.view = new View(this, this.game);
-        this.updateView();
-    }
-
-    updateView() {
         this.view.render();
     }
 
-    putHorizontalWall(e) {
-        let x;
-        if (x = e.currentTarget) {
-            let row = (x.parentElement.rowIndex - 1) / 2;
-            let col; 
-            if (x.cellIndex === 0) {
-                col = 0;
-            } else {
-                col = (x.cellIndex - 2) / 2;
-            }
+    movePawn(row, col) {
+        this.game.movePawn(row, col);
+        this.view.render();
+    }
+
+    putHorizontalWall(row, col) {
+        try {
             this.game.putHorizontalWall(row, col);
-            this.updateView();
+            this.view.render();
+        }
+        catch(err) {
+            if (err === "NO_PATH_ERROR") {
+                this.view.printMessage("There must be at least one path to goal line for each pawn.");
+            } else {
+                throw err;
+            }
         }
     }
 
-    putVerticalWall(e) {
-        let x;
-        if (x = e.currentTarget) {
-            let col = (x.cellIndex - 1) / 2;
-            let row;
-            if (x.parentElement.rowIndex === 0) {
-                row = 0;
-            } else {
-                row = (x.parentElement.rowIndex - 2) / 2;
-            }
+    putVerticalWall(row, col) {
+        try {
             this.game.putVerticalWall(row, col);
-            this.updateView();
+            this.view.render();
+        }
+        catch(err) {
+            if (err === "NO_PATH_ERROR") {
+                this.view.printMessage("There must be at least one path to goal line for each pawn.");
+            } else {
+                throw err;
+            }
         }
     }
 }

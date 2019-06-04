@@ -102,13 +102,13 @@ class PawnPosition {
 * Represents a pawn
 */
 class Pawn {
-    constructor(isPlayer) {
-        if (isPlayer === true) {
-            this.isPlayer = true;
+    constructor(isHumanPlayer) {
+        if (isHumanPlayer === true) {
+            this.isHumanPlayer = true;
             this.position = new PawnPosition(8, 4);
             this.goalLineRow = 0;
         } else {
-            this.isPlayer = false;
+            this.isHumanPlayer = false;
             this.position = new PawnPosition(0, 4);
             this.goalLineRow = 8;
         }
@@ -121,8 +121,8 @@ class Pawn {
 * Represents a Board
 */
 class Board {
-    constructor(isPlayerFirst) {
-        if (isPlayerFirst === true) {
+    constructor(isHumanPlayerFirst) {
+        if (isHumanPlayerFirst === true) {
             this.pawns = [new Pawn(true), new Pawn(false)];
         } else {
             this.pawns = [new Pawn(false), new Pawn(true)];
@@ -137,8 +137,8 @@ class Board {
 * Represents a Quoridor game and the rule
 */
 class Game {
-    constructor(isPlayerFirst) {
-        this.board = new Board(isPlayerFirst);
+    constructor(isHumanPlayerFirst) {
+        this.board = new Board(isHumanPlayerFirst);
         this.winner = null;
         this._turn = 0;
         this._validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};

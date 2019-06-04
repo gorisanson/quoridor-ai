@@ -4,6 +4,31 @@ class View {
     constructor(controller, game) {
         this.controller = controller;
         this.game = game;
+        let tinyPawnList = document.getElementsByClassName("pawn tiny");
+        let wallNumList = document.getElementsByClassName("wall_num");
+        if (this.game.board.pawns[0].position.row === 0) {
+            tinyPawnList[0].classList.remove("pawn1");
+            wallNumList[0].classList.remove("pawn1");
+            tinyPawnList[0].classList.add("pawn0");
+            wallNumList[0].classList.add("pawn0");
+
+            tinyPawnList[1].classList.remove("pawn0");
+            wallNumList[1].classList.remove("pawn0");
+            tinyPawnList[1].classList.add("pawn1");
+            wallNumList[1].classList.add("pawn1");
+            this.htmlWallNum = {pawn0: wallNumList[0], pawn1: wallNumList[1]};
+        } else {
+            tinyPawnList[0].classList.remove("pawn0");
+            wallNumList[0].classList.remove("pawn0");
+            tinyPawnList[0].classList.add("pawn1");
+            wallNumList[0].classList.add("pawn1");
+
+            tinyPawnList[1].classList.remove("pawn1");
+            wallNumList[1].classList.remove("pawn1");
+            tinyPawnList[1].classList.add("pawn0");
+            wallNumList[1].classList.add("pawn0");
+            this.htmlWallNum = {pawn0: wallNumList[1], pawn1: wallNumList[0]};
+        }
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawn0 = document.getElementById("pawn0");
         this.htmlPawn1 = document.getElementById("pawn1");
@@ -24,10 +49,11 @@ class View {
             }
         }
 
+        this._renderInformationBoard();
         this._renderPawnPositions();
         this._renderWalls();
         if (this.game.winner !== null) {
-            if (this.game.winner.isPlayer) {
+            if (this.game.winner.isHumanPlayer) {
                 this.printMessage("You win!")
             } else {
                 this.printMessage("AI wins!")
@@ -36,6 +62,11 @@ class View {
             this._renderValidNextPawnPositions();
             this._renderValidNextWalls();
         }
+    }
+
+    _renderInformationBoard() {
+        this.htmlWallNum.pawn0.innerHTML = this.game.board.pawns[0].numberOfLeftWalls;
+        this.htmlWallNum.pawn1.innerHTML = this.game.board.pawns[1].numberOfLeftWalls;
     }
 
     _renderPawnPositions() {

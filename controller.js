@@ -1,6 +1,6 @@
 class Controller {
-    constructor(isPlayerFirst = true) {
-        this.game = new Game(isPlayerFirst);
+    constructor(isHumanPlayerFirst = true) {
+        this.game = new Game(isHumanPlayerFirst);
         this.view = new View(this, this.game);
         this.view.render();
     }

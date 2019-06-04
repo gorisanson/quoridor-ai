@@ -63,10 +63,10 @@
             border-radius: 50%;
             vertical-align: middle;
         }
-        .pawn0 {
+        div.pawn.pawn0 {
             background-color: rgb(195, 164, 23);
         }
-        .pawn1 {
+        div.pawn.pawn1 {
             background-color: rgb(51, 25, 25);
         }
         div.horizontal_wall, div.vertical_wall {
@@ -456,12 +456,13 @@
             </tr>
         </table>
         <div id="information_board">
-            <div><div class="pawn tiny pawn0"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num">10</div></div>
-            <div><div class="pawn tiny pawn1"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num">10</div></div>
+            <div><div class="pawn tiny pawn0"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div>
+            <div><div class="pawn tiny pawn1"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div>
         </div>
     </div>
     <script>
-        var controller = new Controller();
+        let isHumanPlayerFirst = true;
+        let controller = new Controller(isHumanPlayerFirst);
     </script>
 </body>
 </html>

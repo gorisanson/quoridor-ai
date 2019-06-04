@@ -72,17 +72,9 @@
         div.horizontal_wall, div.vertical_wall {
             display: inline-block;
             position: absolute;
-            right: var(--wall-gap);
-            bottom: var(--wall-gap);
-            background-color: rgb(202, 168, 106);
-        }
-        div.horizontal_wall.leftmost {
-            right: unset;
             left: var(--wall-gap);
-        }
-        div.vertical_wall.topmost {
-            bottom: unset;
             top: var(--wall-gap);
+            background-color: rgb(202, 168, 106);
         }
         div.horizontal_wall {
             width: var(--wall-length);

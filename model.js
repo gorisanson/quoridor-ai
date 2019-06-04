@@ -1,4 +1,5 @@
 /*    
+*          PawnPosition: represents position of pawn
 *              col
 *          0 1 2 3 ... 8
 *        0
@@ -8,6 +9,40 @@
 *       ...
 *        8
 * 
+*
+*          Walls (Horizontal/Vertical): represents position of walls
+*              col
+*          0 1 2 3 ... 7
+*        0
+*        1
+*  row   2
+*        3
+*       ...
+*        7
+*
+*
+*          OpenWays UpDown: represents whether open(true) or blocked(false) between up down adjecent pawn positions.
+*              col
+*          0 1 2 3 ... 7 8
+*        0
+*        1
+*  row   2
+*        3
+*       ...
+*        7
+*
+*
+*          OpenWays LeftRight: represents whether open(true) or blocked(false) between left right adjecent pawn positions.
+*              col
+*          0 1 2 3 ... 7
+*        0
+*        1
+*  row   2
+*        3
+*       ...
+*        7
+*        8
+*
 *  Follow the notation above.
 */
 

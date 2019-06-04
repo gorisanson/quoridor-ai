@@ -84,8 +84,14 @@
             width: var(--wall-width);
             height: var(--wall-length);
         }
-        div.shadow {
+        div.horizontal_wall.shadow, div.vertical_wall.shadow {
             opacity: 0.5;
+        }
+        div.pawn.shadow {
+            opacity: 0.3;
+        }
+        div.pawn.shadow:hover {
+            opacity: 0.7;
         }
         #information_board {
             font-size: 30px;

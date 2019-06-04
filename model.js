@@ -100,8 +100,6 @@ class PawnPosition {
 
 /*
 * Represents a pawn
-* initial_row: initial row position
-* initial_col: initial col position
 */
 class Pawn {
     constructor(isPlayer) {
@@ -268,7 +266,8 @@ class Game {
     }
 
 
-    // check and set this._validNextPostions toward mainMove. subMoves are needed for jumping case.
+    // check and set this._validNextPostions toward mainMove.
+    // subMoves are needed for jumping case.
     _set_validNextPositionsToward(mainMove, subMove1, subMove2) {
         if (this.isValidNextMoveNotConsideringOtherPawn(this.pawnOfTurn.position, mainMove)) {
             let mainMovePosition = this.pawnOfTurn.position.addMove(mainMove);

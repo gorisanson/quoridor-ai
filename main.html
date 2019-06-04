@@ -9,7 +9,7 @@
     <title>Document</title>
     <style>
         :root {
-            --board-table-size: 92vmin;
+            --board-table-size: 70vmin;
             --long-short-ratio: 3.2;
             --short-length: calc(var(--board-table-size) / (9 * var(--long-short-ratio) + 8));
             --long-length: calc(var(--long-short-ratio) * var(--short-length));
@@ -23,7 +23,7 @@
             height: 100vh;
             justify-content: center;
             align-content: center;
-            grid-template-columns: var(--board-table-size) 8vmin;
+            grid-template-columns: var(--board-table-size) 30vmin;
             grid-template-rows: var(--board-table-size);
         }
         table {
@@ -63,10 +63,10 @@
             border-radius: 50%;
             vertical-align: middle;
         }
-        #pawn0 {
+        .pawn0 {
             background-color: rgb(195, 164, 23);
         }
-        #pawn1 {
+        .pawn1 {
             background-color: rgb(51, 25, 25);
         }
         div.horizontal_wall, div.vertical_wall {
@@ -95,8 +95,33 @@
         div.shadow {
             opacity: 0.5;
         }
-        #game_state {
-            float: right;
+        #information_board {
+            font-size: 30px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        div.pawn.tiny {
+            width: 30px;
+            height: 30px;
+            margin-right: 15px;
+        }
+        div.horizontal_wall.tiny {
+            position: initial;
+            width: 50px;
+            height: 12px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+        div.multiplication_sign {
+            display: inline;
+            vertical-align: middle;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+        div.wall_num {
+            display: inline;
+            vertical-align: middle;
+            margin-left: 5px;
         }
     </style>
     <script src="model.js"></script>
@@ -107,9 +132,9 @@
     <div class="gridcontainer">
         <table id="board_table">
             <tr class="row row0">
-                <td class="col col0"><div class="pawn" id="pawn0"></div></td>
+                <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>
                 <td class="between_cols col0"></td>
-                <td class="col col1"><div class="pawn" id="pawn1"></div></td>
+                <td class="col col1"><div class="pawn pawn1" id="pawn1"></div></td>
                 <td class="between_cols col1"></td>
                 <td class="col col2"></td>
                 <td class="between_cols col2"></td>
@@ -430,8 +455,9 @@
                 <td class="col col8"></td>
             </tr>
         </table>
-        <div id="game_state">
-            It's me
+        <div id="information_board">
+            <div><div class="pawn tiny pawn0"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num">10</div></div>
+            <div><div class="pawn tiny pawn1"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num">10</div></div>
         </div>
     </div>
     <script>

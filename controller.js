@@ -17,7 +17,7 @@ class Controller {
         }
         catch(err) {
             if (err === "NO_PATH_ERROR") {
-                this.view.printMessage("There must be at least one path to goal line for each pawn.");
+                this.view.printNoteMessage("There must be at least one path to goal line for each pawn.");
             } else {
                 throw err;
             }
@@ -31,7 +31,7 @@ class Controller {
         }
         catch(err) {
             if (err === "NO_PATH_ERROR") {
-                this.view.printMessage("There must be at least one path to goal line for each pawn.");
+                this.view.printNoteMessage("There must be at least one path to goal line for each pawn.");
             } else {
                 throw err;
             }

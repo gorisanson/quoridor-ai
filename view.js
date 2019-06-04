@@ -31,10 +31,37 @@ class View {
         }
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
+        this.htmlMessageBox = document.getElementById("message_box");
     }
 
     printMessage(message) {
-        alert(message);
+        this.htmlMessageBox.innerHTML = message;
+    }
+
+    printNoteMessage(message) {
+        let previousBox;
+        if (previousBox = document.getElementById("note_message_box")) {
+            previousBox.remove();
+        }
+        const box = document.createElement("div");
+        box.classList.add("fade_inout_box")
+        box.id = "note_message_box";
+        box.innerHTML = message;
+        const boardTableContainer = document.getElementById("board_table_container");
+        boardTableContainer.appendChild(box);
+    }
+
+    printGameResultMessage(message) {
+        let previousBox;
+        if (previousBox = document.getElementById("game_result_message_box")) {
+            previousBox.remove();
+        }
+        const box = document.createElement("div");
+        box.classList.add("fade_inout_box")
+        box.id = "game_result_message_box";
+        box.innerHTML = message;
+        const boardTableContainer = document.getElementById("board_table_container");
+        boardTableContainer.appendChild(box);
     }
 
     render() {
@@ -57,13 +84,20 @@ class View {
         this._renderWalls();
         if (this.game.winner !== null) {
             if (this.game.winner.isHumanPlayer) {
+                this.printGameResultMessage("You win!")
                 this.printMessage("You win!")
             } else {
+                this.printGameResultMessage("AI wins!")
                 this.printMessage("AI wins!")
             }
         } else {
             this._renderValidNextPawnPositions();
             this._renderValidNextWalls();
+            if (this.game.pawnOfTurn.isHumanPlayer) {
+                this.printMessage("Your turn")
+            } else {
+                this.printMessage("AI's turn")
+            }
         }
     }
 

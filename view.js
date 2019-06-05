@@ -1,37 +1,68 @@
 i = 0;
 
 class View {
-    constructor(controller, game) {
+    constructor(controller) {
         this.controller = controller;
-        this.game = game;
-        let tinyPawnList = document.getElementsByClassName("pawn tiny");
+        this._game = null;
+        this.htmlBoardTable = document.getElementById("board_table");
+        this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
+        this.htmlPawns[0].style.visibility = "hidden";
+        this.htmlPawns[1].style.visibility = "hidden";
+        this.htmlMessageBox = document.getElementById("message_box");
+        this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
+        let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
+        let pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
+        let onclickPawnButton = function(e) {
+            const x = e.target;
+            if (x.classList.contains("pawn0")) {
+                this.startNewGame(true);
+            } else if (x.classList.contains("pawn1")) {
+                this.startNewGame(false);
+            }
+        }
+        pawn0Button.onclick = onclickPawnButton.bind(this);
+        pawn1Button.onclick = onclickPawnButton.bind(this);
+    }
+
+    set game(game) {
+        this._game = game;
+        this.htmlPawns[0].style.visibility = "visible";
+        this.htmlPawns[1].style.visibility = "visible";
+
+        // initialize number of left walls box
+        let symbolPawnList = document.getElementsByClassName("pawn symbol");
         let wallNumList = document.getElementsByClassName("wall_num");
         if (this.game.board.pawns[0].position.row === 0) {
-            tinyPawnList[0].classList.remove("pawn1");
+            symbolPawnList[0].classList.remove("pawn1");
             wallNumList[0].classList.remove("pawn1");
-            tinyPawnList[0].classList.add("pawn0");
+            symbolPawnList[0].classList.add("pawn0");
             wallNumList[0].classList.add("pawn0");
 
-            tinyPawnList[1].classList.remove("pawn0");
+            symbolPawnList[1].classList.remove("pawn0");
             wallNumList[1].classList.remove("pawn0");
-            tinyPawnList[1].classList.add("pawn1");
+            symbolPawnList[1].classList.add("pawn1");
             wallNumList[1].classList.add("pawn1");
             this.htmlWallNum = {pawn0: wallNumList[0], pawn1: wallNumList[1]};
         } else {
-            tinyPawnList[0].classList.remove("pawn0");
+            symbolPawnList[0].classList.remove("pawn0");
             wallNumList[0].classList.remove("pawn0");
-            tinyPawnList[0].classList.add("pawn1");
+            symbolPawnList[0].classList.add("pawn1");
             wallNumList[0].classList.add("pawn1");
 
-            tinyPawnList[1].classList.remove("pawn1");
+            symbolPawnList[1].classList.remove("pawn1");
             wallNumList[1].classList.remove("pawn1");
-            tinyPawnList[1].classList.add("pawn0");
+            symbolPawnList[1].classList.add("pawn0");
             wallNumList[1].classList.add("pawn0");
             this.htmlWallNum = {pawn0: wallNumList[1], pawn1: wallNumList[0]};
         }
-        this.htmlBoardTable = document.getElementById("board_table");
-        this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
-        this.htmlMessageBox = document.getElementById("message_box");
+    }
+    get game() {
+        return this._game;
+    }
+   
+    startNewGame(isHumanPlayerFirst) {
+        this.htmlChoosePawnMessageBox.style.display = "none";
+        this.controller.startNewGame(isHumanPlayerFirst);
     }
 
     printMessage(message) {
@@ -44,7 +75,8 @@ class View {
             previousBox.remove();
         }
         const box = document.createElement("div");
-        box.classList.add("fade_inout_box")
+        box.classList.add("fade_box")
+        box.classList.add("inout");
         box.id = "note_message_box";
         box.innerHTML = message;
         const boardTableContainer = document.getElementById("board_table_container");
@@ -57,7 +89,8 @@ class View {
             previousBox.remove();
         }
         const box = document.createElement("div");
-        box.classList.add("fade_inout_box")
+        box.classList.add("fade_box")
+        box.classList.add("inout");
         box.id = "game_result_message_box";
         box.innerHTML = message;
         const boardTableContainer = document.getElementById("board_table_container");
@@ -79,7 +112,7 @@ class View {
             previousPawnShadows[0].remove();
         }
 
-        this._renderInformationBoard();
+        this._renderNumberOfLeftWalls();
         this._renderPawnPositions();
         this._renderWalls();
         if (this.game.winner !== null) {
@@ -101,7 +134,7 @@ class View {
         }
     }
 
-    _renderInformationBoard() {
+    _renderNumberOfLeftWalls() {
         this.htmlWallNum.pawn0.innerHTML = this.game.board.pawns[0].numberOfLeftWalls;
         this.htmlWallNum.pawn1.innerHTML = this.game.board.pawns[1].numberOfLeftWalls;
     }
@@ -113,7 +146,7 @@ class View {
 
     _renderValidNextPawnPositions() {
         let onclickNextPawnPosition = function(e) {
-            const x = e.currentTarget;
+            const x = e.target;
             const row = x.parentElement.parentElement.rowIndex / 2;
             const col = x.parentElement.cellIndex / 2;
             this.controller.movePawn(row, col);
@@ -186,7 +219,7 @@ class View {
             }
         }
     }
-    
+
     static horizontalWallShadow(x, turnOn) {
         let foo;
         if (turnOn === true) {

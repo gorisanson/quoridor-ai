@@ -9,23 +9,58 @@
     <title>Document</title>
     <style>
         :root {
-            --board-table-side-length: 70vmin;
+            --board-table-side-length: 90vmin;
             --long-short-ratio: 3.2;
             --short-length: calc(var(--board-table-side-length) / (9 * var(--long-short-ratio) + 8));
             --long-length: calc(var(--long-short-ratio) * var(--short-length));
             --wall-gap: calc(var(--short-length) * 0.25);
             --wall-length: calc(2 * var(--long-length) + var(--short-length) - 2 * var(--wall-gap));
             --wall-width: calc(var(--short-length) - 2 * var(--wall-gap));
+            --font-size: 18px;
         }
-        .gridcontainer {
+        html {
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        .gridcontainer0 {
             display: grid;
             width: 100vw;
             height: 100vh;
             justify-content: center;
             align-content: center;
-            grid-template-columns: var(--board-table-side-length) 30vmin;
-            grid-template-rows: var(--board-table-side-length);
+            grid-template-rows: var(--board-table-side-length) calc(4 * var(--font-size));
+            grid-template-columns: var(--board-table-side-length);
         }
+        .gridcontainer1 {
+            display: grid;
+            justify-content: center;
+            align-content: center;
+            grid-template-rows: 1fr;
+            grid-template-columns: 1fr 1fr;
+        }
+        /* size of iPad screen is 768px x 1024px in portrait mode */
+        @media only screen and (min-width: 768px) and (min-height: 768px) {
+            :root {
+                --font-size: 30px;
+            }
+        }
+        @media only screen and (min-width: 768px), (orientation: landscape) {
+            :root {
+                --board-table-side-length: 70vmin;
+            }
+            .gridcontainer0 {
+                grid-template-rows: var(--board-table-side-length);
+                grid-template-columns: var(--board-table-side-length) calc(100vmin - var(--board-table-side-length));
+            }
+            .gridcontainer1 {
+                display:grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
+            }
+        }
+
         #board_table_container {
             position: relative;
         }
@@ -61,8 +96,8 @@
         }
         div.pawn {
             display: inline-block;
-            width: 70%;
-            height: 70%;
+            width: calc(var(--long-length) * 0.7);
+            height: calc(var(--long-length) * 0.7);
             border-radius: 50%;
             vertical-align: middle;
         }
@@ -96,49 +131,97 @@
         div.pawn.shadow:hover {
             opacity: 0.7;
         }
-        #information_board {
-            font-size: 30px;
+        #number_of_left_walls_box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size);
             text-align: center;
-        }
-        div.pawn.tiny {
             vertical-align: middle;
-            width: 30px;
-            height: 30px;
-            margin-right: 15px;
         }
-        div.horizontal_wall.tiny {
+        div.pawn.symbol {
+            vertical-align: middle;
+            width: var(--font-size);
+            height: var(--font-size);
+            margin-right: calc(var(--font-size) / 2);
+        }
+        div.pawn.button {
+            opacity: 0.7;
+            margin-left: var(--short-length);
+            margin-right: var(--short-length);
+        }
+        div.pawn.button:hover {
+            opacity: 1;
+        }
+        div.horizontal_wall.symbol {
             position: initial;
             vertical-align: middle;
-            width: 50px;
-            height: 12px;
-            margin-left: 5px;
-            margin-right: 5px;
+            width: calc(var(--font-size) * (5 / 3));
+            height: calc(var(--font-size) * (2 / 5));
+            margin-left: calc(var(--font-size) / 6);
+            margin-right: calc(var(--font-size) / 6);;
+        }
+        div.mul_sign_wall_num_container {
+            display: inline-block;
+            vertical-align: middle;
         }
         div.multiplication_sign {
             display: inline;
             vertical-align: middle;
-            margin-left: 5px;
-            margin-right: 5px;
+            margin-left: calc(var(--font-size) / 6);;
+            margin-right: calc(var(--font-size) / 6);;
         }
         div.wall_num {
             display: inline-block;
             vertical-align: middle;
-            width: 30px;
+            width: var(--font-size);
             text-align: center;
         }
-        .fade_inout_box {
+        .fade_box {
             position: absolute;
-            display: inline-block;
-            top: calc((var(--board-table-side-length) - var(--long-length) - var(--short-length)) / 2);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            top: calc((var(--board-table-side-length) - 5 * var(--long-length)) / 2);
             left: 0;
             width: var(--board-table-side-length);
-            height: calc(var(--long-length) + var(--short-length));
-            font-size: calc(var(--long-length) / 2);
+            height: calc(5 * var(--long-length));
+            font-size: var(--font-size);
+            padding-left: var(--font-size);
+            padding-right: var(--font-size);
             text-align: center;
             z-index: -1;
             visibility: hidden;
             opacity: 0;
+            /*padding-top: calc(var(--long-length) / 2);*/
+        }
+        .fade_box.in {
+            z-index: 10;
+            visibility: visible;
+            opacity: 1;
+            animation-name: fade_in;
+        }
+        @keyframes fade_in {
+            0%   {opacity: 0;}
+            100% {opacity: 1;}
+        }
+        .fade_box.inout {
+            z-index: -1;
+            visibility: hidden;
+            opacity: 0;
             animation-name: fade_inout;
+        }
+        @keyframes fade_inout {
+            0%   {visibility: visible; z-index: 10; opacity: 0;}
+            25%  {opacity: 1;}
+            75%  {opacity: 1;}
+            100% {visibility: none; z-index: 10; opacity: 0;}
+        }
+        #choose_pawn_message_box {
+            background-color:rgba(0, 0, 255, 0.8);
+            animation-duration: 1s;
         }
         #note_message_box{
             background-color:rgba(255, 0, 0, 0.8);
@@ -148,16 +231,11 @@
             background-color: rgba(0, 0, 255, 0.8);
             animation-duration: 10s;
         }
-        @keyframes fade_inout {
-            0%   {visibility: visible; z-index: 10; opacity: 0;}
-            25%  {opacity: 1;}
-            75%  {opacity: 1;}
-            100% {visibility: none; z-index: 10; opacity: 0;}
-        }
         #message_box {
-            margin-top: 30px;
-            padding: 30px;
-            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size);
             text-align: center;
         }
     </style>
@@ -166,10 +244,14 @@
     <script src="controller.js"></script>
 </head>
 <body>
-    <div class="gridcontainer">
+    <div class="gridcontainer0">
         <div id="board_table_container">
-            <!-- <div class="fade_inout_box" id="game_result_message_box">test--</div> -->
-            <!-- <div class="fade_inout_box" id="note_message_box">test---</div> -->
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>test--</div></div>
+            <div class="fade_box inout" id="note_message_box">test---</div>-->
+            <div class="fade_box in" id="choose_pawn_message_box">
+                Choose your pawn (light-colored pawn moves first)
+                <div><div class="pawn pawn0 button"></div><div class="pawn pawn1 button"></div></div>
+            </div>
             <table id="board_table">
                 <tr class="row row0">
                     <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>
@@ -496,10 +578,10 @@
                 </tr>
             </table>
         </div>
-        <div>
-            <div id="information_board">
-                <div><div class="pawn tiny pawn0"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div>
-                <div><div class="pawn tiny pawn1"></div><div class="horizontal_wall tiny"></div><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div>
+        <div class="gridcontainer1">
+            <div id="number_of_left_walls_box">
+                <div><div class="pawn pawn0 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div></div>
+                <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
             </div>
             <div id="message_box">Your turn</div>
         </div>

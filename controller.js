@@ -1,7 +1,13 @@
 class Controller {
-    constructor(isHumanPlayerFirst = true) {
-        this.game = new Game(isHumanPlayerFirst);
-        this.view = new View(this, this.game);
+    constructor() {
+        this.game = null;
+        this.view = new View(this);
+    }
+
+    startNewGame(isHumanPlayerFirst) {
+        let game = new Game(isHumanPlayerFirst);
+        this.game = game;
+        this.view.game = game;
         this.view.render();
     }
 
@@ -17,7 +23,7 @@ class Controller {
         }
         catch(err) {
             if (err === "NO_PATH_ERROR") {
-                this.view.printNoteMessage("There must be at least one path to goal line for each pawn.");
+                this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
             } else {
                 throw err;
             }
@@ -31,7 +37,7 @@ class Controller {
         }
         catch(err) {
             if (err === "NO_PATH_ERROR") {
-                this.view.printNoteMessage("There must be at least one path to goal line for each pawn.");
+                this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
             } else {
                 throw err;
             }

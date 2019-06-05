@@ -255,6 +255,9 @@ class View {
     }
 
     _renderValidNextWalls() {
+        if (this.game.pawnOfTurn.numberOfLeftWalls <= 0) {
+            return;
+        }
         let onclickNextHorizontalWall, onclickNextVerticalWall;
         if (this.isHoverPossible) {
             onclickNextHorizontalWall = function(e) {

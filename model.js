@@ -141,12 +141,14 @@ class Game {
         this.board = new Board(isHumanPlayerFirst);
         this.winner = null;
         this._turn = 0;
-        this._validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
-        this._validNextWallsUpdated = false;
 
-        // whether ways to adjacency blocked (not open) or not blocked (open) by a wall
-        this._openWays = {upDown: create2DArrayInitializedTo(8, 9, true), leftRight: create2DArrayInitializedTo(9, 8, true)};
-        this._openWaysUpdated = false;
+        // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid wall location.
+        // this should be only updated each time putting a wall 
+        this.validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
+
+        // whether ways to adjacency is blocked (not open) or not blocked (open) by a wall
+        // this should be only updated each time putting a wall
+        this.openWays = {upDown: create2DArrayInitializedTo(8, 9, true), leftRight: create2DArrayInitializedTo(9, 8, true)};
 
         this._validNextPositions = create2DArrayInitializedTo(9, 9, false);
         this._validNextPositionsUpdated = false;
@@ -159,8 +161,6 @@ class Game {
     set turn(newTurn) {
         this._turn = newTurn;
         this._validNextPositionsUpdated = false;
-        this._validNextWallsUpdated = false;
-        this._openWaysUpdated = false;
     }
 
     get pawnIndexOfTurn() {
@@ -177,75 +177,6 @@ class Game {
 
     get pawnOfNotTurn() {
         return this.board.pawns[this.pawnIndexOfNotTurn];
-    }
-
-    // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid location.
-    get validNextWalls() {
-        if (this._validNextWallsUpdated === true) {
-            return this._validNextWalls;
-        }
-        this._validNextWallsUpdated = true;
-
-        if (this.pawnOfTurn.numberOfLeftWalls <= 0) {
-            set2DArrayEveryElementToValue(this._validNextWalls.horizontal, false);
-            set2DArrayEveryElementToValue(this._validNextWalls.vertical, false);
-            return this._validNextWalls;
-        }
-        else {
-            set2DArrayEveryElementToValue(this._validNextWalls.horizontal, true);
-            set2DArrayEveryElementToValue(this._validNextWalls.vertical, true);
-        }
-
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 8; j++) {
-                if (this.board.walls.horizontal[i][j] === true) {
-                    this._validNextWalls.vertical[i][j] = false;
-                    this._validNextWalls.horizontal[i][j] = false;
-                    if (j > 0) {
-                        this._validNextWalls.horizontal[i][j - 1] = false;
-                    }
-                    if (j < 7) {
-                        this._validNextWalls.horizontal[i][j + 1] = false;
-                    }   
-                }
-                if (this.board.walls.vertical[i][j] === true) {
-                    this._validNextWalls.horizontal[i][j] = false;
-                    this._validNextWalls.vertical[i][j] = false;
-                    if (i > 0) {
-                        this._validNextWalls.vertical[i-1][j] = false;
-                    }
-                    if (i < 7) {
-                        this._validNextWalls.vertical[i+1][j] = false;
-                    }
-                }
-            }
-        }
-
-        return this._validNextWalls;
-    }
-
-    get openWays() {
-        if (this._openWaysUpdated === true) {
-            return this._openWays
-        }
-        this._openWaysUpdated = true;
-
-        set2DArrayEveryElementToValue(this._openWays.upDown, true);
-        set2DArrayEveryElementToValue(this._openWays.leftRight, true);
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 8; j++) {
-                if (this.board.walls.horizontal[i][j] === true) {
-                    this._openWays.upDown[i][j] = false;
-                    this._openWays.upDown[i][j + 1] = false;
-                }
-                if (this.board.walls.vertical[i][j] === true) {
-                    this._openWays.leftRight[i][j] = false;
-                    this._openWays.leftRight[i+1][j] = false;
-                }
-            }
-        }
-
-        return this._openWays;
     }
 
     get validNextPositions() {
@@ -265,22 +196,29 @@ class Game {
         return this._validNextPositions;
     }
 
-
     // check and set this._validNextPostions toward mainMove.
     // subMoves are needed for jumping case.
     _set_validNextPositionsToward(mainMove, subMove1, subMove2) {
         if (this.isValidNextMoveNotConsideringOtherPawn(this.pawnOfTurn.position, mainMove)) {
+            // mainMovePosition: the pawn's position after main move
             let mainMovePosition = this.pawnOfTurn.position.addMove(mainMove);
+            // if the other pawn is on the position after main move (e.g. up)
             if (mainMovePosition.equals(this.pawnOfNotTurn.position)) {
+                // check for jumping toward main move (e.g. up) direction
                 if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, mainMove)) {
+                    // mainMainMovePosition: the pawn's position after two main move
                     let mainMainMovePosition = mainMovePosition.addMove(mainMove);
                     this._validNextPositions[mainMainMovePosition.row][mainMainMovePosition.col] = true;
                 } else {
+                    // check for jumping toward sub move 1 (e.g. left) direction
                     if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, subMove1)) {
+                        // mainSub1MovePosition: the pawn's position after (main move + sub move 1)
                         let mainSub1MovePosition = mainMovePosition.addMove(subMove1);
                         this._validNextPositions[mainSub1MovePosition.row][mainSub1MovePosition.col] = true;
                     }
+                    // check for jumping toward sub move 2 (e.g. right) direction
                     if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, subMove2)) {
+                        // mainSub2MovePosition: the pawn's position after (main move + sub move 2)
                         let mainSub2MovePosition = mainMovePosition.addMove(subMove2);
                         this._validNextPositions[mainSub2MovePosition.row][mainSub2MovePosition.col] = true;
                     }
@@ -292,7 +230,7 @@ class Game {
     }
 
     // this method checks if the moveArr of the pawn of this turn is valid against walls on the board and the board size.
-    // and this method do not check the validity against the other pawn's position. 
+    // this method do not check the validity against the other pawn's position. 
     isValidNextMoveNotConsideringOtherPawn(currentPosition, moveArr) {
         if (moveArr[0] === -1 && moveArr[1] === 0) { // up
             return (currentPosition.row > 0 && this.openWays.upDown[currentPosition.row - 1][currentPosition.col]);
@@ -334,26 +272,50 @@ class Game {
     }
 
     putHorizontalWall(row, col) {
-        this.board.walls.horizontal[row][col] = true;
-        this.pawnOfTurn.numberOfLeftWalls--;
-        this.turn++;
+        // this._existPathsToGoalLines depends on this.openways.
+        // so update this.openways first.
+        this.openWays.upDown[row][col] = false;
+        this.openWays.upDown[row][col + 1] = false;
         if (!this._existPathsToGoalLines()) {
-            this.turn--;
-            this.pawnOfTurn.numberOfLeftWalls++;
-            this.board.walls.horizontal[row][col] = false;
+            this.openWays.upDown[row][col] = true;
+            this.openWays.upDown[row][col + 1] = true;
             throw "NO_PATH_ERROR"
+        } else {
+            this.validNextWalls.vertical[row][col] = false;
+            this.validNextWalls.horizontal[row][col] = false;
+            if (col > 0) {
+                this.validNextWalls.horizontal[row][col - 1] = false;
+            }
+            if (col < 7) {
+                this.validNextWalls.horizontal[row][col + 1] = false;
+            }
+            this.board.walls.horizontal[row][col] = true;
+            this.pawnOfTurn.numberOfLeftWalls--;
+            this.turn++;
         }
     }
 
     putVerticalWall(row, col) {
-        this.board.walls.vertical[row][col] = true;
-        this.pawnOfTurn.numberOfLeftWalls--;
-        this.turn++;
+        // this._existPathsToGoalLines depends on this.openways.
+        // so update this.openways first.
+        this.openWays.leftRight[row][col] = false;
+        this.openWays.leftRight[row+1][col] = false;
         if (!this._existPathsToGoalLines()) {
-            this.turn--;
-            this.pawnOfTurn.numberOfLeftWalls++;
-            this.board.walls.vertical[row][col] = false;
+            this.openWays.leftRight[row][col] = true;
+            this.openWays.leftRight[row+1][col] = true;
             throw "NO_PATH_ERROR"
+        } else {
+            this.validNextWalls.horizontal[row][col] = false;
+            this.validNextWalls.vertical[row][col] = false;
+            if (row > 0) {
+                this.validNextWalls.vertical[row-1][col] = false;
+            }
+            if (row < 7) {
+                this.validNextWalls.vertical[row+1][col] = false;
+            }
+            this.board.walls.vertical[row][col] = true;
+            this.pawnOfTurn.numberOfLeftWalls--;
+            this.turn++;
         }
     }
 

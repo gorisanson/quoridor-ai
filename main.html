@@ -40,9 +40,6 @@
             grid-template-rows: 1fr 1fr;
             grid-template-columns: 1fr 1fr;
         }
-        @media (hover: hover) {
-
-        }
         /* size of iPad screen is 768px x 1024px in portrait mode */
         @media only screen and (min-width: 768px) and (min-height: 768px) {
             :root {
@@ -121,9 +118,6 @@
         div.pawn.shadow {
             opacity: 0.3;
         }
-        div.pawn.shadow:hover {
-            opacity: 0.7;
-        }
         #number_of_left_walls_box {
             display: flex;
             flex-direction: column;
@@ -140,12 +134,8 @@
             margin-right: calc(var(--font-size) / 2);
         }
         div.pawn.button {
-            opacity: 0.7;
             margin-left: var(--short-length);
             margin-right: var(--short-length);
-        }
-        div.pawn.button:hover {
-            opacity: 1;
         }
         div.horizontal_wall.symbol {
             position: initial;
@@ -259,10 +249,16 @@
         div.pawn.hidden {
             visibility: hidden;
         }
+        div.pawn.clicked {
+            opacity: 0.7;
+        }
         .fade_box.in.hidden {
             display: none;
         }
-
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         @media only screen and (min-width: 768px), (orientation: landscape) {
             .gridcontainer0 {
                 grid-template-rows: var(--board-table-side-length);
@@ -281,7 +277,20 @@
                 /*flex-direction: column-reverse;*/
             }
         }
-
+        @media (hover: hover) {
+            .button_container {
+                display: none;
+            }
+            div.pawn.shadow:hover {
+                opacity: 0.7;
+            }
+            div.pawn.button {
+                opacity: 0.7;
+            }
+            div.pawn.button:hover {
+                opacity: 1;
+            }
+        }
     </style>
     <script src="model.js"></script>
     <script src="view.js"></script>

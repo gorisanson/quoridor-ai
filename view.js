@@ -4,12 +4,61 @@ class View {
     constructor(controller) {
         this.controller = controller;
         this._game = null;
+
+        this.button = {confirm: document.getElementById("confirm_button"), cancel: document.getElementById("cancel_button")};
+        this.button.confirm.disabled = true;
+        this.button.cancel.disabled = true;
+        let buttonContainer = document.getElementsByClassName("button_container")[0];
+        let buttonContainerStyle = window.getComputedStyle(buttonContainer);
+        this.isHoverPossible = (buttonContainerStyle.display === "none");
+        if (!this.isHoverPossible) {
+            let onclickConfirmButton = function(e) {
+                this.button.confirm.disabled = true;
+                this.button.cancel.disabled = true;
+                const clickedPawns = document.getElementsByClassName("pawn clicked");
+                if (clickedPawns.length > 0) {
+                    const clickedPawn = clickedPawns[0];
+                    const row = clickedPawn.parentElement.parentElement.rowIndex / 2;
+                    const col = clickedPawn.parentElement.cellIndex / 2;
+                    View.cancelPawnClick();
+                    this.controller.movePawn(row, col);
+                } else {
+                    const horizontalWallShadows = document.getElementsByClassName("horizontal_wall shadow");
+                    const verticalWallShadows = document.getElementsByClassName("vertical_wall shadow");
+                    if (horizontalWallShadows.length > 0) {
+                        const horizontalWallShadow = horizontalWallShadows[0];
+                        const row = (horizontalWallShadow.parentElement.parentElement.rowIndex - 1) / 2;
+                        const col = horizontalWallShadow.parentElement.cellIndex / 2;
+                        View.cancelWallShadows();
+                        this.controller.putHorizontalWall(row, col);
+                    } else if (verticalWallShadows.length > 0) {
+                        const verticalWallShadow = verticalWallShadows[0];
+                        const row = verticalWallShadow.parentElement.parentElement.rowIndex / 2;
+                        const col = (verticalWallShadow.parentElement.cellIndex - 1) / 2;
+                        View.cancelWallShadows();
+                        this.controller.putVerticalWall(row, col);
+                    }
+                }
+            }
+            let onclickCancelButton = function(e) {
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                this.button.confirm.disabled = true;
+                this.button.cancel.disabled = true;
+            }
+            this.button.confirm.onclick = onclickConfirmButton.bind(this);
+            this.button.cancel.onclick = onclickCancelButton.bind(this);
+        }
+
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
         this.htmlPawns[0].classList.add("hidden")
         this.htmlPawns[1].classList.add("hidden");
         this.htmlMessageBox = document.getElementById("message_box");
         this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
+        
+        
+        // for choosing pawn
         let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
         let pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
         let onclickPawnButton = function(e) {
@@ -145,11 +194,29 @@ class View {
     }
 
     _renderValidNextPawnPositions() {
-        let onclickNextPawnPosition = function(e) {
-            const x = e.target;
-            const row = x.parentElement.parentElement.rowIndex / 2;
-            const col = x.parentElement.cellIndex / 2;
-            this.controller.movePawn(row, col);
+        let onclickNextPawnPosition;
+        if (this.isHoverPossible) {
+            onclickNextPawnPosition = function(e) {
+                const x = e.target;
+                const row = x.parentElement.parentElement.rowIndex / 2;
+                const col = x.parentElement.cellIndex / 2;
+                this.controller.movePawn(row, col);
+            }
+        } else {
+            onclickNextPawnPosition = function(e) {
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                const x = e.target;
+                let pawnShadows = document.getElementsByClassName("pawn shadow");
+                for (let i = 0; i < pawnShadows.length; i++) {
+                    if (pawnShadows[i] !== x) {
+                        pawnShadows[i].classList.add("hidden");
+                    }
+                }
+                x.classList.add("clicked");
+                this.button.confirm.disabled = false;
+                this.button.cancel.disabled = false;
+            }
         }
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -188,32 +255,56 @@ class View {
     }
 
     _renderValidNextWalls() {
-        let onclickNextHorizontalWall = function(e) {
-            const x = e.currentTarget;
-            View.horizontalWallShadow(x, false);
-            const row = (x.parentElement.rowIndex - 1) / 2;
-            const col = x.cellIndex / 2;
-            this.controller.putHorizontalWall(row, col);
-        }
-        let onclickNextVerticalWall = function(e) {
-            const x = e.currentTarget;
-            View.verticalWallShadow(x, false);
-            const row = x.parentElement.rowIndex / 2;
-            const col = (x.cellIndex - 1) / 2;
-            this.controller.putVerticalWall(row, col);
+        let onclickNextHorizontalWall, onclickNextVerticalWall;
+        if (this.isHoverPossible) {
+            onclickNextHorizontalWall = function(e) {
+                const x = e.currentTarget;
+                View.horizontalWallShadow(x, false);
+                const row = (x.parentElement.rowIndex - 1) / 2;
+                const col = x.cellIndex / 2;
+                this.controller.putHorizontalWall(row, col);
+            }
+            onclickNextVerticalWall = function(e) {
+                const x = e.currentTarget;
+                View.verticalWallShadow(x, false);
+                const row = x.parentElement.rowIndex / 2;
+                const col = (x.cellIndex - 1) / 2;
+                this.controller.putVerticalWall(row, col);
+            }
+        } else {
+            onclickNextHorizontalWall = function(e) {
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                const x = e.currentTarget;
+                View.horizontalWallShadow(x, true);
+                this.button.confirm.disabled = false;
+                this.button.cancel.disabled = false;
+            }
+            onclickNextVerticalWall = function(e) {
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                const x = e.currentTarget;
+                View.verticalWallShadow(x, true);
+                this.button.confirm.disabled = false;
+                this.button.cancel.disabled = false;
+            }
         }
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (this.game.validNextWalls.horizontal[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2 + 1].cells[j * 2];
-                    element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, true)");
-                    element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, false)");                    
+                    if (this.isHoverPossible) {
+                        element.setAttribute("onmouseenter", "View.horizontalWallShadow(this, true)");
+                        element.setAttribute("onmouseleave", "View.horizontalWallShadow(this, false)");
+                    }                    
                     element.onclick = onclickNextHorizontalWall.bind(this);
                 }
                 if (this.game.validNextWalls.vertical[i][j] === true) {
                     let element = this.htmlBoardTable.rows[i * 2].cells[j * 2 + 1];
-                    element.setAttribute("onmouseenter", "View.verticalWallShadow(this, true)");
-                    element.setAttribute("onmouseleave", "View.verticalWallShadow(this, false)");
+                    if (this.isHoverPossible) {
+                        element.setAttribute("onmouseenter", "View.verticalWallShadow(this, true)");
+                        element.setAttribute("onmouseleave", "View.verticalWallShadow(this, false)");
+                    }
                     element.onclick = onclickNextVerticalWall.bind(this);
                 }
             }
@@ -247,6 +338,25 @@ class View {
             }
         }
    
+    }
+
+    static cancelWallShadows() {
+        let previousWallShadows = document.getElementsByClassName("horizontal_wall shadow");
+        while(previousWallShadows.length !== 0) {
+            previousWallShadows[0].remove();
+        }
+        previousWallShadows = document.getElementsByClassName("vertical_wall shadow");
+        while(previousWallShadows.length !== 0) {
+            previousWallShadows[0].remove();
+        }
+    }
+    
+    static cancelPawnClick() {
+        let pawnShadows = document.getElementsByClassName("pawn shadow");
+        for (let i = 0; i < pawnShadows.length; i++) {
+            pawnShadows[i].classList.remove("clicked");
+            pawnShadows[i].classList.remove("hidden");
+        }
     }
 }
 

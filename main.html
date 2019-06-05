@@ -26,7 +26,7 @@
         }
         .gridcontainer0 {
             display: grid;
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             justify-content: center;
             align-content: center;
@@ -60,7 +60,6 @@
                 grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
             }
         }
-
         #board_table_container {
             position: relative;
         }
@@ -195,7 +194,6 @@
             z-index: -1;
             visibility: hidden;
             opacity: 0;
-            /*padding-top: calc(var(--long-length) / 2);*/
         }
         .fade_box.in {
             z-index: 10;

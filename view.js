@@ -6,8 +6,8 @@ class View {
         this._game = null;
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
-        this.htmlPawns[0].style.visibility = "hidden";
-        this.htmlPawns[1].style.visibility = "hidden";
+        this.htmlPawns[0].classList.add("hidden")
+        this.htmlPawns[1].classList.add("hidden");
         this.htmlMessageBox = document.getElementById("message_box");
         this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
         let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
@@ -26,8 +26,8 @@ class View {
 
     set game(game) {
         this._game = game;
-        this.htmlPawns[0].style.visibility = "visible";
-        this.htmlPawns[1].style.visibility = "visible";
+        this.htmlPawns[0].classList.remove("hidden");
+        this.htmlPawns[1].classList.remove("hidden");
 
         // initialize number of left walls box
         let symbolPawnList = document.getElementsByClassName("pawn symbol");
@@ -61,7 +61,7 @@ class View {
     }
    
     startNewGame(isHumanPlayerFirst) {
-        this.htmlChoosePawnMessageBox.style.display = "none";
+        this.htmlChoosePawnMessageBox.classList.add("hidden");
         this.controller.startNewGame(isHumanPlayerFirst);
     }
 

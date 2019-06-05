@@ -30,15 +30,18 @@
             height: 100vh;
             justify-content: center;
             align-content: center;
-            grid-template-rows: var(--board-table-side-length) calc(4 * var(--font-size));
+            grid-template-rows: var(--board-table-side-length) calc(8 * var(--font-size));
             grid-template-columns: var(--board-table-side-length);
         }
         .gridcontainer1 {
             display: grid;
             justify-content: center;
             align-content: center;
-            grid-template-rows: 1fr;
+            grid-template-rows: 1fr 1fr;
             grid-template-columns: 1fr 1fr;
+        }
+        @media (hover: hover) {
+
         }
         /* size of iPad screen is 768px x 1024px in portrait mode */
         @media only screen and (min-width: 768px) and (min-height: 768px) {
@@ -49,15 +52,6 @@
         @media only screen and (min-width: 768px), (orientation: landscape) {
             :root {
                 --board-table-side-length: 70vmin;
-            }
-            .gridcontainer0 {
-                grid-template-rows: var(--board-table-side-length);
-                grid-template-columns: var(--board-table-side-length) calc(100vmin - var(--board-table-side-length));
-            }
-            .gridcontainer1 {
-                display:grid;
-                grid-template-columns: 1fr;
-                grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
             }
         }
         #board_table_container {
@@ -229,13 +223,65 @@
             background-color: rgba(0, 0, 255, 0.8);
             animation-duration: 10s;
         }
+        .button_container {
+            grid-column: 1 / span 2;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .button {
+            display: inline-block;
+            height: calc(4 * var(--font-size));
+            width: 100%;
+            border: none;
+            padding: 0;
+            color: white;
+            font-size: calc(var(--font-size) * 1.2);
+            text-align: center;
+            text-decoration: none;
+        }
+        .button.cancel {
+            background-color: white;
+            color: black;
+            border: 2px solid rgb(85,85,85);
+        }
+        .button.confirm {
+            background-color: rgb(0, 71, 186);
+        }
         #message_box {
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: var(--font-size);
             text-align: center;
+            text-decoration: none;
         }
+        div.pawn.hidden {
+            visibility: hidden;
+        }
+        .fade_box.in.hidden {
+            display: none;
+        }
+
+        @media only screen and (min-width: 768px), (orientation: landscape) {
+            .gridcontainer0 {
+                grid-template-rows: var(--board-table-side-length);
+                grid-template-columns: var(--board-table-side-length) calc(100vmin - var(--board-table-side-length));
+            }
+            .gridcontainer1 {
+                display:grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
+            }
+            .button_container {
+                grid-column: unset;
+                grid-template-rows: 1fr 1fr;
+                grid-template-columns: 1fr;
+                flex-direction: column;
+                /*flex-direction: column-reverse;*/
+            }
+        }
+
     </style>
     <script src="model.js"></script>
     <script src="view.js"></script>
@@ -582,6 +628,10 @@
                 <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
             </div>
             <div id="message_box">Your turn</div>
+            <div class="button_container">
+                <button id="cancel_button" class="button cancel">cancel</button>
+                <button id="confirm_button" class="button confirm">confirm</button>
+            </div>
         </div>
     </div>
     <script>

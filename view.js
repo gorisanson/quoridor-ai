@@ -147,20 +147,7 @@ class View {
     }
 
     render() {
-        for (let i = 0; i < this.htmlBoardTable.rows.length; i++) {
-            for (let j = 0; j < this.htmlBoardTable.rows[0].cells.length; j++) {
-                let element = this.htmlBoardTable.rows[i].cells[j];
-                element.removeAttribute("onmouseenter");
-                element.removeAttribute("onmouseleave");
-                element.onclick = null;
-            }
-        }
-        // remove pawn shadows which are for previous board
-        let previousPawnShadows = document.getElementsByClassName("pawn shadow");
-        while(previousPawnShadows.length !== 0) {
-            previousPawnShadows[0].remove();
-        }
-
+        this._removePreviousRender();
         this._renderNumberOfLeftWalls();
         this._renderPawnPositions();
         this._renderWalls();
@@ -173,13 +160,29 @@ class View {
                 this.printMessage("AI wins!")
             }
         } else {
-            this._renderValidNextPawnPositions();
-            this._renderValidNextWalls();
             if (this.game.pawnOfTurn.isHumanPlayer) {
+                this._renderValidNextPawnPositions();
+                this._renderValidNextWalls();
                 this.printMessage("Your turn")
             } else {
                 this.printMessage("AI's turn")
             }
+        }
+    }
+
+    _removePreviousRender() {
+        for (let i = 0; i < this.htmlBoardTable.rows.length; i++) {
+            for (let j = 0; j < this.htmlBoardTable.rows[0].cells.length; j++) {
+                let element = this.htmlBoardTable.rows[i].cells[j];
+                element.removeAttribute("onmouseenter");
+                element.removeAttribute("onmouseleave");
+                element.onclick = null;
+            }
+        }
+        // remove pawn shadows which are for previous board
+        let previousPawnShadows = document.getElementsByClassName("pawn shadow");
+        while(previousPawnShadows.length !== 0) {
+            previousPawnShadows[0].remove();
         }
     }
 
@@ -309,6 +312,29 @@ class View {
                         element.setAttribute("onmouseleave", "View.verticalWallShadow(this, false)");
                     }
                     element.onclick = onclickNextVerticalWall.bind(this);
+                }
+            }
+        }
+    }
+
+    // this is for debug or test
+    render2DArrayToBoard(arr2D) {
+        // remove texts printed before
+        for (let i = 0; i < arr2D.length; i++) {
+            for (let j = 0; j < arr2D[0].length; j++) {
+                const cell = this.htmlBoardTable.rows[2*i].cells[2*j];
+                if (cell.firstChild !== null && cell.firstChild.nodeType === Node.TEXT_NODE) {
+                    cell.firstChild.remove();
+                };
+            }
+        }
+
+        if (arr2D.length === 9 && arr2D[0].length === 9) {
+            for (let i = 0; i < arr2D.length; i++) {
+                for (let j = 0; j < arr2D[0].length; j++) {
+                    const textNode = document.createTextNode(arr2D[i][j])
+                    const cell = this.htmlBoardTable.rows[2*i].cells[2*j];
+                    cell.insertBefore(textNode, cell.firstChild);
                 }
             }
         }

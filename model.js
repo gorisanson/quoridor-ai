@@ -92,7 +92,8 @@ class PawnPosition {
         return this.row === otherPosition.row && this.col === otherPosition.col;
     }
 
-    addMove(moveArr) {
+    // "new" indicates that it returns new PawnPosition instance.
+    newAddMove(moveArr) {
         return new PawnPosition(this.row + moveArr[0], this.col + moveArr[1]);
     }
 }
@@ -106,11 +107,11 @@ class Pawn {
         if (isHumanPlayer === true) {
             this.isHumanPlayer = true;
             this.position = new PawnPosition(8, 4);
-            this.goalLineRow = 0;
+            this.goalRow = 0;
         } else {
             this.isHumanPlayer = false;
             this.position = new PawnPosition(0, 4);
-            this.goalLineRow = 8;
+            this.goalRow = 8;
         }
         this.numberOfLeftWalls = 10;
     }
@@ -201,25 +202,25 @@ class Game {
     _set_validNextPositionsToward(mainMove, subMove1, subMove2) {
         if (this.isValidNextMoveNotConsideringOtherPawn(this.pawnOfTurn.position, mainMove)) {
             // mainMovePosition: the pawn's position after main move
-            let mainMovePosition = this.pawnOfTurn.position.addMove(mainMove);
+            let mainMovePosition = this.pawnOfTurn.position.newAddMove(mainMove);
             // if the other pawn is on the position after main move (e.g. up)
             if (mainMovePosition.equals(this.pawnOfNotTurn.position)) {
                 // check for jumping toward main move (e.g. up) direction
                 if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, mainMove)) {
                     // mainMainMovePosition: the pawn's position after two main move
-                    let mainMainMovePosition = mainMovePosition.addMove(mainMove);
+                    let mainMainMovePosition = mainMovePosition.newAddMove(mainMove);
                     this._validNextPositions[mainMainMovePosition.row][mainMainMovePosition.col] = true;
                 } else {
                     // check for jumping toward sub move 1 (e.g. left) direction
                     if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, subMove1)) {
                         // mainSub1MovePosition: the pawn's position after (main move + sub move 1)
-                        let mainSub1MovePosition = mainMovePosition.addMove(subMove1);
+                        let mainSub1MovePosition = mainMovePosition.newAddMove(subMove1);
                         this._validNextPositions[mainSub1MovePosition.row][mainSub1MovePosition.col] = true;
                     }
                     // check for jumping toward sub move 2 (e.g. right) direction
                     if (this.isValidNextMoveNotConsideringOtherPawn(mainMovePosition, subMove2)) {
                         // mainSub2MovePosition: the pawn's position after (main move + sub move 2)
-                        let mainSub2MovePosition = mainMovePosition.addMove(subMove2);
+                        let mainSub2MovePosition = mainMovePosition.newAddMove(subMove2);
                         this._validNextPositions[mainSub2MovePosition.row][mainSub2MovePosition.col] = true;
                     }
                 }
@@ -263,9 +264,12 @@ class Game {
     }
 
     movePawn(row, col) {
+        if (this.validNextPositions[row][col] !== true) {
+            throw "INVALID_PAWN_MOVE_ERROR"
+        }
         this.pawnOfTurn.position.row = row;
         this.pawnOfTurn.position.col = col;
-        if (this.pawnOfTurn.goalLineRow === this.pawnOfTurn.position.row) {
+        if (this.pawnOfTurn.goalRow === this.pawnOfTurn.position.row) {
             this.winner = this.pawnOfTurn;
         }
         this.turn++;
@@ -325,7 +329,7 @@ class Game {
 
     _existPathToGoalLineFor(pawn) {
         let visited = create2DArrayInitializedTo(9, 9, false);
-        let depthFirstSearch = function(currentRow, currentCol, goalLineRow) {
+        let depthFirstSearch = function(currentRow, currentCol, goalRow) {
             for (const moveArr of [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN]) {
                 const nextRow = currentRow + moveArr[0];
                 const nextCol = currentCol + moveArr[1];
@@ -333,19 +337,129 @@ class Game {
                     && !visited[nextRow][nextCol]
                     && this.isOpenWay(currentRow, currentCol, moveArr)) {
                     visited[nextRow][nextCol] = true;
-                    if (nextRow === goalLineRow) {
+                    if (nextRow === goalRow) {
                         return true;
                     }
-                    if(depthFirstSearch.bind(this)(nextRow, nextCol, goalLineRow)) {
+                    if(depthFirstSearch.bind(this)(nextRow, nextCol, goalRow)) {
                         return true;
                     }
                 }
             }
             return false;
         }
-        return depthFirstSearch.bind(this)(pawn.position.row, pawn.position.col, pawn.goalLineRow);
+        return depthFirstSearch.bind(this)(pawn.position.row, pawn.position.col, pawn.goalRow);
     }
 }
 
+
+/*
+* Represents an AI Player
+*/
+class AI {
+    constructor(game, isFirstPlayer) {
+        this.game = game;
+        this.isFirstPlayer = isFirstPlayer;
+    }
+
+    chooseNextMove() {
+        const t = this.getShortestPathsFor(this.game.pawnOfTurn);
+        const dist = t[0];
+        const prev = t[1];
+        const goalRow = this.game.pawnOfTurn.goalRow;
+
+        const indices = indicesOfMin(dist[goalRow]);
+        let goalCol;
+        if (indices.length > 1) {
+            goalCol = randomChoice(indices);
+        } else {
+            goalCol = indices[0];
+        }
+        
+        let position = new PawnPosition(goalRow, goalCol);
+        for (let d = dist[goalRow][goalCol] - 1; d > 0; d--) {
+            position = randomChoice(prev[position.row][position.col]);
+        }
+        try {
+            this.game.movePawn(position.row, position.col);
+        }
+        catch(err) {
+            if (err === "INVALID_PAWN_MOVE_ERROR") {
+                console.log(err);
+                const next = randomChoice(indicesOf2DArray(this.game.validNextPositions, true))
+                this.game.movePawn(next[0], next[1]);
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    // use breadth first search
+    getShortestPathsFor(pawn) {
+        let searched = create2DArrayInitializedTo(9, 9, false);
+        let dist = create2DArrayInitializedTo(9, 9, null);
+        let prev = create2DArrayInitializedTo(9, 9, null);
+
+        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+        let queue = [];
+        dist[pawn.position.row][pawn.position.col] = 0;
+        queue.push(pawn.position)
+        while (queue.length !== 0) {
+            let position = queue.shift();
+            for (let i = 0; i < moveArrs.length; i++) {
+                if (this.game.isOpenWay(position.row, position.col, moveArrs[i])) {
+                    const nextPosition = position.newAddMove(moveArrs[i]);
+                    if (searched[nextPosition.row][nextPosition.col] === false) {
+                        const alt = dist[position.row][position.col] + 1;
+                        // the inequality part commented out is not needed because alt won't be decreased in this BFS.
+                        if (dist[nextPosition.row][nextPosition.col] === null /* || alt < dist[nextPosition.row][nextPosition.col] */) {
+                            dist[nextPosition.row][nextPosition.col] = alt;
+                            prev[nextPosition.row][nextPosition.col] = [position];
+                        } else if (alt === dist[nextPosition.row][nextPosition.col]) {
+                            prev[nextPosition.row][nextPosition.col].push(position);
+                        }
+                        queue.push(nextPosition);
+                    }
+                }
+            }
+            searched[position.row][position.col] = true;
+        }
+        return [dist, prev];
+    }
+}
  
- 
+
+function indicesOfMin(arr) {
+    let min = arr[0];
+    let minIndex = 0;
+    let indices = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] < min) {
+            indices = [i];
+            min = arr[i];
+        } else if (arr[i] === min) {
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
+function randomChoice(arr) {
+    if (arr.length > 1) {  // ToDo: is this if statement impoves performence???
+        return arr[Math.floor(Math.random() * arr.length)];
+    } else {
+        return arr[0];
+    }
+}
+
+function indicesOf2DArray(arr2D, value) {
+    let t = [];
+    for (let i = 0; i < arr2D.length; i++) {
+        for (let j = 0; j < arr2D[0].length; j++) {
+            if (arr2D[i][j] === value) {
+                t.push([i, j]);
+            }
+        }
+    }
+    return t;
+}

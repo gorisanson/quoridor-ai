@@ -73,7 +73,7 @@ function set2DArrayEveryElementToValue(arr2D, value) {
 function create2DArrayClonedFrom(arr2D) {
     let arr2DCloned = [];
     for (let i = 0; i < arr2D.length; i++) {
-        arrr2DCloned.push([...arr2D[i]]);
+        arr2DCloned.push([...arr2D[i]]);
     }
     return arr2DCloned;
 }
@@ -328,8 +328,8 @@ class Game {
     }
 
     _existPathToGoalLineFor(pawn) {
-        let visited = create2DArrayInitializedTo(9, 9, false);
-        let depthFirstSearch = function(currentRow, currentCol, goalRow) {
+        const visited = create2DArrayInitializedTo(9, 9, false);
+        const depthFirstSearch = function(currentRow, currentCol, goalRow) {
             for (const moveArr of [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN]) {
                 const nextRow = currentRow + moveArr[0];
                 const nextCol = currentCol + moveArr[1];
@@ -346,120 +346,7 @@ class Game {
                 }
             }
             return false;
-        }
+        };
         return depthFirstSearch.bind(this)(pawn.position.row, pawn.position.col, pawn.goalRow);
     }
-}
-
-
-/*
-* Represents an AI Player
-*/
-class AI {
-    constructor(game, isFirstPlayer) {
-        this.game = game;
-        this.isFirstPlayer = isFirstPlayer;
-    }
-
-    chooseNextMove() {
-        const t = this.getShortestPathsFor(this.game.pawnOfTurn);
-        const dist = t[0];
-        const prev = t[1];
-        const goalRow = this.game.pawnOfTurn.goalRow;
-
-        const indices = indicesOfMin(dist[goalRow]);
-        let goalCol;
-        if (indices.length > 1) {
-            goalCol = randomChoice(indices);
-        } else {
-            goalCol = indices[0];
-        }
-        
-        let position = new PawnPosition(goalRow, goalCol);
-        for (let d = dist[goalRow][goalCol] - 1; d > 0; d--) {
-            position = randomChoice(prev[position.row][position.col]);
-        }
-        try {
-            this.game.movePawn(position.row, position.col);
-        }
-        catch(err) {
-            if (err === "INVALID_PAWN_MOVE_ERROR") {
-                console.log(err);
-                const next = randomChoice(indicesOf2DArray(this.game.validNextPositions, true))
-                this.game.movePawn(next[0], next[1]);
-            } else {
-                throw err;
-            }
-        }
-    }
-
-    // use breadth first search
-    getShortestPathsFor(pawn) {
-        let searched = create2DArrayInitializedTo(9, 9, false);
-        let dist = create2DArrayInitializedTo(9, 9, null);
-        let prev = create2DArrayInitializedTo(9, 9, null);
-
-        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
-        let queue = [];
-        dist[pawn.position.row][pawn.position.col] = 0;
-        queue.push(pawn.position)
-        while (queue.length !== 0) {
-            let position = queue.shift();
-            for (let i = 0; i < moveArrs.length; i++) {
-                if (this.game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                    const nextPosition = position.newAddMove(moveArrs[i]);
-                    if (searched[nextPosition.row][nextPosition.col] === false) {
-                        const alt = dist[position.row][position.col] + 1;
-                        // the inequality part commented out is not needed because alt won't be decreased in this BFS.
-                        if (dist[nextPosition.row][nextPosition.col] === null /* || alt < dist[nextPosition.row][nextPosition.col] */) {
-                            dist[nextPosition.row][nextPosition.col] = alt;
-                            prev[nextPosition.row][nextPosition.col] = [position];
-                        } else if (alt === dist[nextPosition.row][nextPosition.col]) {
-                            prev[nextPosition.row][nextPosition.col].push(position);
-                        }
-                        queue.push(nextPosition);
-                    }
-                }
-            }
-            searched[position.row][position.col] = true;
-        }
-        return [dist, prev];
-    }
-}
- 
-
-function indicesOfMin(arr) {
-    let min = arr[0];
-    let minIndex = 0;
-    let indices = [];
-
-    for (let i = 0; i < arr.length; i++) {
-        if (arr[i] < min) {
-            indices = [i];
-            min = arr[i];
-        } else if (arr[i] === min) {
-            indices.push(i);
-        }
-    }
-    return indices;
-}
-
-function randomChoice(arr) {
-    if (arr.length > 1) {  // ToDo: is this if statement impoves performence???
-        return arr[Math.floor(Math.random() * arr.length)];
-    } else {
-        return arr[0];
-    }
-}
-
-function indicesOf2DArray(arr2D, value) {
-    let t = [];
-    for (let i = 0; i < arr2D.length; i++) {
-        for (let j = 0; j < arr2D[0].length; j++) {
-            if (arr2D[i][j] === value) {
-                t.push([i, j]);
-            }
-        }
-    }
-    return t;
 }

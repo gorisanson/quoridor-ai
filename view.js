@@ -39,13 +39,13 @@ class View {
                         this.controller.putVerticalWall(row, col);
                     }
                 }
-            }
+            };
             let onclickCancelButton = function(e) {
                 View.cancelPawnClick();
                 View.cancelWallShadows();
                 this.button.confirm.disabled = true;
                 this.button.cancel.disabled = true;
-            }
+            };
             this.button.confirm.onclick = onclickConfirmButton.bind(this);
             this.button.cancel.onclick = onclickCancelButton.bind(this);
         }
@@ -68,7 +68,7 @@ class View {
             } else if (x.classList.contains("pawn1")) {
                 this.startNewGame(false);
             }
-        }
+        };
         pawn0Button.onclick = onclickPawnButton.bind(this);
         pawn1Button.onclick = onclickPawnButton.bind(this);
     }
@@ -204,7 +204,7 @@ class View {
                 const row = x.parentElement.parentElement.rowIndex / 2;
                 const col = x.parentElement.cellIndex / 2;
                 this.controller.movePawn(row, col);
-            }
+            };
         } else {
             onclickNextPawnPosition = function(e) {
                 View.cancelPawnClick();
@@ -219,7 +219,7 @@ class View {
                 x.classList.add("clicked");
                 this.button.confirm.disabled = false;
                 this.button.cancel.disabled = false;
-            }
+            };
         }
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
@@ -269,14 +269,14 @@ class View {
                 const row = (x.parentElement.rowIndex - 1) / 2;
                 const col = x.cellIndex / 2;
                 this.controller.putHorizontalWall(row, col);
-            }
+            };
             onclickNextVerticalWall = function(e) {
                 const x = e.currentTarget;
                 View.verticalWallShadow(x, false);
                 const row = x.parentElement.rowIndex / 2;
                 const col = (x.cellIndex - 1) / 2;
                 this.controller.putVerticalWall(row, col);
-            }
+            };
         } else {
             onclickNextHorizontalWall = function(e) {
                 View.cancelPawnClick();
@@ -285,7 +285,7 @@ class View {
                 View.horizontalWallShadow(x, true);
                 this.button.confirm.disabled = false;
                 this.button.cancel.disabled = false;
-            }
+            };
             onclickNextVerticalWall = function(e) {
                 View.cancelPawnClick();
                 View.cancelWallShadows();
@@ -293,7 +293,7 @@ class View {
                 View.verticalWallShadow(x, true);
                 this.button.confirm.disabled = false;
                 this.button.cancel.disabled = false;
-            }
+            };
         }
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {

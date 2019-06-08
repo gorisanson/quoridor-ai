@@ -69,7 +69,7 @@ class Controller {
 
     funcForDEBUG() {
         if (DEBUG) {
-            this.view.render2DArrayToBoard(this.ai.getShortestPathsFor(this.game.pawnOfTurn)[0]);
+            this.view.render2DArrayToBoard(getShortestPathsFor(this.game.pawnOfTurn, this.game)[0]);
         }
     }
 

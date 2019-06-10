@@ -323,6 +323,18 @@ class Game {
         }
     }
 
+    // only one argument must be provided by 2-element array.
+    // other two arguments must be null.
+    doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
+        if (movePawnTo) {
+            this.movePawn(movePawnTo[0], movePawnTo[1]);
+        } else if (putHorizontalWallAt) {
+            this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
+        } else if (putVerticalWallAt) {
+            this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+        }
+    }
+
     _existPathsToGoalLines() {
         return (this._existPathToGoalLineFor(this.pawnOfTurn) && this._existPathToGoalLineFor(this.pawnOfNotTurn))
     }

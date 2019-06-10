@@ -32,6 +32,56 @@ Game.prototype.clone = function() {
     return _clone;
 }
 
+// If it is named "Node", the code work erroneously
+// because maybe "Node" is already used name in Web APIs?
+// (see https://developer.mozilla.org/en-US/docs/Web/API/Node)
+// M stands for Move. 
+class MNode {
+    constructor(move, parent) {
+        // move is one of the following.
+        // [[row, col], null, null] for moving pawn
+        // [null, [row, col], null] for putting horizontal wall
+        // [null, null, [row, col]] for putting vertical wall
+        this.move = move;
+        this.parent = parent;
+        this.numWins = 0;   // number of wins
+        this.numSims = 0;   // number of simulations
+        this.children = [];
+    }
+    // From Peter Auer, Cesa-Bianchi, Fischer (2002) "Finite-time Analysis of the Multiarmed Bandit Problem"
+    get ucb1() {
+        if (this.parent === null || this.numSims === 0 || this.parent.numSims === 0) {
+            throw "UCT_ERROR"
+        }
+        const c = 2;
+        return (this.numWins / this.numSims) + Math.sqrt((c * Math.log(this.parent.numSims)) / this.numSims);
+    }
+}
+
+class MonteCarloTreeSearch {
+    constructor(game) {
+        this.root = new Node(undefined, null);
+        this.game = game;
+    }
+
+    rollout(node) {
+        const game = this.game.clone();
+        const stack = [];
+        stack.push(node.move);
+
+        let ancestor = this;
+        while((ancestor = ancestor.parent) !== null) {
+            stack.push(ancestor.move);
+        }
+        while (stack.length > 0) {
+            const move = stack.pop();
+            game.doMove(...move);
+        }
+        while (game.winner === null) {
+            // do random move
+        }
+    }
+}
 
 /*
 * Represents an AI Player
@@ -189,7 +239,7 @@ function getShortestPathsFor(pawn, game) {
     dist[pawn.position.row][pawn.position.col] = 0;
     queue.push(pawn.position)
     while (queue.length > 0) {
-        const position = queue.shift();
+        let position = queue.shift();
         for (let i = 0; i < moveArrs.length; i++) {
             if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
                 const nextPosition = position.newAddMove(moveArrs[i]);

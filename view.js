@@ -21,7 +21,7 @@ class View {
                     const row = clickedPawn.parentElement.parentElement.rowIndex / 2;
                     const col = clickedPawn.parentElement.cellIndex / 2;
                     View.cancelPawnClick();
-                    this.controller.movePawn(row, col);
+                    this.controller.doMove([row, col], null, null);
                 } else {
                     const horizontalWallShadows = document.getElementsByClassName("horizontal_wall shadow");
                     const verticalWallShadows = document.getElementsByClassName("vertical_wall shadow");
@@ -30,13 +30,13 @@ class View {
                         const row = (horizontalWallShadow.parentElement.parentElement.rowIndex - 1) / 2;
                         const col = horizontalWallShadow.parentElement.cellIndex / 2;
                         View.cancelWallShadows();
-                        this.controller.putHorizontalWall(row, col);
+                        this.controller.doMove(null, [row, col], null);
                     } else if (verticalWallShadows.length > 0) {
                         const verticalWallShadow = verticalWallShadows[0];
                         const row = verticalWallShadow.parentElement.parentElement.rowIndex / 2;
                         const col = (verticalWallShadow.parentElement.cellIndex - 1) / 2;
                         View.cancelWallShadows();
-                        this.controller.putVerticalWall(row, col);
+                        this.controller.doMove(null, null, [row, col]);
                     }
                 }
             };
@@ -203,7 +203,7 @@ class View {
                 const x = e.target;
                 const row = x.parentElement.parentElement.rowIndex / 2;
                 const col = x.parentElement.cellIndex / 2;
-                this.controller.movePawn(row, col);
+                this.controller.doMove([row, col], null, null);
             };
         } else {
             onclickNextPawnPosition = function(e) {
@@ -268,14 +268,14 @@ class View {
                 View.horizontalWallShadow(x, false);
                 const row = (x.parentElement.rowIndex - 1) / 2;
                 const col = x.cellIndex / 2;
-                this.controller.putHorizontalWall(row, col);
+                this.controller.doMove(null, [row, col], null);
             };
             onclickNextVerticalWall = function(e) {
                 const x = e.currentTarget;
                 View.verticalWallShadow(x, false);
                 const row = x.parentElement.rowIndex / 2;
                 const col = (x.cellIndex - 1) / 2;
-                this.controller.putVerticalWall(row, col);
+                this.controller.doMove(null, null, [row, col]);
             };
         } else {
             onclickNextHorizontalWall = function(e) {

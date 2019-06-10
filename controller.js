@@ -28,32 +28,9 @@ class Controller {
         }
     }
 
-    movePawn(row, col) {
-        this.game.movePawn(row, col);
-        this.view.render();
-        this.funcForDEBUG();
-        this.turnForAI();
-    }
-
-    putHorizontalWall(row, col) {
+    doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
         try {
-            this.game.putHorizontalWall(row, col);
-            this.view.render();
-            this.funcForDEBUG();
-            this.turnForAI();
-        }
-        catch(err) {
-            if (err === "NO_PATH_ERROR") {
-                this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
-            } else {
-                throw err;
-            }
-        }
-    }
-
-    putVerticalWall(row, col) {
-        try {
-            this.game.putVerticalWall(row, col);
+            this.game.doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt);
             this.view.render();
             this.funcForDEBUG();
             this.turnForAI();

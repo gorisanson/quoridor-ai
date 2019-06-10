@@ -42,7 +42,7 @@ class AI {
         this.isFirstPlayer = isFirstPlayer;
     }
 
-    chooseNextMove() {
+    chooseNextMove1() {
         const valids = indicesOfValueIn2DArray(this.game.validNextPositions, true);
         const distances = []
         let clonedGame;
@@ -56,7 +56,7 @@ class AI {
         this.game.movePawn(valids[index][0], valids[index][1]);
     }
 
-    chooseNextMove2() {
+    chooseNextMove() {
         const t = getShortestPathsFor(this.game.pawnOfTurn, this.game);
         const dist = t[0];
         const prev = t[1];
@@ -74,7 +74,19 @@ class AI {
         const next = getNextByReversingPrev(prev, goalPosition);
         const paths = getPathsToGoalFromNext(next, this.game.pawnOfTurn.position);
         console.log(`goal position: (${goalPosition.row}, ${goalPosition.col})`);
-        console.log(`number of paths: ${paths.length}`);
+        console.log(`number of shortest paths: ${paths.length}`);
+
+        const paths2 = findAllPathsToGoalRow(this.game.pawnOfTurn, this.game);
+        console.log(`number of all paths: ${paths2.length}`);
+        for (let i = 0; i < 10; i++) {
+            console.log("start");
+            console.log(`length: ${paths2[i].length}`);
+            for (let j = 0; j < paths2[i].length; j++) {
+                console.log(`(${paths2[i][j].row}, ${paths2[i][j].col})`);
+            }
+            console.log("end")
+        }
+
         //printPaths(paths);
         const nextPath = randomChoice(paths);
         let nextPosition = nextPath[1];
@@ -119,6 +131,8 @@ class AI {
                 || (this.game.pawnOfNotTurn.position.col === this.game.pawnOfTurn.position.col
                     && Math.abs(this.game.pawnOfNotTurn.position.row - this.game.pawnOfTurn.position.row) === 1))
     }
+
+        
 }
  
 
@@ -175,7 +189,7 @@ function getShortestPathsFor(pawn, game) {
     dist[pawn.position.row][pawn.position.col] = 0;
     queue.push(pawn.position)
     while (queue.length > 0) {
-        let position = queue.shift();
+        const position = queue.shift();
         for (let i = 0; i < moveArrs.length; i++) {
             if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
                 const nextPosition = position.newAddMove(moveArrs[i]);
@@ -244,23 +258,15 @@ function getPathsToGoalFromNext(next, startPosition) {
     // similar to dfs
     const addPathToGoalToPaths = function(currentPosition, path) {
         path.push(currentPosition);
-        let nexts = next[currentPosition.row][currentPosition.col];
+        const nexts = next[currentPosition.row][currentPosition.col];
         // if currentPosition is the goal position
         if (nexts === null) {
             paths.push(path);
             return;
         }
-        let copiedPath;
-        if (nexts.length > 1) {
-            copiedPath = [...path];
-        }
         //console.log(`next.length: ${nexts.length}`)
         for (let i = 0; i < nexts.length; i++) {
-            if (i === 0) {
-                addPathToGoalToPaths(nexts[0], path);
-            } else {
-                addPathToGoalToPaths(nexts[i], [...copiedPath]); // pass cloned array because javascript use call by sharing
-            }
+            addPathToGoalToPaths(nexts[i], [...path]); // pass cloned array because javascript use call by sharing
         }
     };
     addPathToGoalToPaths(startPosition, []);
@@ -275,4 +281,46 @@ function printPaths(paths) {
             console.log(`row: ${path[j].row}, col: ${path[j].col}`);
         }
     }
+}
+
+function findAllPathsToGoalRow(pawn, game) {
+    // ToDo: changing elements order of moveArrs could improve performance??
+    const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+    const paths = [];
+    const pathStack = [];
+    const dfs = function(currentPosition, goalRow, game) {
+        pathStack.push(currentPosition);
+        //ToDo: this if statement is for prevent memory difficiency....
+        // Too many paths exists........
+        // How can I find only homotopic paths efficiently?
+        if (paths.length > 10000) {
+            pathStack.pop();
+            return;
+        }
+        if (currentPosition.row === goalRow) {
+            paths.push([...pathStack]);
+            pathStack.pop();
+            return;
+        }
+        for (let i = 0; i < moveArrs.length; i++) {
+            const moveArr = moveArrs[i];
+            const nextPosition = currentPosition.newAddMove(moveArr);
+            if (game.isOpenWay(currentPosition.row, currentPosition.col, moveArr)
+                && !pathIncludePosition(pathStack, nextPosition)) {
+                dfs(nextPosition, goalRow, game);
+            }
+        }
+        pathStack.pop();
+    }
+    dfs(pawn.position, pawn.goalRow, game);
+    return paths;
+}
+
+function pathIncludePosition(path, position) {
+    for (let i = 0; i < path.length; i++) {
+        if (position.equals(path[i])) {
+            return true;
+        }
+    }
+    return false;
 }

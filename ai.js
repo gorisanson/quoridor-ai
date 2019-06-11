@@ -1,3 +1,5 @@
+"use strict";
+
 PawnPosition.clone = function(pawnPosition) {
     return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };
@@ -147,11 +149,7 @@ class MNode {
             console.log(`children[${i}].move: ${this.children[i].move}`);
         }
     }
-
 }
-/********* */
-// ToDo: if numberOfWalls === 0 do not put a wall!!!!!!
-/******* */
 
 /*
 * Reference:
@@ -165,19 +163,19 @@ class MonteCarloTreeSearch {
     constructor(game) {
         this.root = new MNode(null, null);
         this.game = game;
-        this.totalNumOfSimulations = 1000;
+        this.totalNumOfSimulations = 120000;
         this.numOfSimulations = 0;
     }
 
     static maxDepth(node) {
         let max = 0;
         for (let i = 0; i < node.children.length; i++) {
-            const d = this.maxDepth(node.children[i]);
+            const d = this.maxDepth(node.children[i]) + 1;
             if (d > max) {
                 max = d;
             }
         }
-        return max + 1;
+        return max;
     }
 
     searchAndSelectBestMove() {
@@ -188,6 +186,7 @@ class MonteCarloTreeSearch {
         while (this.numOfSimulations < this.totalNumOfSimulations) {            
             // Selection
             if (currentNode.isTerminal) {
+                console.log("one more terminal rollout...")
                 this.rollout(currentNode);
                 currentNode = this.root;
             } else if (currentNode.isLeaf) {
@@ -204,6 +203,7 @@ class MonteCarloTreeSearch {
                         childNode = new MNode(move, currentNode); 
                         currentNode.addChild(childNode);
                     }
+                    
                     if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
                         const noBlockNextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
                         for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
@@ -218,6 +218,7 @@ class MonteCarloTreeSearch {
                             currentNode.addChild(childNode);
                         }
                     }
+                    
                     this.rollout(currentNode.children[0]);
                     currentNode = this.root;
                 }
@@ -229,6 +230,10 @@ class MonteCarloTreeSearch {
         const endTime = d.getTime();
         console.log(`total Time: ${(endTime - startTime)/1000} sec`)
         console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`)
+        
+        // this console.log prevents gargabe collection of the search tree...
+        //console.log(this.root.children); 
+        
         return this.root.maxWinRateChild.move;
     }
     
@@ -253,13 +258,48 @@ class MonteCarloTreeSearch {
     rollout(node) {
         this.numOfSimulations++;
         const simulationGame = this.getSimulationGameAtNode(node);
-        const nodePawnIndex = simulationGame.pawnIndexOfTurn;
+        // the pawn of this node is the pawn who moved immediately before,
+        // put it another way, the pawn who leads to this node right before,
+        // i.e. pawn of not turn.
+        const nodePawnIndex = simulationGame.pawnIndexOfNotTurn;
         if (simulationGame.winner !== null) {
             node.isTerminal = true;
         }
         // Simulation
         // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
         while (simulationGame.winner === null) {
+            
+            if (simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
+                const valids = simulationGame.getArrOfValidNextPositions();
+                const distances = []
+                let clonedGame;
+                for (let i = 0; i < valids.length; i++) {
+                    clonedGame = Game.clone(simulationGame);
+                    clonedGame.movePawn(valids[i][0], valids[i][1]);
+                    const distance = getShortestDistanceFor(clonedGame.pawnOfNotTurn, clonedGame);
+                    distances.push(distance);
+                }
+                const index = randomChoice(indicesOfMin(distances));
+                simulationGame.movePawn(valids[index][0], valids[index][1]);
+            } else {
+                const nextMoves = [];
+                const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
+                for (let i = 0; i < nextHorizontals.length; i++) { 
+                    nextMoves.push([null, nextHorizontals[i], null]);
+                }
+                const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
+                for (let i = 0; i < nextVerticals.length; i++) {
+                    nextMoves.push([null, null, nextVerticals[i]]);
+                }
+                let nextMoveIndex = randomIndex(nextMoves);
+                while(!simulationGame.doMove(...(nextMoves[nextMoveIndex]))) {
+                    console.log("rechoose wall");
+                    nextMoves.splice(nextMoveIndex, 1);
+                    nextMoveIndex = randomIndex(nextMoves);
+                }
+            }
+            
+            /*
             const nextPositions = simulationGame.getArrOfValidNextPositions();
             const nextMoves = [];
             for (let i = 0; i < nextPositions.length; i++) {
@@ -279,6 +319,7 @@ class MonteCarloTreeSearch {
             while(!simulationGame.doMove(...nextMove)) {
                 nextMove = randomChoice(nextMoves);
             }
+            */
         }
 
         // Backpropagation
@@ -292,7 +333,7 @@ class MonteCarloTreeSearch {
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
-        console.log(`${this.numOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
+        //console.log(`${this.numOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
     }
 }
 
@@ -305,9 +346,9 @@ class AI {
     }
 
     chooseNextMove(game) {
-        const mcts = new MonteCarloTreeSearch(game);
+        let mcts = new MonteCarloTreeSearch(game);
         const bestMove = mcts.searchAndSelectBestMove();
-        console.log("doMove!!!")
+        console.log("doMove!!!");
         return bestMove;
     }
 
@@ -322,7 +363,8 @@ class AI {
             distances.push(distance);
         }
         const index = randomChoice(indicesOfMin(distances));
-        game.movePawn(valids[index][0], valids[index][1]);
+        const move = [[valids[index][0], valids[index][1]], null, null];
+        return move;
     }
 
     chooseNextMove2(game) {
@@ -417,6 +459,10 @@ function indicesOfMin(arr) {
         }
     }
     return indices;
+}
+
+function randomIndex(arr) {
+    return Math.floor(Math.random() * arr.length);
 }
 
 // ToDo: would if statement that select arr.length === 1 impoves performence???
@@ -589,3 +635,4 @@ function pathIncludePosition(path, position) {
     }
     return false;
 }
+

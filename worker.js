@@ -1,3 +1,5 @@
+"use strict";
+
 importScripts('game.js');
 importScripts('ai.js');
 

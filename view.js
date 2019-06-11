@@ -1,4 +1,4 @@
-i = 0;
+"use strict";
 
 class View {
     constructor(controller) {

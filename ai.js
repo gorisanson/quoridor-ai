@@ -5,14 +5,17 @@ PawnPosition.clone = function(pawnPosition) {
 };
 
 Pawn.clone = function(pawn) {
-    const _clone = new Pawn(pawn.index, pawn.isHumanPlayer);
+    const _clone = new Pawn(pawn.index, pawn.isHumanPlayer, true);
+    _clone.index = pawn.index;
+    _clone.isHumanPlayer = pawn.isHumanPlayer;
     _clone.position = PawnPosition.clone(pawn.position);
+    _clone.goalRow = pawn.goalRow;
     _clone.numberOfLeftWalls = pawn.numberOfLeftWalls;
     return _clone;
 };
 
 Board.clone = function(board) {
-    const _clone = new Board(true);
+    const _clone = new Board(true, true);
     _clone.pawns = [Pawn.clone(board.pawns[0]), Pawn.clone(board.pawns[1])];
     _clone.walls = {horizontal: create2DArrayClonedFrom(board.walls.horizontal), vertical: create2DArrayClonedFrom(board.walls.vertical)};
     return _clone;
@@ -21,7 +24,7 @@ Board.clone = function(board) {
 // ToDo: optimize constructor so that when cloned
 // it does not initialize componenet class that would be soon trashed.
 Game.clone = function(game) {
-    const _clone = new Game(true);
+    const _clone = new Game(true, true);
     _clone.board = Board.clone(game.board);
     if (game.winner === null) {
         _clone.winner = null;
@@ -228,9 +231,10 @@ class MonteCarloTreeSearch {
         }
         d = new Date();
         const endTime = d.getTime();
-        console.log(`total Time: ${(endTime - startTime)/1000} sec`)
-        console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`)
-        
+        console.log(`total Time: ${(endTime - startTime)/1000} sec`);
+        console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`);
+        console.log(`estimated winrate: ${this.root.maxWinRateChild.winRate}`);
+
         // this console.log prevents gargabe collection of the search tree...
         //console.log(this.root.children); 
         

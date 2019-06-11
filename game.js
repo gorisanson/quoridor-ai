@@ -104,20 +104,22 @@ class PawnPosition {
 * Represents a pawn
 */
 class Pawn {
-    constructor(index, isHumanPlayer) {
-        // index === 0 represents a light-colored pawn (which moves first).
-        // index === 1 represents a dark-colored pawn.
-        this.index = index;
-        if (isHumanPlayer === true) {
-            this.isHumanPlayer = true;
-            this.position = new PawnPosition(8, 4);
-            this.goalRow = 0;
-        } else {
-            this.isHumanPlayer = false;
-            this.position = new PawnPosition(0, 4);
-            this.goalRow = 8;
+    constructor(index, isHumanPlayer, forClone = false) {
+        if (!forClone) {
+            // index === 0 represents a light-colored pawn (which moves first).
+            // index === 1 represents a dark-colored pawn.
+            this.index = index;
+            if (isHumanPlayer === true) {
+                this.isHumanPlayer = true;
+                this.position = new PawnPosition(8, 4);
+                this.goalRow = 0;
+            } else {
+                this.isHumanPlayer = false;
+                this.position = new PawnPosition(0, 4);
+                this.goalRow = 8;
+            }
+            this.numberOfLeftWalls = 10;
         }
-        this.numberOfLeftWalls = 10;
     }
 }
 
@@ -126,16 +128,18 @@ class Pawn {
 * Represents a Board
 */
 class Board {
-    constructor(isHumanPlayerFirst) {
-        // this.pawns[0] represents a light-colored pawn (which moves first).
-        // this.pawns[1] represents a dark-colored pawn.
-        if (isHumanPlayerFirst === true) {
-            this.pawns = [new Pawn(0, true), new Pawn(1, false)];
-        } else {
-            this.pawns = [new Pawn(0, false), new Pawn(1, true)];
+    constructor(isHumanPlayerFirst, forClone = false) {
+        if (!forClone) {
+            // this.pawns[0] represents a light-colored pawn (which moves first).
+            // this.pawns[1] represents a dark-colored pawn.
+            if (isHumanPlayerFirst === true) {
+                this.pawns = [new Pawn(0, true), new Pawn(1, false)];
+            } else {
+                this.pawns = [new Pawn(0, false), new Pawn(1, true)];
+            }
+            // horizontal, vertical: each is a 8 by 8 2D array, true: there is a wall, false: there is not a wall.
+            this.walls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
         }
-        // horizontal, vertical: each is a 8 by 8 2D array, true: there is a wall, false: there is not a wall.
-        this.walls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
     }
 }
 
@@ -144,21 +148,23 @@ class Board {
 * Represents a Quoridor game and the rule
 */
 class Game {
-    constructor(isHumanPlayerFirst) {
-        this.board = new Board(isHumanPlayerFirst);
-        this.winner = null;
-        this._turn = 0;
+    constructor(isHumanPlayerFirst, forClone = false) {
+        if (!forClone) {
+            this.board = new Board(isHumanPlayerFirst);
+            this.winner = null;
+            this._turn = 0;
 
-        // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid wall location.
-        // this should be only updated each time putting a wall 
-        this.validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
+            // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid wall location.
+            // this should be only updated each time putting a wall 
+            this.validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
 
-        // whether ways to adjacency is blocked (not open) or not blocked (open) by a wall
-        // this should be only updated each time putting a wall
-        this.openWays = {upDown: create2DArrayInitializedTo(8, 9, true), leftRight: create2DArrayInitializedTo(9, 8, true)};
+            // whether ways to adjacency is blocked (not open) or not blocked (open) by a wall
+            // this should be only updated each time putting a wall
+            this.openWays = {upDown: create2DArrayInitializedTo(8, 9, true), leftRight: create2DArrayInitializedTo(9, 8, true)};
 
-        this._validNextPositions = create2DArrayInitializedTo(9, 9, false);
-        this._validNextPositionsUpdated = false;
+            this._validNextPositions = create2DArrayInitializedTo(9, 9, false);
+            this._validNextPositionsUpdated = false;
+        }
     }
 
     get turn() {

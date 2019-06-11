@@ -234,11 +234,8 @@ class MonteCarloTreeSearch {
         // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
         while (simulationGame.winner === null) {
             const nextPositions = simulationGame.getArrOfValidNextPositions();
-            // ToDo: In rollout just use trycatch at the line simulationGame.doMove() could improve performence. 
-            //const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
-            //const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
-            const nextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
-            const nextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
+            const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
+            const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
             const nextMoves = [];
             for (let i = 0; i < nextPositions.length; i++) {
                 nextMoves.push([nextPositions[i], null, null]);
@@ -249,20 +246,9 @@ class MonteCarloTreeSearch {
             for (let i = 0; i < nextVerticals.length; i++) {
                 nextMoves.push([null, null, nextVerticals[i]]);
             }
-            let nextMove = randomChoice(nextMoves); 
-            
-            let didMove = false;
-            while (!didMove) {
-                try {
-                    simulationGame.doMove(...nextMove);
-                    didMove = true;
-                } catch (error) {
-                    if (error === "NO_PATH_ERROR") {
-                        nextMove = randomChoice(nextMoves);
-                    } else {
-                        throw error;
-                    }   
-                }
+            let nextMove = randomChoice(nextMoves);            
+            while(!simulationGame.doMove(...nextMove)) {
+                nextMove = randomChoice(nextMoves);
             }
         }
 

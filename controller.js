@@ -29,17 +29,14 @@ class Controller {
     }
 
     doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
-        try {
-            this.game.doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt);
+        if (this.game.doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt)) {
             this.view.render();
             this.funcForDEBUG();
             this.turnForAI();
-        } catch(error) {
-            if (error === "NO_PATH_ERROR") {
-                this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
-            } else {
-                throw error;
-            }
+        } else {
+            // suppose that pawnMove can not be return false, if make the View perfect.
+            // so if doMove return false, it's form putWalls.
+            this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
         }
     }
 

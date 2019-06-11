@@ -270,7 +270,7 @@ class Game {
 
     movePawn(row, col) {
         if (this.validNextPositions[row][col] !== true) {
-            throw "INVALID_PAWN_MOVE_ERROR"
+            return false;
         }
         this.pawnOfTurn.position.row = row;
         this.pawnOfTurn.position.col = col;
@@ -278,6 +278,7 @@ class Game {
             this.winner = this.pawnOfTurn;
         }
         this.turn++;
+        return true;
     }
 
     testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col) {
@@ -300,7 +301,7 @@ class Game {
 
     putHorizontalWall(row, col) {
         if (!this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
-            throw "NO_PATH_ERROR"
+            return false;
         } else {
             this.openWays.upDown[row][col] = false;
             this.openWays.upDown[row][col + 1] = false;
@@ -315,12 +316,13 @@ class Game {
             this.board.walls.horizontal[row][col] = true;
             this.pawnOfTurn.numberOfLeftWalls--;
             this.turn++;
+            return true;
         }
     }
 
     putVerticalWall(row, col) {
         if (!this.testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col)) {
-            throw "NO_PATH_ERROR"
+            return false;
         } else {
             this.openWays.leftRight[row][col] = false;
             this.openWays.leftRight[row+1][col] = false;
@@ -335,6 +337,7 @@ class Game {
             this.board.walls.vertical[row][col] = true;
             this.pawnOfTurn.numberOfLeftWalls--;
             this.turn++;
+            return true;
         }
     }
 
@@ -342,11 +345,11 @@ class Game {
     // other two arguments must be null.
     doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
         if (movePawnTo) {
-            this.movePawn(movePawnTo[0], movePawnTo[1]);
+            return this.movePawn(movePawnTo[0], movePawnTo[1]);
         } else if (putHorizontalWallAt) {
-            this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
+            return this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
         } else if (putVerticalWallAt) {
-            this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+            return this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
         }
     }
 

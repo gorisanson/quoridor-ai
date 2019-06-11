@@ -1,32 +1,32 @@
-PawnPosition.prototype.clone = function() {
-    return new PawnPosition(this.row, this.col);
+PawnPosition.clone = function(pawnPosition) {
+    return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };
 
-Pawn.prototype.clone = function() {
-    const _clone = new Pawn(this.index, this.isHumanPlayer);
-    _clone.position = this.position.clone();
-    _clone.numberOfLeftWalls = this.numberOfLeftWalls;
+Pawn.clone = function(pawn) {
+    const _clone = new Pawn(pawn.index, pawn.isHumanPlayer);
+    _clone.position = PawnPosition.clone(pawn.position);
+    _clone.numberOfLeftWalls = pawn.numberOfLeftWalls;
     return _clone;
 };
 
-Board.prototype.clone = function() {
+Board.clone = function(board) {
     const _clone = new Board(true);
-    _clone.pawns = [this.pawns[0].clone(), this.pawns[1].clone()];
-    _clone.walls = {horizontal: create2DArrayClonedFrom(this.walls.horizontal), vertical: create2DArrayClonedFrom(this.walls.vertical)};
+    _clone.pawns = [Pawn.clone(board.pawns[0]), Pawn.clone(board.pawns[1])];
+    _clone.walls = {horizontal: create2DArrayClonedFrom(board.walls.horizontal), vertical: create2DArrayClonedFrom(board.walls.vertical)};
     return _clone;
 };
 
 // ToDo: optimize constructor so that when cloned
 // it does not initialize componenet class that would be soon trashed.
-Game.prototype.clone = function() {
+Game.clone = function(game) {
     const _clone = new Game(true);
-    _clone.board = this.board.clone();
+    _clone.board = Board.clone(game.board);
     _clone.winner = null;
-    _clone._turn = this._turn;
-    _clone.validNextWalls = {horizontal: create2DArrayClonedFrom(this.validNextWalls.horizontal), vertical: create2DArrayClonedFrom(this.validNextWalls.vertical)};
-    _clone.openWays = {upDown: create2DArrayClonedFrom(this.openWays.upDown), leftRight: create2DArrayClonedFrom(this.openWays.leftRight)};
-    _clone._validNextPositions = create2DArrayClonedFrom(this._validNextPositions);
-    _clone._validNextPositionsUpdated = this._validNextPositionsUpdated;
+    _clone._turn = game._turn;
+    _clone.validNextWalls = {horizontal: create2DArrayClonedFrom(game.validNextWalls.horizontal), vertical: create2DArrayClonedFrom(game.validNextWalls.vertical)};
+    _clone.openWays = {upDown: create2DArrayClonedFrom(game.openWays.upDown), leftRight: create2DArrayClonedFrom(game.openWays.leftRight)};
+    _clone._validNextPositions = create2DArrayClonedFrom(game._validNextPositions);
+    _clone._validNextPositionsUpdated = game._validNextPositionsUpdated;
     return _clone;
 };
 
@@ -229,7 +229,7 @@ class MonteCarloTreeSearch {
     }
     
     getSimulationGameAtNode(node) {
-        const simulationGame = this.game.clone();
+        const simulationGame = Game.clone(this.game);
         const stack = [];
 
         let ancestor = node;
@@ -296,37 +296,36 @@ class MonteCarloTreeSearch {
 * Represents an AI Player
 */
 class AI {
-    constructor(game, isFirstPlayer) {
-        this.game = game;
-        this.isFirstPlayer = isFirstPlayer;
+    constructor() {
+        // need something??
     }
 
-    chooseNextMove() {
-        const mcts = new MonteCarloTreeSearch(this.game);
+    chooseNextMove(game) {
+        const mcts = new MonteCarloTreeSearch(game);
         const bestMove = mcts.searchAndSelectBestMove();
         console.log("doMove!!!")
-        this.game.doMove(...bestMove);
+        return bestMove;
     }
 
-    chooseNextMove1() {
-        const valids = indicesOfValueIn2DArray(this.game.validNextPositions, true);
+    chooseNextMove1(game) {
+        const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
         const distances = []
         let clonedGame;
         for (let i = 0; i < valids.length; i++) {
-            clonedGame = this.game.clone();
+            clonedGame = Game.clone(game);
             clonedGame.movePawn(valids[i][0], valids[i][1]);
             const distance = getShortestDistanceFor(clonedGame.pawnOfNotTurn, clonedGame);
             distances.push(distance);
         }
         const index = randomChoice(indicesOfMin(distances));
-        this.game.movePawn(valids[index][0], valids[index][1]);
+        game.movePawn(valids[index][0], valids[index][1]);
     }
 
-    chooseNextMove2() {
-        const t = getShortestPathsFor(this.game.pawnOfTurn, this.game);
+    chooseNextMove2(game) {
+        const t = getShortestPathsFor(game.pawnOfTurn, game);
         const dist = t[0];
         const prev = t[1];
-        const goalRow = this.game.pawnOfTurn.goalRow;
+        const goalRow = game.pawnOfTurn.goalRow;
 
         const indices = indicesOfMin(dist[goalRow]);
         let goalCol;
@@ -338,11 +337,11 @@ class AI {
         
         const goalPosition = new PawnPosition(goalRow, goalCol);
         const next = getNextByReversingPrev(prev, goalPosition);
-        const paths = getPathsToGoalFromNext(next, this.game.pawnOfTurn.position);
+        const paths = getPathsToGoalFromNext(next, game.pawnOfTurn.position);
         console.log(`goal position: (${goalPosition.row}, ${goalPosition.col})`);
         console.log(`number of shortest paths: ${paths.length}`);
 
-        const paths2 = findAllPathsToGoalRow(this.game.pawnOfTurn, this.game);
+        const paths2 = findAllPathsToGoalRow(game.pawnOfTurn, game);
         console.log(`number of all paths: ${paths2.length}`);
         for (let i = 0; i < 10; i++) {
             console.log("start");
@@ -359,7 +358,7 @@ class AI {
         if (this.arePawnsAdjacent()) {
             if (paths[0].length === 2) { // only 1 move left to arrive at goal
                 for (let j = 0; j < 9; j++) {
-                    if (this.game.validNextPositions[goalRow][j]) {
+                    if (game.validNextPositions[goalRow][j]) {
                         nextPosition = new PawnPosition(goalRow, j);
                         break;
                     }
@@ -370,7 +369,7 @@ class AI {
                     const possibleJumpingPosition = path[2];
                     const row = possibleJumpingPosition.row;
                     const col = possibleJumpingPosition.col; 
-                    if (this.game.validNextPositions[row][col] === true) {
+                    if (game.validNextPositions[row][col] === true) {
                         nextPosition = possibleJumpingPosition;
                     }
                 }
@@ -378,13 +377,13 @@ class AI {
         }
 
         try {
-            this.game.movePawn(nextPosition.row, nextPosition.col);
+            game.movePawn(nextPosition.row, nextPosition.col);
         }
         catch(error) {
             if (error === "INVALID_PAWN_MOVE_ERROR") {
                 console.log(error);
-                const next = randomChoice(indicesOfValueIn2DArray(this.game.validNextPositions, true))
-                this.game.movePawn(next[0], next[1]);
+                const next = randomChoice(indicesOfValueIn2DArray(game.validNextPositions, true))
+                game.movePawn(next[0], next[1]);
             } else {
                 throw error;
             }

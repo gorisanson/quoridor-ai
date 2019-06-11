@@ -5,6 +5,18 @@ class Controller {
         this.game = null;
         this.ai = null;
         this.view = new View(this);
+        /*this.worker = new Worker('worker.js');
+        this.worker.onmessage = function(event) {
+            const move = event.data;
+            this.game.doMove(...move);
+            this.view.render();
+            this.funcForDEBUG();
+        };
+        this.worker.onerror = function(error) {
+            console.log('Worker error: ' + error.message + '\n');
+            throw error;
+        };
+        */
     }
 
     startNewGame(isHumanPlayerFirst) {
@@ -16,13 +28,15 @@ class Controller {
         this.view.render();
         this.funcForDEBUG();
         if (!isHumanPlayerFirst) {
+            //this.worker.postMessage(this.game);
             this.turnForAI();
         }
     }
 
     turnForAI() {
         if (!this.game.winner) {
-            this.ai.chooseNextMove();
+            const move = this.ai.chooseNextMove(this.game);
+            this.game.doMove(...move);
             this.view.render();
             this.funcForDEBUG();
         }
@@ -32,6 +46,7 @@ class Controller {
         if (this.game.doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt)) {
             this.view.render();
             this.funcForDEBUG();
+            //this.worker.postMessage(this.game);
             this.turnForAI();
         } else {
             // suppose that pawnMove can not be return false, if make the View perfect.
@@ -44,7 +59,5 @@ class Controller {
         if (DEBUG) {
             this.view.render2DArrayToBoard(getShortestPathsFor(this.game.pawnOfTurn, this.game)[0]);
         }
-    }
-
-    
+    }    
 }

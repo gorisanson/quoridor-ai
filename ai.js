@@ -21,7 +21,11 @@ Board.clone = function(board) {
 Game.clone = function(game) {
     const _clone = new Game(true);
     _clone.board = Board.clone(game.board);
-    _clone.winner = null;
+    if (game.winner === null) {
+        _clone.winner = null;
+    } else {
+        _clone.winner = _clone.board.pawns[game.winner.index];
+    }
     _clone._turn = game._turn;
     _clone.validNextWalls = {horizontal: create2DArrayClonedFrom(game.validNextWalls.horizontal), vertical: create2DArrayClonedFrom(game.validNextWalls.vertical)};
     _clone.openWays = {upDown: create2DArrayClonedFrom(game.openWays.upDown), leftRight: create2DArrayClonedFrom(game.openWays.leftRight)};

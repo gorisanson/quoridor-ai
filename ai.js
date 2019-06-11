@@ -1,41 +1,74 @@
 PawnPosition.prototype.clone = function() {
     return new PawnPosition(this.row, this.col);
-}
+};
 
 Pawn.prototype.clone = function() {
-    const _clone = new Pawn(this.isHumanPlayer);
+    const _clone = new Pawn(this.index, this.isHumanPlayer);
     _clone.position = this.position.clone();
     _clone.numberOfLeftWalls = this.numberOfLeftWalls;
     return _clone;
-}
+};
 
 Board.prototype.clone = function() {
-    
     const _clone = new Board(true);
     _clone.pawns = [this.pawns[0].clone(), this.pawns[1].clone()];
     _clone.walls = {horizontal: create2DArrayClonedFrom(this.walls.horizontal), vertical: create2DArrayClonedFrom(this.walls.vertical)};
     return _clone;
-    
-}
+};
 
 // ToDo: optimize constructor so that when cloned
 // it does not initialize componenet class that would be soon trashed.
 Game.prototype.clone = function() {
     const _clone = new Game(true);
     _clone.board = this.board.clone();
-    _clone.winner = this.winner;
+    _clone.winner = null;
     _clone._turn = this._turn;
     _clone.validNextWalls = {horizontal: create2DArrayClonedFrom(this.validNextWalls.horizontal), vertical: create2DArrayClonedFrom(this.validNextWalls.vertical)};
     _clone.openWays = {upDown: create2DArrayClonedFrom(this.openWays.upDown), leftRight: create2DArrayClonedFrom(this.openWays.leftRight)};
     _clone._validNextPositions = create2DArrayClonedFrom(this._validNextPositions);
     _clone._validNextPositionsUpdated = this._validNextPositionsUpdated;
     return _clone;
+};
+
+Game.prototype.getArrOfValidNextPositions = function() {
+    return indicesOfValueIn2DArray(this.validNextPositions, true);
 }
 
-// If it is named "Node", the code work erroneously
-// because maybe "Node" is already used name in Web APIs?
-// (see https://developer.mozilla.org/en-US/docs/Web/API/Node)
-// M stands for Move. 
+// get valid next horizontal walls that do not block all paths of either pawn.
+Game.prototype.getArrOfValidNoBlockNextHorizontalWallPositions = function() {
+    const nextHorizontals = indicesOfValueIn2DArray(this.validNextWalls.horizontal, true);
+    const noBlockNextHorizontals = [];
+    for (let i = 0; i < nextHorizontals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+            noBlockNextHorizontals.push(nextHorizontals[i]);
+        } //else {
+            //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
+        //}
+    }
+    return noBlockNextHorizontals;
+};
+
+// get valid next vertical walls that do not block all paths of either pawn.
+Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
+    const nextVerticals = indicesOfValueIn2DArray(this.validNextWalls.vertical, true);
+    const noBlockNextVerticals = [];
+    for (let i = 0; i < nextVerticals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+            noBlockNextVerticals.push(nextVerticals[i]);
+        } //else {
+            //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
+        //}
+    }
+    return noBlockNextVerticals;
+};
+
+
+/*
+* If it is named "M", the code work erroneously
+* because maybe "M" is already used name in Web APIs?
+* (see https://developer.mozilla.org/en-US/docs/Web/API/M)
+* M stands for Move. 
+*/
 class MNode {
     constructor(move, parent) {
         // move is one of the following.
@@ -48,37 +81,201 @@ class MNode {
         this.numSims = 0;   // number of simulations
         this.children = [];
     }
-    // From Peter Auer, Cesa-Bianchi, Fischer (2002) "Finite-time Analysis of the Multiarmed Bandit Problem"
-    get ucb1() {
-        if (this.parent === null || this.numSims === 0 || this.parent.numSims === 0) {
+
+    get isLeaf() {
+        return this.children.length === 0;
+    }
+
+    get isNew() {
+        return this.numSims === 0;
+    }
+
+    // References: 
+    // Levente Kocsis, Csaba Szepesva ́ri (2006 ) "Bandit based Monte-Carlo Planning"
+    // Peter Auer, Cesa-Bianchi, Fischer (2002) "Finite-time Analysis of the Multiarmed Bandit Problem"
+    // Do google search for "monte carlo tree search uct"
+    get uct() {
+        if (this.parent === null || this.parent.numSims === 0) {
             throw "UCT_ERROR"
+        }
+        if (this.numSims === 0) {
+            return Infinity;
         }
         const c = 2;
         return (this.numWins / this.numSims) + Math.sqrt((c * Math.log(this.parent.numSims)) / this.numSims);
     }
-}
 
-class MonteCarloTreeSearch {
-    constructor(game) {
-        this.root = new Node(undefined, null);
-        this.game = game;
+    get winRate() {
+        return this.numWins / this.numSims;
     }
 
-    rollout(node) {
-        const game = this.game.clone();
-        const stack = [];
-        stack.push(node.move);
-
-        let ancestor = this;
-        while((ancestor = ancestor.parent) !== null) {
-            stack.push(ancestor.move);
+    get maxUCTChild() {
+        let maxUCTIndex;
+        let maxUCT = -Infinity;
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i].uct > maxUCT) {
+                maxUCT = this.children[i].uct;
+                maxUCTIndex = i;  
+            }
         }
+        return this.children[maxUCTIndex];
+    }
+
+    get maxWinRateChild() {
+        let maxWinRateIndex;
+        let maxWinRate = -Infinity;
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i].winRate > maxWinRate) {
+                maxWinRate = this.children[i].winRate;
+                maxWinRateIndex = i;  
+            }
+        }
+        return this.children[maxWinRateIndex];
+    }
+
+    addChild(childNode) {
+        this.children.push(childNode);
+    }
+
+    printChildren() {
+        for (let i = 0; i < this.children.length; i++) {
+            console.log(`children[${i}].move: ${this.children[i].move}`);
+        }
+    }
+
+}
+
+/*
+* Reference:
+* 
+* Monte Carlo tree search, Wikipedia
+* (https://en.wikipedia.org/wiki/Monte_Carlo_tree_search)
+* Ziad SALLOUM, Monte Carlo Tree Search in Reinforcement Learning
+* (https://towardsdatascience.com/monte-carlo-tree-search-in-reinforcement-learning-b97d3e743d0f)
+*/
+class MonteCarloTreeSearch {
+    constructor(game) {
+        this.root = new MNode(null, null);
+        this.game = game;
+        this.totalNumOfSimulations = 1000;
+        this.numOfSimulations = 0;
+    }
+
+    searchAndSelectBestMove() {
+        let currentNode = this.root;
+        
+        let d = new Date();
+        const startTime = d.getTime();
+        while (this.numOfSimulations < this.totalNumOfSimulations) {            
+            // Selection
+            if (currentNode.isLeaf) {
+                if (currentNode.isNew) {
+                    this.rollout(currentNode);
+                } else {
+                    // Expansion
+                    const simulationGame = this.getSimulationGameAtNode(currentNode);
+                    const nextPositions = simulationGame.getArrOfValidNextPositions();
+                    
+                    const noBlockNextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
+                    const noBlockNextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
+                    let move, childNode;
+                    for (let i = 0; i < nextPositions.length; i++) {
+                        move = [nextPositions[i], null, null];
+                        childNode = new MNode(move, currentNode); 
+                        currentNode.addChild(childNode);
+                    }
+                    for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
+                        move = [null, noBlockNextHorizontals[i], null];
+                        childNode = new MNode(move, currentNode); 
+                        currentNode.addChild(childNode);
+                    }
+                    for (let i = 0; i < noBlockNextVerticals.length; i++) {
+                        move = [null, null, noBlockNextVerticals[i]];
+                        childNode = new MNode(move, currentNode); 
+                        currentNode.addChild(childNode);
+                    }
+                    this.rollout(currentNode.children[0]);
+                }
+            } else {
+                currentNode = currentNode.maxUCTChild;
+            }
+        }
+        d = new Date();
+        const endTime = d.getTime();
+        console.log(`total Time: ${(endTime - startTime)/1000} sec`)
+        return this.root.maxWinRateChild.move;
+    }
+    
+    getSimulationGameAtNode(node) {
+        const simulationGame = this.game.clone();
+        const stack = [];
+
+        let ancestor = node;
+        while(ancestor.parent !== null) {
+            stack.push(ancestor.move); // moves stacked to a child of root. root's move is not stacked.
+            ancestor = ancestor.parent;
+        }
+        
         while (stack.length > 0) {
             const move = stack.pop();
-            game.doMove(...move);
+            simulationGame.doMove(...move);
         }
-        while (game.winner === null) {
-            // do random move
+        return simulationGame;
+    }
+
+    // also called "playout"
+    rollout(node) {
+        console.log(this.numOfSimulations);
+        this.numOfSimulations++;
+        const simulationGame = this.getSimulationGameAtNode(node);
+        const nodePawnIndex = simulationGame.pawnIndexOfTurn;
+
+        // Simulation
+        // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
+        while (simulationGame.winner === null) {
+            const nextPositions = simulationGame.getArrOfValidNextPositions();
+            // ToDo: In rollout just use trycatch at the line simulationGame.doMove() could improve performence. 
+            //const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
+            //const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
+            const nextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
+            const nextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
+            const nextMoves = [];
+            for (let i = 0; i < nextPositions.length; i++) {
+                nextMoves.push([nextPositions[i], null, null]);
+            }
+            for (let i = 0; i < nextHorizontals.length; i++) { 
+                nextMoves.push([null, nextHorizontals[i], null]);
+            }
+            for (let i = 0; i < nextVerticals.length; i++) {
+                nextMoves.push([null, null, nextVerticals[i]]);
+            }
+            let nextMove = randomChoice(nextMoves); 
+            
+            let didMove = false;
+            while (!didMove) {
+                try {
+                    simulationGame.doMove(...nextMove);
+                    didMove = true;
+                } catch (error) {
+                    if (error === "NO_PATH_ERROR") {
+                        nextMove = randomChoice(nextMoves);
+                    } else {
+                        throw error;
+                    }   
+                }
+            }
+        }
+
+        // Backpropagation
+        let ancestor = node;
+        let ancestorPawnIndex = nodePawnIndex;
+        while(ancestor !== null) {
+            ancestor.numSims++;
+            if (simulationGame.winner.index === ancestorPawnIndex) {
+                ancestor.numWins++;
+            }
+            ancestor = ancestor.parent;
+            ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
     }
 }
@@ -90,6 +287,13 @@ class AI {
     constructor(game, isFirstPlayer) {
         this.game = game;
         this.isFirstPlayer = isFirstPlayer;
+    }
+
+    chooseNextMove() {
+        const mcts = new MonteCarloTreeSearch(this.game);
+        const bestMove = mcts.searchAndSelectBestMove();
+        console.log("doMove!!!")
+        this.game.doMove(...bestMove);
     }
 
     chooseNextMove1() {
@@ -106,7 +310,7 @@ class AI {
         this.game.movePawn(valids[index][0], valids[index][1]);
     }
 
-    chooseNextMove() {
+    chooseNextMove2() {
         const t = getShortestPathsFor(this.game.pawnOfTurn, this.game);
         const dist = t[0];
         const prev = t[1];
@@ -164,13 +368,13 @@ class AI {
         try {
             this.game.movePawn(nextPosition.row, nextPosition.col);
         }
-        catch(err) {
-            if (err === "INVALID_PAWN_MOVE_ERROR") {
-                console.log(err);
+        catch(error) {
+            if (error === "INVALID_PAWN_MOVE_ERROR") {
+                console.log(error);
                 const next = randomChoice(indicesOfValueIn2DArray(this.game.validNextPositions, true))
                 this.game.movePawn(next[0], next[1]);
             } else {
-                throw err;
+                throw error;
             }
         }
     }
@@ -189,7 +393,6 @@ class AI {
 function indicesOfMin(arr) {
     let min = Infinity;
     let indices = [];
-
     for (let i = 0; i < arr.length; i++) {
         if (arr[i] < min) {
             indices = [i];
@@ -201,12 +404,9 @@ function indicesOfMin(arr) {
     return indices;
 }
 
+// ToDo: would if statement that select arr.length === 1 impoves performence???
 function randomChoice(arr) {
-    if (arr.length > 1) {  // ToDo: is this if statement impoves performence???
-        return arr[Math.floor(Math.random() * arr.length)];
-    } else {
-        return arr[0];
-    }
+    return arr[Math.floor(Math.random() * arr.length)];
 }
 
 function indicesOfValueIn2DArray(arr2D, value) {

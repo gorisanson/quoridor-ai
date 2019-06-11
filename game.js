@@ -103,7 +103,10 @@ class PawnPosition {
 * Represents a pawn
 */
 class Pawn {
-    constructor(isHumanPlayer) {
+    constructor(index, isHumanPlayer) {
+        // index === 0 represents a light-colored pawn (which moves first).
+        // index === 1 represents a dark-colored pawn.
+        this.index = index;
         if (isHumanPlayer === true) {
             this.isHumanPlayer = true;
             this.position = new PawnPosition(8, 4);
@@ -123,10 +126,12 @@ class Pawn {
 */
 class Board {
     constructor(isHumanPlayerFirst) {
+        // this.pawns[0] represents a light-colored pawn (which moves first).
+        // this.pawns[1] represents a dark-colored pawn.
         if (isHumanPlayerFirst === true) {
-            this.pawns = [new Pawn(true), new Pawn(false)];
+            this.pawns = [new Pawn(0, true), new Pawn(1, false)];
         } else {
-            this.pawns = [new Pawn(false), new Pawn(true)];
+            this.pawns = [new Pawn(0, false), new Pawn(1, true)];
         }
         // horizontal, vertical: each is a 8 by 8 2D array, true: there is a wall, false: there is not a wall.
         this.walls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
@@ -275,16 +280,30 @@ class Game {
         this.turn++;
     }
 
-    putHorizontalWall(row, col) {
-        // this._existPathsToGoalLines depends on this.openways.
-        // so update this.openways first.
+    testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col) {
         this.openWays.upDown[row][col] = false;
         this.openWays.upDown[row][col + 1] = false;
-        if (!this._existPathsToGoalLines()) {
-            this.openWays.upDown[row][col] = true;
-            this.openWays.upDown[row][col + 1] = true;
+        const result = this._existPathsToGoalLines();
+        this.openWays.upDown[row][col] = true;
+        this.openWays.upDown[row][col + 1] = true;
+        return result
+    }
+
+    testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col) {
+        this.openWays.leftRight[row][col] = false;
+        this.openWays.leftRight[row+1][col] = false;
+        const result = this._existPathsToGoalLines();
+        this.openWays.leftRight[row][col] = true;
+        this.openWays.leftRight[row+1][col] = true;
+        return result
+    }
+
+    putHorizontalWall(row, col) {
+        if (!this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
             throw "NO_PATH_ERROR"
         } else {
+            this.openWays.upDown[row][col] = false;
+            this.openWays.upDown[row][col + 1] = false;
             this.validNextWalls.vertical[row][col] = false;
             this.validNextWalls.horizontal[row][col] = false;
             if (col > 0) {
@@ -300,15 +319,11 @@ class Game {
     }
 
     putVerticalWall(row, col) {
-        // this._existPathsToGoalLines depends on this.openways.
-        // so update this.openways first.
-        this.openWays.leftRight[row][col] = false;
-        this.openWays.leftRight[row+1][col] = false;
-        if (!this._existPathsToGoalLines()) {
-            this.openWays.leftRight[row][col] = true;
-            this.openWays.leftRight[row+1][col] = true;
+        if (!this.testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col)) {
             throw "NO_PATH_ERROR"
         } else {
+            this.openWays.leftRight[row][col] = false;
+            this.openWays.leftRight[row+1][col] = false;
             this.validNextWalls.horizontal[row][col] = false;
             this.validNextWalls.vertical[row][col] = false;
             if (row > 0) {

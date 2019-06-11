@@ -34,12 +34,11 @@ class Controller {
             this.view.render();
             this.funcForDEBUG();
             this.turnForAI();
-        }
-        catch(err) {
-            if (err === "NO_PATH_ERROR") {
+        } catch(error) {
+            if (error === "NO_PATH_ERROR") {
                 this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
             } else {
-                throw err;
+                throw error;
             }
         }
     }

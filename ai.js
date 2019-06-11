@@ -80,6 +80,7 @@ class MNode {
         this.numWins = 0;   // number of wins
         this.numSims = 0;   // number of simulations
         this.children = [];
+        this.isTerminal = false;
     }
 
     get isLeaf() {
@@ -144,6 +145,9 @@ class MNode {
     }
 
 }
+/********* */
+// ToDo: if numberOfWalls === 0 do not put a wall!!!!!!
+/******* */
 
 /*
 * Reference:
@@ -161,6 +165,17 @@ class MonteCarloTreeSearch {
         this.numOfSimulations = 0;
     }
 
+    static maxDepth(node) {
+        let max = 0;
+        for (let i = 0; i < node.children.length; i++) {
+            const d = this.maxDepth(node.children[i]);
+            if (d > max) {
+                max = d;
+            }
+        }
+        return max + 1;
+    }
+
     searchAndSelectBestMove() {
         let currentNode = this.root;
         
@@ -168,33 +183,39 @@ class MonteCarloTreeSearch {
         const startTime = d.getTime();
         while (this.numOfSimulations < this.totalNumOfSimulations) {            
             // Selection
-            if (currentNode.isLeaf) {
+            if (currentNode.isTerminal) {
+                this.rollout(currentNode);
+                currentNode = this.root;
+            } else if (currentNode.isLeaf) {
                 if (currentNode.isNew) {
                     this.rollout(currentNode);
+                    currentNode = this.root;
                 } else {
                     // Expansion
                     const simulationGame = this.getSimulationGameAtNode(currentNode);
                     const nextPositions = simulationGame.getArrOfValidNextPositions();
-                    
-                    const noBlockNextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
-                    const noBlockNextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
                     let move, childNode;
                     for (let i = 0; i < nextPositions.length; i++) {
                         move = [nextPositions[i], null, null];
                         childNode = new MNode(move, currentNode); 
                         currentNode.addChild(childNode);
                     }
-                    for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
-                        move = [null, noBlockNextHorizontals[i], null];
-                        childNode = new MNode(move, currentNode); 
-                        currentNode.addChild(childNode);
-                    }
-                    for (let i = 0; i < noBlockNextVerticals.length; i++) {
-                        move = [null, null, noBlockNextVerticals[i]];
-                        childNode = new MNode(move, currentNode); 
-                        currentNode.addChild(childNode);
+                    if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
+                        const noBlockNextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
+                        for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
+                            move = [null, noBlockNextHorizontals[i], null];
+                            childNode = new MNode(move, currentNode); 
+                            currentNode.addChild(childNode);
+                        }
+                        const noBlockNextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
+                        for (let i = 0; i < noBlockNextVerticals.length; i++) {
+                            move = [null, null, noBlockNextVerticals[i]];
+                            childNode = new MNode(move, currentNode); 
+                            currentNode.addChild(childNode);
+                        }
                     }
                     this.rollout(currentNode.children[0]);
+                    currentNode = this.root;
                 }
             } else {
                 currentNode = currentNode.maxUCTChild;
@@ -203,6 +224,7 @@ class MonteCarloTreeSearch {
         d = new Date();
         const endTime = d.getTime();
         console.log(`total Time: ${(endTime - startTime)/1000} sec`)
+        console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`)
         return this.root.maxWinRateChild.move;
     }
     
@@ -225,26 +247,29 @@ class MonteCarloTreeSearch {
 
     // also called "playout"
     rollout(node) {
-        console.log(this.numOfSimulations);
         this.numOfSimulations++;
         const simulationGame = this.getSimulationGameAtNode(node);
         const nodePawnIndex = simulationGame.pawnIndexOfTurn;
-
+        if (simulationGame.winner !== null) {
+            node.isTerminal = true;
+        }
         // Simulation
         // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
         while (simulationGame.winner === null) {
             const nextPositions = simulationGame.getArrOfValidNextPositions();
-            const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
-            const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
             const nextMoves = [];
             for (let i = 0; i < nextPositions.length; i++) {
                 nextMoves.push([nextPositions[i], null, null]);
             }
-            for (let i = 0; i < nextHorizontals.length; i++) { 
-                nextMoves.push([null, nextHorizontals[i], null]);
-            }
-            for (let i = 0; i < nextVerticals.length; i++) {
-                nextMoves.push([null, null, nextVerticals[i]]);
+            if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
+                const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
+                for (let i = 0; i < nextHorizontals.length; i++) { 
+                    nextMoves.push([null, nextHorizontals[i], null]);
+                }
+                const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
+                for (let i = 0; i < nextVerticals.length; i++) {
+                    nextMoves.push([null, null, nextVerticals[i]]);
+                }
             }
             let nextMove = randomChoice(nextMoves);            
             while(!simulationGame.doMove(...nextMove)) {
@@ -263,6 +288,7 @@ class MonteCarloTreeSearch {
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
+        console.log(`${this.numOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
     }
 }
 

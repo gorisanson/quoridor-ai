@@ -344,6 +344,9 @@ class Game {
     // only one argument must be provided by 2-element array.
     // other two arguments must be null.
     doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
+        if (this.winner !== null) {
+            console.log("already terminal......")
+        }
         if (movePawnTo) {
             return this.movePawn(movePawnTo[0], movePawnTo[1]);
         } else if (putHorizontalWallAt) {

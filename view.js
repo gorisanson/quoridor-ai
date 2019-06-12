@@ -5,14 +5,43 @@ class View {
         this.controller = controller;
         this._game = null;
 
-        this.button = {confirm: document.getElementById("confirm_button"), cancel: document.getElementById("cancel_button")};
+        this.htmlBoardTable = document.getElementById("board_table");
+        this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
+        this.htmlPawns[0].classList.add("hidden")
+        this.htmlPawns[1].classList.add("hidden");
+        this.htmlMessageBox = document.getElementById("message_box");
+        
+        // for choosing pawn
+        this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
+        let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
+        let pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
+        let onclickPawnButton = function(e) {
+            const x = e.target;
+            if (x.classList.contains("pawn0")) {
+                this.startNewGame(true);
+            } else if (x.classList.contains("pawn1")) {
+                this.startNewGame(false);
+            }
+        };
+        pawn0Button.onclick = onclickPawnButton.bind(this);
+        pawn1Button.onclick = onclickPawnButton.bind(this);
+
+        this.button = {confirm: document.getElementById("confirm_button"),
+                       cancel: document.getElementById("cancel_button"),
+                       restart: document.getElementById("restart_button")};
         this.button.confirm.disabled = true;
         this.button.cancel.disabled = true;
-        let buttonContainer = document.getElementsByClassName("button_container")[0];
-        let buttonContainerStyle = window.getComputedStyle(buttonContainer);
-        this.isHoverPossible = (buttonContainerStyle.display === "none");
+        this.button.restart.disabled = true;
+        this.htmlRestartButtonContainer = document.getElementById("restart_button_container");
+        this.htmlCCButtonContainer = document.getElementById("confirm_cancel_button_container");
+        let htmlCCButtonContainerStyle = window.getComputedStyle(this.htmlCCButtonContainer);
+        
+        // decide whether it is touch device or not, this display attribute is under css media query.
+        this.isHoverPossible = (htmlCCButtonContainerStyle.display === "none");
+        
+        // set UI for touch device
         if (!this.isHoverPossible) {
-            let onclickConfirmButton = function(e) {
+            const onclickConfirmButton = function(e) {
                 this.button.confirm.disabled = true;
                 this.button.cancel.disabled = true;
                 const clickedPawns = document.getElementsByClassName("pawn clicked");
@@ -40,37 +69,22 @@ class View {
                     }
                 }
             };
-            let onclickCancelButton = function(e) {
-                View.cancelPawnClick();
-                View.cancelWallShadows();
+            const onclickCancelButton = function(e) {
                 this.button.confirm.disabled = true;
                 this.button.cancel.disabled = true;
+                View.cancelPawnClick();
+                View.cancelWallShadows();
             };
+            
             this.button.confirm.onclick = onclickConfirmButton.bind(this);
             this.button.cancel.onclick = onclickCancelButton.bind(this);
         }
 
-        this.htmlBoardTable = document.getElementById("board_table");
-        this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
-        this.htmlPawns[0].classList.add("hidden")
-        this.htmlPawns[1].classList.add("hidden");
-        this.htmlMessageBox = document.getElementById("message_box");
-        this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
-        
-        
-        // for choosing pawn
-        let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
-        let pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
-        let onclickPawnButton = function(e) {
-            const x = e.target;
-            if (x.classList.contains("pawn0")) {
-                this.startNewGame(true);
-            } else if (x.classList.contains("pawn1")) {
-                this.startNewGame(false);
-            }
+        const onclickRestartButton = function(e) {
+            View.removePreviousFadeInoutBox();
+            this.htmlChoosePawnMessageBox.classList.remove("hidden");
         };
-        pawn0Button.onclick = onclickPawnButton.bind(this);
-        pawn1Button.onclick = onclickPawnButton.bind(this);
+        this.button.restart.onclick = onclickRestartButton.bind(this);
     }
 
     set game(game) {
@@ -110,6 +124,9 @@ class View {
     }
    
     startNewGame(isHumanPlayerFirst) {
+        View.removeWalls();
+        this.htmlRestartButtonContainer.classList.add("hidden");
+        this.htmlCCButtonContainer.classList.remove("hidden");
         this.htmlChoosePawnMessageBox.classList.add("hidden");
         this.controller.startNewGame(isHumanPlayerFirst);
     }
@@ -119,10 +136,7 @@ class View {
     }
 
     printNoteMessage(message) {
-        let previousBox;
-        if (previousBox = document.getElementById("note_message_box")) {
-            previousBox.remove();
-        }
+        View.removePreviousFadeInoutBox();
         const box = document.createElement("div");
         box.classList.add("fade_box")
         box.classList.add("inout");
@@ -133,10 +147,7 @@ class View {
     }
 
     printGameResultMessage(message) {
-        let previousBox;
-        if (previousBox = document.getElementById("game_result_message_box")) {
-            previousBox.remove();
-        }
+        View.removePreviousFadeInoutBox();
         const box = document.createElement("div");
         box.classList.add("fade_box")
         box.classList.add("inout");
@@ -159,6 +170,7 @@ class View {
                 this.printGameResultMessage("AI wins!")
                 this.printMessage("AI wins!")
             }
+            this._renderRestartButton();
         } else {
             if (this.game.pawnOfTurn.isHumanPlayer) {
                 this._renderValidNextPawnPositions();
@@ -168,6 +180,12 @@ class View {
                 this.printMessage("AI's turn")
             }
         }
+    }
+
+    _renderRestartButton() {
+        this.htmlCCButtonContainer.classList.add("hidden");
+        this.htmlRestartButtonContainer.classList.remove("hidden");
+        this.button.restart.disabled = false;
     }
 
     _removePreviousRender() {
@@ -341,7 +359,6 @@ class View {
     }
 
     static horizontalWallShadow(x, turnOn) {
-        let foo;
         if (turnOn === true) {
             const _horizontalWallShadow = document.createElement("div");
             _horizontalWallShadow.classList.add("horizontal_wall");
@@ -355,7 +372,6 @@ class View {
     }
     
     static verticalWallShadow(x, turnOn) {
-        let foo;
         if (turnOn === true) {
             const _verticalWallShadow = document.createElement("div");
             _verticalWallShadow.classList.add("vertical_wall");
@@ -385,6 +401,26 @@ class View {
         for (let i = 0; i < pawnShadows.length; i++) {
             pawnShadows[i].classList.remove("clicked");
             pawnShadows[i].classList.remove("hidden");
+        }
+    }
+
+    static removePreviousFadeInoutBox() {
+        let previousBoxes;
+        if (previousBoxes = document.getElementsByClassName("fade_box inout")) {
+            while(previousBoxes.length !== 0) {
+                previousBoxes[0].remove();
+            }
+        }
+    }
+
+    static removeWalls() {
+        let previousWalls = document.querySelectorAll("td > .horizontal_wall");
+        for (let i = 0; i < previousWalls.length; i++) {
+            previousWalls[i].remove();
+        }
+        previousWalls = document.querySelectorAll("td > .vertical_wall");
+        for (let i = 0; i < previousWalls.length; i++) {
+            previousWalls[i].remove();
         }
     }
 }

@@ -6,7 +6,7 @@
     <!--
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     -->
-    <title>Document</title>
+    <title>Quoridor AI</title>
     <style>
         :root {
             --board-table-side-length: 90vmin;
@@ -201,7 +201,7 @@
             75%  {opacity: 1;}
             100% {visibility: none; z-index: 10; opacity: 0;}
         }
-        #choose_pawn_message_box {
+        #select_mode_message_box, #choose_pawn_message_box {
             background-color:rgba(0, 0, 255, 0.8);
             animation-duration: 1s;
         }
@@ -219,7 +219,7 @@
             align-items: center;
             justify-content: flex-end;
         }
-        .button {
+        button.button {
             display: inline-block;
             height: calc(4 * var(--font-size));
             width: 100%;
@@ -235,7 +235,7 @@
             color: black;
             border: 2px solid rgb(85,85,85);
         }
-        .button.confirm {
+        .button.confirm, .button.restart {
             background-color: rgb(0, 71, 186);
         }
         #message_box {
@@ -252,7 +252,7 @@
         div.pawn.clicked {
             opacity: 0.7;
         }
-        .fade_box.in.hidden {
+        .fade_box.in.hidden, .button_container.hidden {
             display: none;
         }
         .button:disabled {
@@ -278,7 +278,7 @@
             }
         }
         @media (hover: hover) {
-            .button_container {
+            #confirm_cancel_button_container {
                 display: none;
             }
             div.pawn.shadow:hover {
@@ -301,11 +301,15 @@
     <div class="gridcontainer0">
         <div id="board_table_container">
             <!--<div class="fade_box inout" id="game_result_message_box"><div>test--</div></div>
-            <div class="fade_box inout" id="note_message_box">test---</div>-->
+            <div class="fade_box inout" id="note_message_box">test---</div>-->           
             <div class="fade_box in" id="choose_pawn_message_box">
                 Choose your pawn (light-colored pawn moves first)
-                <div><div class="pawn pawn0 button"></div><div class="pawn pawn1 button"></div></div>
+                <div>
+                    <div class="pawn pawn0 button"></div>
+                    <div class="pawn pawn1 button"></div>
+                </div>
             </div>
+            
             <table id="board_table">
                 <tr class="row row0">
                     <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>
@@ -638,9 +642,12 @@
                 <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
             </div>
             <div id="message_box">Your turn</div>
-            <div class="button_container">
+            <div id="confirm_cancel_button_container", class="button_container">
                 <button id="cancel_button" class="button cancel">cancel</button>
                 <button id="confirm_button" class="button confirm">confirm</button>
+            </div>
+            <div id="restart_button_container", class="button_container hidden">
+                <button id="restart_button" class="button restart">restart</button>
             </div>
         </div>
     </div>

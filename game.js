@@ -105,6 +105,11 @@ class PawnPosition {
 */
 class Pawn {
     constructor(index, isHumanPlayer, forClone = false) {
+        this.index = null;
+        this.isHumanPlayer = null;
+        this.position = null;
+        this.goalRow = null;
+        this.numberOfLeftWalls = null;
         if (!forClone) {
             // index === 0 represents a light-colored pawn (which moves first).
             // index === 1 represents a dark-colored pawn.
@@ -129,6 +134,8 @@ class Pawn {
 */
 class Board {
     constructor(isHumanPlayerFirst, forClone = false) {
+        this.pawns = null;
+        this.walls = null;
         if (!forClone) {
             // this.pawns[0] represents a light-colored pawn (which moves first).
             // this.pawns[1] represents a dark-colored pawn.
@@ -149,6 +156,13 @@ class Board {
 */
 class Game {
     constructor(isHumanPlayerFirst, forClone = false) {
+        this.board = null;
+        this.winner = null;
+        this._turn = null;
+        this.validNextWalls = null;
+        this.openWays = null;
+        this._validNextPositions = null;
+        this._validNextPositionsUpdated = null;
         if (!forClone) {
             this.board = new Board(isHumanPlayerFirst);
             this.winner = null;

@@ -57,6 +57,7 @@ Game.prototype.getArrOfValidNoBlockNextHorizontalWallPositions = function() {
     return noBlockNextHorizontals;
 };
 
+// ToDo: testIf.... can be improved by the fact: wall which does not adjecent other wall do not block path.
 // get valid next vertical walls that do not block all paths of either pawn.
 Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
     const nextVerticals = indicesOfValueIn2DArray(this.validNextWalls.vertical, true);
@@ -166,7 +167,7 @@ class MonteCarloTreeSearch {
     constructor(game) {
         this.root = new MNode(null, null);
         this.game = game;
-        this.totalNumOfSimulations = 120000;
+        this.totalNumOfSimulations = 1000;
         this.numOfSimulations = 0;
     }
 

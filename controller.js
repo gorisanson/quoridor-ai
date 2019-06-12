@@ -45,7 +45,7 @@ class Controller {
 
     funcForDEBUG() {
         if (DEBUG) {
-            this.view.render2DArrayToBoard(getShortestPathsFor(this.game.pawnOfTurn, this.game)[0]);
+            this.view.render2DArrayToBoard(getShortestDistancesToAllPosition(this.game.pawnOfTurn, this.game));
         }
     }    
 }

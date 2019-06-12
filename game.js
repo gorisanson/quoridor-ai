@@ -302,7 +302,120 @@ class Game {
         return true;
     }
 
+    testIfAdjecentToOtherWallForHorizontalWall(row, col) {
+        if (row >= 1) {
+            if (this.board.walls.vertical[row-1][col]) {
+                return true;
+            }
+        }
+        if (row <= 6) {
+            if (this.board.walls.vertical[row+1][col]) {
+                return true;
+            }
+        }
+        if (col >= 1) {
+            if (this.board.walls.vertical[row][col-1]) {
+                return true;
+            }
+            if (row >= 1) {
+                if (this.board.walls.vertical[row-1][col-1]) {
+                    return true;
+                }
+            }
+            if (row <= 6) {
+                if (this.board.walls.vertical[row+1][col-1]) {
+                    return true;
+                }
+            }
+            if (col >= 2) {
+                if (this.board.walls.horizontal[row][col-2]) {
+                    return true;
+                }
+            }
+        }
+        if (col <= 6) {
+            if (this.board.walls.vertical[row][col+1]) {
+                return true;
+            }
+            if (row >= 1) {
+                if (this.board.walls.vertical[row-1][col+1]) {
+                    return true;
+                }
+            }
+            if (row <= 6) {
+                if (this.board.walls.vertical[row+1][col+1]) {
+                    return true;
+                }
+            }
+            if (col <= 5) {
+                if (this.board.walls.horizontal[row][col+2]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    testIfAdjecentToOtherWallForVerticalWall(row, col) {
+        if (col >= 1) {
+            if (this.board.walls.horizontal[row][col-1]) {
+                return true;
+            }
+        }
+        if (col <= 6) {
+            if (this.board.walls.horizontal[row][col+1]) {
+                return true;
+            }
+        }
+        if (row >= 1) {
+            if (this.board.walls.horizontal[row-1][col]) {
+                return true;
+            }
+            if (col >= 1) {
+                if (this.board.walls.horizontal[row-1][col-1]) {
+                    return true;
+                }
+            }
+            if (col <= 6) {
+                if (this.board.walls.horizontal[row-1][col+1]) {
+                    return true;
+                }
+            }
+            if (row >= 2) {
+                if (this.board.walls.vertical[row-2][col]) {
+                    return true;
+                }
+            }
+        }
+        if (row <= 6) {
+            if (this.board.walls.horizontal[row+1][col]) {
+                return true;
+            }
+            if (col >= 1) {
+                if (this.board.walls.horizontal[row+1][col-1]) {
+                    return true;
+                }
+            }
+            if (col <= 6) {
+                if (this.board.walls.horizontal[row+1][col+1]) {
+                    return true;
+                }
+            }
+            if (row <= 5) {
+                if (this.board.walls.vertical[row+2][col]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col) {
+        // performance can be improved by the fact?:
+        // wall which does not adjecent other wall do not block path.
+        if (!this.testIfAdjecentToOtherWallForHorizontalWall(row, col)) {
+            return true;
+        }
         this.openWays.upDown[row][col] = false;
         this.openWays.upDown[row][col + 1] = false;
         const result = this._existPathsToGoalLines();
@@ -312,6 +425,11 @@ class Game {
     }
 
     testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col) {
+        // performance can be improved by the fact?:
+        // wall which does not adjecent other wall do not block path.
+        if (!this.testIfAdjecentToOtherWallForVerticalWall(row, col)) {
+            return true;
+        }
         this.openWays.leftRight[row][col] = false;
         this.openWays.leftRight[row+1][col] = false;
         const result = this._existPathsToGoalLines();
@@ -380,22 +498,25 @@ class Game {
     _existPathsToGoalLines() {
         return (this._existPathToGoalLineFor(this.pawnOfTurn) && this._existPathToGoalLineFor(this.pawnOfNotTurn))
     }
-
+    
+    // Intuitively DFS would be better than BFS on this function.
+    // Tested somewhat between DFS and BFS for checking intuition.
     _existPathToGoalLineFor(pawn) {
         const visited = create2DArrayInitializedTo(9, 9, false);
+        const moveArrs = [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN];
         const depthFirstSearch = function(currentRow, currentCol, goalRow) {
-            for (const moveArr of [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN]) {
-                const nextRow = currentRow + moveArr[0];
-                const nextCol = currentCol + moveArr[1];
-                if (nextRow >= 0 && nextRow <= 8 && nextCol >=0 && nextCol <= 8
-                    && !visited[nextRow][nextCol]
-                    && this.isOpenWay(currentRow, currentCol, moveArr)) {
-                    visited[nextRow][nextCol] = true;
-                    if (nextRow === goalRow) {
-                        return true;
-                    }
-                    if(depthFirstSearch.bind(this)(nextRow, nextCol, goalRow)) {
-                        return true;
+            for (const moveArr of moveArrs) {
+                if (this.isOpenWay(currentRow, currentCol, moveArr)) {
+                    const nextRow = currentRow + moveArr[0];
+                    const nextCol = currentCol + moveArr[1];
+                    if (!visited[nextRow][nextCol]) {
+                        visited[nextRow][nextCol] = true;
+                        if (nextRow === goalRow) {
+                            return true;
+                        }
+                        if(depthFirstSearch.bind(this)(nextRow, nextCol, goalRow)) {
+                            return true;
+                        }
                     }
                 }
             }

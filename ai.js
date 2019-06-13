@@ -1,5 +1,8 @@
 "use strict";
 
+// Todo: change positionTuples to PawnPosition
+// Todo: rename moveArr to moveTuple
+
 PawnPosition.clone = function(pawnPosition) {
     return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };
@@ -38,6 +41,11 @@ Game.clone = function(game) {
     _clone._validNextPositionsUpdated = game._validNextPositionsUpdated;
     return _clone;
 };
+
+// left (this instance) PawnPosition - right (argument) PawnPosition 
+PawnPosition.prototype.getDisplacementMoveArrFrom = function(position) {
+    return [this.row - position.row, this.col - position.col];
+}
 
 Game.prototype.getArrOfValidNextPositionTuples = function() {
     return indicesOfValueIn2DArray(this.validNextPositions, true);
@@ -119,14 +127,18 @@ class MNode {
     }
 
     get maxUCTChild() {
-        let maxUCTIndex;
+        let maxUCTIndices;
         let maxUCT = -Infinity;
         for (let i = 0; i < this.children.length; i++) {
-            if (this.children[i].uct > maxUCT) {
-                maxUCT = this.children[i].uct;
-                maxUCTIndex = i;  
+            const uct = this.children[i].uct;
+            if (uct > maxUCT) {
+                maxUCT = uct;
+                maxUCTIndices = [i];  
+            } else if (uct === maxUCT) {
+                maxUCTIndices.push(i);
             }
         }
+        const maxUCTIndex = randomChoice(maxUCTIndices);
         return this.children[maxUCTIndex];
     }
 
@@ -140,6 +152,18 @@ class MNode {
             }
         }
         return this.children[maxWinRateIndex];
+    }
+
+    get maxSimsChild() {
+        let maxSimsIndex;
+        let maxSims = -Infinity;
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i].numSims > maxSims) {
+                maxSims = this.children[i].numSims;
+                maxSimsIndex = i;  
+            }
+        }
+        return this.children[maxSimsIndex];
     }
 
     addChild(childNode) {
@@ -233,11 +257,29 @@ class MonteCarloTreeSearch {
         console.log(`total Time: ${(endTime - startTime)/1000} sec`);
         console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`);
         console.log(`estimated winrate: ${this.root.maxWinRateChild.winRate}`);
+        
+        let node = this.root
+        let i = 1;
+        while(node.children.length > 0) {
+            node = node.maxWinRateChild;
+            console.log(i, node.move, node.winRate, node.numWins, node.numSims);
+            i++;
+        }
 
+
+        console.log(`estimated maxsim winrate: ${this.root.maxSimsChild.winRate}`);
+        
+        node = this.root
+        i = 1;
+        while(node.children.length > 0) {
+            node = node.maxSimsChild;
+            console.log(i, node.move, node.winRate, node.numWins, node.numSims);
+            i++;
+        }
         // this console.log prevents gargabe collection of the search tree...
         //console.log(this.root.children); 
-        
-        return this.root.maxWinRateChild.move;
+        //return this.root.maxWinRateChild.move;
+        return this.root.maxSimsChild.move;
     }
     
     getSimulationGameAtNode(node) {
@@ -272,28 +314,25 @@ class MonteCarloTreeSearch {
         
         // Simulation
         // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
+        let simulationDepth = 0;
+        let pawnMoveFlag = false;
         while (simulationGame.winner === null) {     
-            if (simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
-                const nextPosition = AI.chooseShortestPathNextPawnPosition(simulationGame);
+            simulationDepth++;
+            if (pawnMoveFlag || simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
+                pawnMoveFlag = false;
+                const nextPosition = AI.chooseShortestPathNextPawnPosition2(simulationGame);
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
             } else {
-                const nextMoves = [];
-                const nextHorizontals = indicesOfValueIn2DArray(simulationGame.validNextWalls.horizontal, true);
-                for (let i = 0; i < nextHorizontals.length; i++) { 
-                    nextMoves.push([null, nextHorizontals[i], null]);
-                }
-                const nextVerticals = indicesOfValueIn2DArray(simulationGame.validNextWalls.vertical, true);
-                for (let i = 0; i < nextVerticals.length; i++) {
-                    nextMoves.push([null, null, nextVerticals[i]]);
-                }
-                let nextMoveIndex = randomIndex(nextMoves);
-                while(!simulationGame.doMove(...nextMoves[nextMoveIndex])) {
-                    nextMoves.splice(nextMoveIndex, 1);
-                    if (nextMoves.length === 0) {
-                        break;
-                    }
-                    //console.log("rechoose wall");
-                    nextMoveIndex = randomIndex(nextMoves);
+                let nextMove;
+                //if (simulationDepth <= 6) {
+                //    nextMove = AI.chooseNextWall(simulationGame);
+                //} else {
+                    nextMove = AI.chooseNextWallRandomly(simulationGame);
+                //}
+                if (nextMove !== null) {
+                    simulationGame.doMove(...nextMove);
+                } else {
+                    pawnMoveFlag = true;
                 }
             }
         }
@@ -328,30 +367,105 @@ class AI {
         return bestMove;
     }
 
-    static chooseNextMove2(game) {
+    static chooseShortestPathNextPawnPosition2(game) {
         const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
         const distances = []
         let clonedGame;
         for (let i = 0; i < valids.length; i++) {
             clonedGame = Game.clone(game);
             clonedGame.movePawn(valids[i][0], valids[i][1]);
-            const distance = getShortestDistanceFor(clonedGame.pawnOfNotTurn, clonedGame);
+            const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
             distances.push(distance);
         }
         const index = randomChoice(indicesOfMin(distances));
-        const move = [[valids[index][0], valids[index][1]], null, null];
-        return move;
+        const nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
+        return nextPosition;
+    }
+
+    static chooseNextWallRandomly(game) {
+        const nextMoves = [];
+        const nextHorizontals = indicesOfValueIn2DArray(game.validNextWalls.horizontal, true);
+        for (let i = 0; i < nextHorizontals.length; i++) { 
+            nextMoves.push([null, nextHorizontals[i], null]);
+        }
+        const nextVerticals = indicesOfValueIn2DArray(game.validNextWalls.vertical, true);
+        for (let i = 0; i < nextVerticals.length; i++) {
+            nextMoves.push([null, null, nextVerticals[i]]);
+        }
+        let nextMoveIndex = randomIndex(nextMoves);
+        while(!game.isPossibleNextMove(...nextMoves[nextMoveIndex])) {
+            nextMoves.splice(nextMoveIndex, 1);
+            if (nextMoves.length === 0) {
+                console.log("Is it really possible???")
+                return null;  // is it possible?? I'm not sure..
+            }
+            //console.log("rechoose wall");
+            nextMoveIndex = randomIndex(nextMoves);
+        }
+        return nextMoves[nextMoveIndex];
     }
 
     static chooseNextWall(game) {
-        ;
+        const validInterruptWalls = AI.getValidWallsInterruptShortestPaths(game.pawnOfNotTurn, game);
+        const nextMoves = [];
+        const nextHorizontals = indicesOfValueIn2DArray(validInterruptWalls.horizontal, true);
+        for (let i = 0; i < nextHorizontals.length; i++) {
+            nextMoves.push([null, nextHorizontals[i], null]);
+        }
+        const nextVerticals = indicesOfValueIn2DArray(validInterruptWalls.vertical, true);
+        for (let i = 0; i < nextVerticals.length; i++) {
+            nextMoves.push([null, null, nextVerticals[i]]);
+        }
+        // optimization in effect??
+        if (nextMoves.length === 0) {
+            return null;
+        }
+    
+        const currentDistanceForMe = AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
+        const currentDistanceForOpponent = AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
+        const futureDiffDiff = [];
+        for (let i = 0; i < nextMoves.length; i++) {
+            const nextMove = nextMoves[i];
+            if (nextMove[1] !== null) {
+                const row = nextMove[1][0];
+                const col = nextMove[1][1];
+                game.openWays.upDown[row][col] = false;
+                game.openWays.upDown[row][col + 1] = false;
+                // getShortestDistanceFror only depends on game.openWays so...
+                const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
+                const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
+                futureDiffDiff.push(diffForOpponent - diffForMe);
+                game.openWays.upDown[row][col] = true;
+                game.openWays.upDown[row][col + 1] = true;
+            } else { // nextMove[2] !== null
+                const row = nextMove[2][0];
+                const col = nextMove[2][1];
+                game.openWays.leftRight[row][col] = false;
+                game.openWays.leftRight[row+1][col] = false;
+                const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
+                const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
+                futureDiffDiff.push(diffForOpponent - diffForMe);
+                game.openWays.leftRight[row][col] = true;
+                game.openWays.leftRight[row+1][col] = true;
+            }
+        }
+        const indices = indicesOfSemiMax(futureDiffDiff);
+        if (indices.length === 0) {
+            // console.log("no walls to put", game.turn);
+            return null;
+        }
+        if (futureDiffDiff[indices[0]] < 5) {
+            return null;
+        } 
+        const index = randomChoice(indices);
+        return nextMoves[index];
     }
 
     // choose next pawn position of a shortest path
     // It's code is complicated for performance.
-    // the selected position of this code is almost same as chooseNextMove2
+    // the selected position of this code is almost same as chooseShortestPathNextPawnPosition2
     static chooseShortestPathNextPawnPosition(game) {
-        const t = getAllShortestPathsToAllPosition(game.pawnOfTurn, game);
+        const t = AI.getAllShortestPathsToAllPosition(game.pawnOfTurn, game);
         const dist = t[0];
         const prev = t[1];
         const goalRow = game.pawnOfTurn.goalRow;
@@ -365,8 +479,8 @@ class AI {
         }
         
         const goalPosition = new PawnPosition(goalRow, goalCol);
-        const next = getNextByReversingPrev(prev, goalPosition);
-        const paths = getPathsToGoalFromNext(next, game.pawnOfTurn.position);
+        const next = AI.getNextByReversingPrev(prev, goalPosition);
+        const paths = AI.getPathsToGoalFromNext(next, game.pawnOfTurn.position);
         //console.log(`goal position: (${goalPosition.row}, ${goalPosition.col})`);
         //console.log(`number of shortest paths: ${paths.length}`);
         //printPaths(paths);
@@ -398,7 +512,7 @@ class AI {
                 for (let i = 0; i < valids.length; i++) {
                     clonedGame = Game.clone(game);
                     clonedGame.movePawn(valids[i][0], valids[i][1]);
-                    const distance = getShortestDistanceFor(clonedGame.pawnOfNotTurn, clonedGame);
+                    const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
                     distances.push(distance);
                 }
                 const index = randomChoice(indicesOfMin(distances));
@@ -436,7 +550,218 @@ class AI {
                     && Math.abs(game.pawnOfNotTurn.position.row - game.pawnOfTurn.position.row) === 1))
     }
 
-        
+    static getShortestDistanceToGoalFor(pawn, game) {
+        const dist = AI.getShortestDistancesToAllPosition(pawn, game);
+        const distancesToGoalRow = dist[pawn.goalRow];
+        return Math.min(...distancesToGoalRow);
+    }
+
+    static getShortestDistancesToAllPosition(pawn, game) {
+        const visited = create2DArrayInitializedTo(9, 9, false);
+        const dist = create2DArrayInitializedTo(9, 9, Infinity);
+    
+        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+        const queue = [];
+        visited[pawn.position.row][pawn.position.col] = true;
+        dist[pawn.position.row][pawn.position.col] = 0;
+        queue.push(pawn.position)
+        while (queue.length > 0) {
+            let position = queue.shift();
+            for (let i = 0; i < moveArrs.length; i++) {
+                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
+                    const nextPosition = position.newAddMove(moveArrs[i]);
+                    if (!visited[nextPosition.row][nextPosition.col]) {
+                        const alt = dist[position.row][position.col] + 1;
+                        // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity
+                        // because alt won't be decreased in this BFS.
+                        if (alt < dist[nextPosition.row][nextPosition.col]) {
+                            dist[nextPosition.row][nextPosition.col] = alt;
+                        } 
+                        visited[nextPosition.row][nextPosition.col] = true;
+                        queue.push(nextPosition);
+                    }
+                }
+            }
+        }
+        return dist;
+    }
+
+    // use breadth first search
+    static getAllShortestPathsToAllPosition(pawn, game) {
+        const searched = create2DArrayInitializedTo(9, 9, false);
+        const visited = create2DArrayInitializedTo(9, 9, false);
+        const dist = create2DArrayInitializedTo(9, 9, Infinity);
+        const prev = create2DArrayInitializedTo(9, 9, null);
+
+        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+        const queue = [];
+        visited[pawn.position.row][pawn.position.col] = true;
+        dist[pawn.position.row][pawn.position.col] = 0;
+        queue.push(pawn.position)
+        while (queue.length > 0) {
+            let position = queue.shift();
+            for (let i = 0; i < moveArrs.length; i++) {
+                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
+                    const nextPosition = position.newAddMove(moveArrs[i]);
+                    if (!searched[nextPosition.row][nextPosition.col]) {
+                        const alt = dist[position.row][position.col] + 1;
+                        // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity
+                        // because alt won't be decreased in this BFS.
+                        if (alt < dist[nextPosition.row][nextPosition.col]) {
+                            dist[nextPosition.row][nextPosition.col] = alt;
+                            prev[nextPosition.row][nextPosition.col] = [position];
+                        } else if (alt === dist[nextPosition.row][nextPosition.col]) {
+                            prev[nextPosition.row][nextPosition.col].push(position);
+                        }
+                        if (!visited[nextPosition.row][nextPosition.col]) {
+                            visited[nextPosition.row][nextPosition.col] = true;
+                            queue.push(nextPosition);
+                        }
+                    }
+                }
+            }
+            searched[position.row][position.col] = true;
+        }
+        return [dist, prev];
+    }
+
+    // note that prev is generated with start position designated.
+    // "next" which is partial reverse of "prev" needs a goal position.
+    static getNextByReversingPrev(prev, goalPosition) {
+        const next = create2DArrayInitializedTo(9, 9, null);
+        const visited = create2DArrayInitializedTo(9, 9, false);
+        const queue = [];
+        queue.push(goalPosition);
+        while (queue.length > 0) {
+            let position = queue.shift();
+            let prevs = prev[position.row][position.col];
+            if (prevs === null) {
+                // for debug
+                if (queue.length !== 0) {
+                    throw "some error occured...."
+                }
+                continue; // this can be "break;"
+                // because if condition holds ture only if current position is start position.
+            }
+            //console.log(`prevs.length: ${prevs.length}`)
+            for (let i = 0; i < prevs.length; i++) {
+                let prevPosition = prevs[i];
+                //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
+                if (next[prevPosition.row][prevPosition.col] === null) {
+                    next[prevPosition.row][prevPosition.col] = [position];
+                } else {
+                    next[prevPosition.row][prevPosition.col].push(position);
+                }
+                if (!visited[prevPosition.row][prevPosition.col]) {
+                    visited[prevPosition.row][prevPosition.col] = true;
+                    queue.push(prevPosition);
+                }
+            }
+        }
+        return next;
+    }
+
+    static getValidWallsInterruptShortestPaths(pawn, game) {
+        const validInterruptHorizontalWalls = create2DArrayInitializedTo(8, 8, false);
+        const validInterruptVerticalWalls = create2DArrayInitializedTo(8, 8, false);
+        const visited = create2DArrayInitializedTo(9, 9, false);
+
+        const t = AI.getAllShortestPathsToAllPosition(pawn, game);
+        const dist = t[0];
+        const prev = t[1];
+        const goalRow = pawn.goalRow;
+        const goalCols = indicesOfMin(dist[goalRow]);
+
+        const queue = [];
+        for (let i = 0; i < goalCols.length; i++) {
+            const goalPosition = new PawnPosition(goalRow, goalCols[i]);
+            queue.push(goalPosition);
+        }
+
+        while (queue.length > 0) {
+            let position = queue.shift();
+            let prevs = prev[position.row][position.col];
+            if (prevs === null) {
+                // for debug
+                if (queue.length !== 0) {
+                    throw "some error occured...."
+                }
+                continue; // this can be "break;"
+                // because if condition holds ture only if current position is start position.
+            }
+            //console.log(`prevs.length: ${prevs.length}`)
+            for (let i = 0; i < prevs.length; i++) {
+                let prevPosition = prevs[i];
+                const moveArr = position.getDisplacementMoveArrFrom(prevPosition);
+                // mark valid walls which can interupt the pawn move
+                if (moveArr[0] === -1 && moveArr[1] === 0) { // up
+                    if (prevPosition.col < 8) {
+                        validInterruptHorizontalWalls[prevPosition.row-1][prevPosition.col] = 
+                        game.validNextWalls.horizontal[prevPosition.row-1][prevPosition.col];
+                    }
+                    if (prevPosition.col > 0) {
+                        validInterruptHorizontalWalls[prevPosition.row-1][prevPosition.col-1] = 
+                        game.validNextWalls.horizontal[prevPosition.row-1][prevPosition.col-1];
+                    }    
+                } else if (moveArr[0] === 1 && moveArr[1] === 0) { // down
+                    if (prevPosition.col < 8) {
+                        validInterruptHorizontalWalls[prevPosition.row][prevPosition.col] = 
+                        game.validNextWalls.horizontal[prevPosition.row][prevPosition.col];
+                    }
+                    if (prevPosition.col > 0) {
+                        validInterruptHorizontalWalls[prevPosition.row][prevPosition.col-1] = 
+                        game.validNextWalls.horizontal[prevPosition.row][prevPosition.col-1];
+                    }  
+                } else if (moveArr[0] === 0 && moveArr[1] === -1) { // left
+                    if (prevPosition.row < 8) {
+                        validInterruptVerticalWalls[prevPosition.row][prevPosition.col-1] = 
+                        game.validNextWalls.vertical[prevPosition.row][prevPosition.col-1];
+                    }
+                    if (prevPosition.row > 0) {
+                        validInterruptVerticalWalls[prevPosition.row-1][prevPosition.col-1] = 
+                        game.validNextWalls.vertical[prevPosition.row-1][prevPosition.col-1];
+                    }  
+                } else if (moveArr[0] === 0 && moveArr[1] === 1) { // right
+                    if (prevPosition.row < 8) {
+                        validInterruptVerticalWalls[prevPosition.row][prevPosition.col] = 
+                        game.validNextWalls.vertical[prevPosition.row][prevPosition.col];
+                    }
+                    if (prevPosition.row > 0) {
+                        validInterruptVerticalWalls[prevPosition.row-1][prevPosition.col] = 
+                        game.validNextWalls.vertical[prevPosition.row-1][prevPosition.col];
+                    }  
+                }
+                                
+                //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
+                if (!visited[prevPosition.row][prevPosition.col]) {
+                    visited[prevPosition.row][prevPosition.col] = true;
+                    queue.push(prevPosition);
+                }
+            }
+        }
+        return {horizontal: validInterruptHorizontalWalls, vertical: validInterruptVerticalWalls};
+    }
+
+    static getPathsToGoalFromNext(next, startPosition) {
+        const paths = [];
+        // similar to dfs
+        const addPathToGoalToPaths = function(currentPosition, path) {
+            path.push(currentPosition);
+            const nexts = next[currentPosition.row][currentPosition.col];
+            // if currentPosition is the goal position
+            if (nexts === null) {
+                paths.push(path);
+                return;
+            }
+            //console.log(`next.length: ${nexts.length}`)
+            for (let i = 0; i < nexts.length; i++) {
+                addPathToGoalToPaths(nexts[i], [...path]); // pass cloned array because javascript use call by sharing
+            }
+        };
+        addPathToGoalToPaths(startPosition, []);
+        return paths;
+    }
+
 }
  
 
@@ -448,6 +773,35 @@ function indicesOfMin(arr) {
             indices = [i];
             min = arr[i];
         } else if (arr[i] === min) {
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
+function indicesOfMax(arr) {
+    let max = -Infinity;
+    let indices = [];
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > max) {
+            indices = [i];
+            max = arr[i];
+        } else if (arr[i] === max) {
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
+// get indices of max but do not include infinity or NaN
+function indicesOfSemiMax(arr) {
+    let max = -Infinity;
+    let indices = [];
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] !== Infinity && arr[i] !== NaN && arr[i] > max) {
+            indices = [i];
+            max = arr[i];
+        } else if (arr[i] === max) {
             indices.push(i);
         }
     }
@@ -473,139 +827,6 @@ function indicesOfValueIn2DArray(arr2D, value) {
         }
     }
     return t;
-}
-
-function getShortestDistanceFor(pawn, game) {
-    const dist = getShortestDistancesToAllPosition(pawn, game);
-    const distancesToGoalRow = dist[pawn.goalRow];
-    return Math.min(...distancesToGoalRow);
-}
-
-function getShortestDistancesToAllPosition(pawn, game) {
-    const visited = create2DArrayInitializedTo(9, 9, false);
-    const dist = create2DArrayInitializedTo(9, 9, Infinity);
-
-    const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
-    const queue = [];
-    visited[pawn.position.row][pawn.position.col] = true;
-    dist[pawn.position.row][pawn.position.col] = 0;
-    queue.push(pawn.position)
-    while (queue.length > 0) {
-        let position = queue.shift();
-        for (let i = 0; i < moveArrs.length; i++) {
-            if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                const nextPosition = position.newAddMove(moveArrs[i]);
-                if (!visited[nextPosition.row][nextPosition.col]) {
-                    const alt = dist[position.row][position.col] + 1;
-                    // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity
-                    // because alt won't be decreased in this BFS.
-                    if (alt < dist[nextPosition.row][nextPosition.col]) {
-                        dist[nextPosition.row][nextPosition.col] = alt;
-                    } 
-                    visited[nextPosition.row][nextPosition.col] = true;
-                    queue.push(nextPosition);
-                }
-            }
-        }
-    }
-    return dist;
-}
-
-// use breadth first search
-function getAllShortestPathsToAllPosition(pawn, game) {
-    const searched = create2DArrayInitializedTo(9, 9, false);
-    const visited = create2DArrayInitializedTo(9, 9, false);
-    const dist = create2DArrayInitializedTo(9, 9, Infinity);
-    const prev = create2DArrayInitializedTo(9, 9, null);
-
-    const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
-    const queue = [];
-    visited[pawn.position.row][pawn.position.col] = true;
-    dist[pawn.position.row][pawn.position.col] = 0;
-    queue.push(pawn.position)
-    while (queue.length > 0) {
-        let position = queue.shift();
-        for (let i = 0; i < moveArrs.length; i++) {
-            if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                const nextPosition = position.newAddMove(moveArrs[i]);
-                if (!searched[nextPosition.row][nextPosition.col]) {
-                    const alt = dist[position.row][position.col] + 1;
-                    // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity
-                    // because alt won't be decreased in this BFS.
-                    if (alt < dist[nextPosition.row][nextPosition.col]) {
-                        dist[nextPosition.row][nextPosition.col] = alt;
-                        prev[nextPosition.row][nextPosition.col] = [position];
-                    } else if (alt === dist[nextPosition.row][nextPosition.col]) {
-                        prev[nextPosition.row][nextPosition.col].push(position);
-                    }
-                    if (!visited[nextPosition.row][nextPosition.col]) {
-                        visited[nextPosition.row][nextPosition.col] = true;
-                        queue.push(nextPosition);
-                    }
-                }
-            }
-        }
-        searched[position.row][position.col] = true;
-    }
-    return [dist, prev];
-}
-
-
-// note that prev is generated with start position designated.
-// "next" which is partial reverse of "prev" needs a goal position.
-function getNextByReversingPrev(prev, goalPosition) {
-    const next = create2DArrayInitializedTo(9, 9, null);
-    const visited = create2DArrayInitializedTo(9, 9, false);
-    const queue = [];
-    queue.push(goalPosition);
-    while (queue.length > 0) {
-        let position = queue.shift();
-        let prevs = prev[position.row][position.col];
-        if (prevs === null) {
-            // for debug
-            if (queue.length !== 0) {
-                throw "some error occured...."
-            }
-            continue; // this can be "break;"
-            // because if condition holds ture only if current position is start position.
-        }
-        //console.log(`prevs.length: ${prevs.length}`)
-        for (let i = 0; i < prevs.length; i++) {
-            let prevPosition = prevs[i];
-            //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
-            if (next[prevPosition.row][prevPosition.col] === null) {
-                next[prevPosition.row][prevPosition.col] = [position];
-            } else {
-                next[prevPosition.row][prevPosition.col].push(position);
-            }
-            if (!visited[prevPosition.row][prevPosition.col]) {
-                visited[prevPosition.row][prevPosition.col] = true;
-                queue.push(prevPosition);
-            }
-        }
-    }
-    return next;
-}
-
-
-function getPathsToGoalFromNext(next, startPosition) {
-    const paths = [];
-    // similar to dfs
-    const addPathToGoalToPaths = function(currentPosition, path) {
-        path.push(currentPosition);
-        const nexts = next[currentPosition.row][currentPosition.col];
-        // if currentPosition is the goal position
-        if (nexts === null) {
-            paths.push(path);
-            return;
-        }
-        //console.log(`next.length: ${nexts.length}`)
-        for (let i = 0; i < nexts.length; i++) {
-            addPathToGoalToPaths(nexts[i], [...path]); // pass cloned array because javascript use call by sharing
-        }
-    };
-    addPathToGoalToPaths(startPosition, []);
-    return paths;
 }
 
 function printPaths(paths) {
@@ -659,4 +880,6 @@ function pathIncludePosition(path, position) {
     }
     return false;
 }
+
+
 

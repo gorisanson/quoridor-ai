@@ -104,8 +104,9 @@ class PawnPosition {
 * Represents a pawn
 */
 class Pawn {
-    constructor(index, isHumanPlayer, forClone = false) {
+    constructor(index, isHumanSide, isHumanPlayer, forClone = false) {
         this.index = null;
+        this.isHumanSide = null;
         this.isHumanPlayer = null;
         this.position = null;
         this.goalRow = null;
@@ -114,12 +115,13 @@ class Pawn {
             // index === 0 represents a light-colored pawn (which moves first).
             // index === 1 represents a dark-colored pawn.
             this.index = index;
-            if (isHumanPlayer === true) {
-                this.isHumanPlayer = true;
+            this.isHumanPlayer = isHumanPlayer;
+            if (isHumanSide === true) {
+                this.isHumanSide = true;
                 this.position = new PawnPosition(8, 4);
                 this.goalRow = 0;
             } else {
-                this.isHumanPlayer = false;
+                this.isHumanSide = false;
                 this.position = new PawnPosition(0, 4);
                 this.goalRow = 8;
             }
@@ -140,9 +142,9 @@ class Board {
             // this.pawns[0] represents a light-colored pawn (which moves first).
             // this.pawns[1] represents a dark-colored pawn.
             if (isHumanPlayerFirst === true) {
-                this.pawns = [new Pawn(0, true), new Pawn(1, false)];
+                this.pawns = [new Pawn(0, true, false), new Pawn(1, false, true)];
             } else {
-                this.pawns = [new Pawn(0, false), new Pawn(1, true)];
+                this.pawns = [new Pawn(0, false, false), new Pawn(1, true, true)];
             }
             // horizontal, vertical: each is a 8 by 8 2D array, true: there is a wall, false: there is not a wall.
             this.walls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
@@ -438,6 +440,16 @@ class Game {
         return result
     }
 
+    isPossibleNextMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
+        if (movePawnTo) {
+            return this.validNextPositions[movePawnTo[0]][movePawnTo[1]];
+        } else if (putHorizontalWallAt) {
+            return this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
+        } else if (putVerticalWallAt) {
+            return this.testIfAdjecentToOtherWallForVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+        }
+    }
+
     putHorizontalWall(row, col) {
         if (!this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
             return false;
@@ -484,7 +496,7 @@ class Game {
     // other two arguments must be null.
     doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
         if (this.winner !== null) {
-            console.log("already terminal......")
+            console.log("error: doMove after already terminal......") // for debug
         }
         if (movePawnTo) {
             return this.movePawn(movePawnTo[0], movePawnTo[1]);

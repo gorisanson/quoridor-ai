@@ -320,7 +320,7 @@ class MonteCarloTreeSearch {
             simulationDepth++;
             if (pawnMoveFlag || simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
                 pawnMoveFlag = false;
-                const nextPosition = AI.chooseShortestPathNextPawnPosition2(simulationGame);
+                const nextPosition = AI.chooseShortestPathNextPawnPosition(simulationGame);
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
             } else {
                 let nextMove;
@@ -367,18 +367,45 @@ class AI {
         return bestMove;
     }
 
-    static chooseShortestPathNextPawnPosition2(game) {
-        const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
-        const distances = []
-        let clonedGame;
-        for (let i = 0; i < valids.length; i++) {
-            clonedGame = Game.clone(game);
-            clonedGame.movePawn(valids[i][0], valids[i][1]);
-            const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
-            distances.push(distance);
+    static chooseShortestPathNextPawnPosition(game) {
+        let nextPosition = null;
+        // "if (AI.arePawnsAdjacent(game))"" part can deal with
+        // general case, not only adjacent pawns case.
+        // But, for not adjacent case, there is a more efficent way
+        // to find next position. It is the "else" part.
+        // This impoves performece significantly.
+        if (AI.arePawnsAdjacent(game)) {
+            const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
+            const distances = [];
+            for (let i = 0; i < valids.length; i++) {
+                const clonedGame = Game.clone(game);
+                clonedGame.movePawn(valids[i][0], valids[i][1]);
+                const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
+                distances.push(distance);
+            }
+            const index = randomChoice(indicesOfMin(distances));
+            nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
+        } else { 
+            const t = this.getRandomShortestPathToGoal(game.pawnOfTurn, game);
+            const dist = t[0];
+            const prev = t[1];
+
+            const goalRow = game.pawnOfTurn.goalRow;
+            const distancesToGoalRow = dist[goalRow];
+            const goalCol = indicesOfMin(distancesToGoalRow)[0];
+
+            let prevPosition;
+            let position = new PawnPosition(goalRow, goalCol);
+            while(prevPosition = prev[position.row][position.col]) {
+                nextPosition = position;
+                position = prevPosition;
+            }
+            // if already in goal position.
+            if (nextPosition === null) {
+                console.log("really?? already in goal position");
+                throw "already in goal Position...."
+            }
         }
-        const index = randomChoice(indicesOfMin(distances));
-        const nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
         return nextPosition;
     }
 
@@ -463,9 +490,9 @@ class AI {
 
     // choose next pawn position of a shortest path
     // It's code is complicated for performance.
-    // the selected position of this code is almost same as chooseShortestPathNextPawnPosition2
-    static chooseShortestPathNextPawnPosition(game) {
-        const t = AI.getAllShortestPathsToAllPosition(game.pawnOfTurn, game);
+    // the selected position of this code is almost same as chooseShortestPathNextPawnPosition
+    static chooseShortestPathNextPawnPosition2(game) {
+        const t = AI.getAllShortestPathsToEveryPosition(game.pawnOfTurn, game);
         const dist = t[0];
         const prev = t[1];
         const goalRow = game.pawnOfTurn.goalRow;
@@ -550,13 +577,45 @@ class AI {
                     && Math.abs(game.pawnOfNotTurn.position.row - game.pawnOfTurn.position.row) === 1))
     }
 
+    static getRandomShortestPathToGoal(pawn, game) {
+        const visited = create2DArrayInitializedTo(9, 9, false);
+        const dist = create2DArrayInitializedTo(9, 9, Infinity);
+        const prev = create2DArrayInitializedTo(9, 9, null);
+
+        const moveArrs = shuffle([MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT]);
+
+        const queue = [];
+        visited[pawn.position.row][pawn.position.col] = true;
+        dist[pawn.position.row][pawn.position.col] = 0;
+        queue.push(pawn.position)
+        while (queue.length > 0) {
+            let position = queue.shift();
+            if (position.row === pawn.goalRow) {
+                return [dist, prev];
+            }
+            for (let i = 0; i < moveArrs.length; i++) {
+                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
+                    const nextPosition = position.newAddMove(moveArrs[i]);
+                    if (!visited[nextPosition.row][nextPosition.col]) {
+                        const alt = dist[position.row][position.col] + 1;
+                        dist[nextPosition.row][nextPosition.col] = alt;
+                        prev[nextPosition.row][nextPosition.col] = position;
+                        visited[nextPosition.row][nextPosition.col] = true;
+                        queue.push(nextPosition);
+                    }
+                }
+            }
+        }
+        return [dist, prev];
+    }
+
     static getShortestDistanceToGoalFor(pawn, game) {
-        const dist = AI.getShortestDistancesToAllPosition(pawn, game);
+        const dist = AI.getRandomShortestPathToGoal(pawn, game)[0];
         const distancesToGoalRow = dist[pawn.goalRow];
         return Math.min(...distancesToGoalRow);
     }
 
-    static getShortestDistancesToAllPosition(pawn, game) {
+    static getShortestDistanceToEveryPosition(pawn, game) {
         const visited = create2DArrayInitializedTo(9, 9, false);
         const dist = create2DArrayInitializedTo(9, 9, Infinity);
     
@@ -572,11 +631,7 @@ class AI {
                     const nextPosition = position.newAddMove(moveArrs[i]);
                     if (!visited[nextPosition.row][nextPosition.col]) {
                         const alt = dist[position.row][position.col] + 1;
-                        // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity
-                        // because alt won't be decreased in this BFS.
-                        if (alt < dist[nextPosition.row][nextPosition.col]) {
-                            dist[nextPosition.row][nextPosition.col] = alt;
-                        } 
+                        dist[nextPosition.row][nextPosition.col] = alt;
                         visited[nextPosition.row][nextPosition.col] = true;
                         queue.push(nextPosition);
                     }
@@ -587,7 +642,7 @@ class AI {
     }
 
     // use breadth first search
-    static getAllShortestPathsToAllPosition(pawn, game) {
+    static getAllShortestPathsToEveryPosition(pawn, game) {
         const searched = create2DArrayInitializedTo(9, 9, false);
         const visited = create2DArrayInitializedTo(9, 9, false);
         const dist = create2DArrayInitializedTo(9, 9, Infinity);
@@ -666,7 +721,7 @@ class AI {
         const validInterruptVerticalWalls = create2DArrayInitializedTo(8, 8, false);
         const visited = create2DArrayInitializedTo(9, 9, false);
 
-        const t = AI.getAllShortestPathsToAllPosition(pawn, game);
+        const t = AI.getAllShortestPathsToEveryPosition(pawn, game);
         const dist = t[0];
         const prev = t[1];
         const goalRow = pawn.goalRow;
@@ -837,6 +892,21 @@ function printPaths(paths) {
             console.log(`row: ${path[j].row}, col: ${path[j].col}`);
         }
     }
+}
+
+/**
+ * The Modern version of the Fisher–Yates shuffle algorithm:
+ * Shuffles array in place.
+ * (See https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array)
+ */
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const x = arr[i];
+        arr[i] = arr[j];
+        arr[j] = x;
+    }
+    return arr;
 }
 
 function findAllPathsToGoalRow(pawn, game) {

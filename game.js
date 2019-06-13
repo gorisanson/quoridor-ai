@@ -142,7 +142,7 @@ class Board {
             // this.pawns[0] represents a light-colored pawn (which moves first).
             // this.pawns[1] represents a dark-colored pawn.
             if (isHumanPlayerFirst === true) {
-                this.pawns = [new Pawn(0, true, false), new Pawn(1, false, true)];
+                this.pawns = [new Pawn(0, true, true), new Pawn(1, false, false)];
             } else {
                 this.pawns = [new Pawn(0, false, false), new Pawn(1, true, true)];
             }

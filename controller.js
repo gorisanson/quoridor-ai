@@ -24,9 +24,9 @@ class Controller {
         this.view.game = game;
         this.view.render();
         this.funcForDEBUG();
-        //if (!isHumanPlayerFirst) {
+        if (!isHumanPlayerFirst) {
             this.worker.postMessage(this.game);
-        //}
+        }
     }
 
     doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
@@ -45,7 +45,7 @@ class Controller {
 
     funcForDEBUG() {
         if (DEBUG) {
-            this.view.render2DArrayToBoard(AI.getShortestDistancesToAllPosition(this.game.pawnOfTurn, this.game));
+            this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
         }
     }    
 }

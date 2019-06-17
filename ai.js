@@ -314,13 +314,43 @@ class MonteCarloTreeSearch {
         
         // Simulation
         // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
-        let simulationDepth = 0;
+        //let simulationDepth = 0;
+        const cacheForPawns = [
+            {
+                nextUpdated: false,
+                next: null
+            },
+            {
+                nextUpdated: false,
+                next: null
+            }
+        ];
         let pawnMoveFlag = false;
         while (simulationGame.winner === null) {     
-            simulationDepth++;
+            //simulationDepth++;
             if (pawnMoveFlag || simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
                 pawnMoveFlag = false;
-                const nextPosition = AI.chooseShortestPathNextPawnPosition(simulationGame);
+                let nextPosition;
+                const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
+                if (AI.arePawnsAdjacent(simulationGame)) {
+                    cacheForPawns[pawnIndexOfTurn].nextUpdated = false;
+                    nextPosition = AI.chooseShortestPathNextPawnPositionThoroughly(simulationGame);
+                } else {
+                    let next;
+                    if (cacheForPawns[pawnIndexOfTurn].nextUpdated) {
+                        next = cacheForPawns[pawnIndexOfTurn].next;
+                    } else {
+                        next = AI.get2DArrayNextToGoalFor(simulationGame.pawnOfTurn, simulationGame);
+                        cacheForPawns[pawnIndexOfTurn].next = next;
+                        cacheForPawns[pawnIndexOfTurn].nextUpdated = true;
+                    }
+                    const currentPosition = simulationGame.pawnOfTurn.position;
+                    nextPosition = next[currentPosition.row][currentPosition.col];
+                    if (nextPosition === null) {
+                        console.log("really?? already in goal position");
+                        throw "already in goal Position...."
+                    }
+                }
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
             } else {
                 let nextMove;
@@ -331,6 +361,8 @@ class MonteCarloTreeSearch {
                 //}
                 if (nextMove !== null) {
                     simulationGame.doMove(...nextMove);
+                    cacheForPawns[0].nextUpdated = false;
+                    cacheForPawns[1].nextUpdated = false;
                 } else {
                     pawnMoveFlag = true;
                 }
@@ -367,6 +399,35 @@ class AI {
         return bestMove;
     }
 
+    static chooseShortestPathNextPawnPositionThoroughly(game) {
+        const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
+        const distances = [];
+        for (let i = 0; i < valids.length; i++) {
+            const clonedGame = Game.clone(game);
+            clonedGame.movePawn(valids[i][0], valids[i][1]);
+            const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
+            distances.push(distance);
+        }
+        const index = randomChoice(indicesOfMin(distances));
+        const nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
+        return nextPosition;
+    }
+
+    // get 2D array "next" to closest goal in the game
+    static get2DArrayNextToGoalFor(pawn, game) {
+        const t = this.getRandomShortestPathToGoal(pawn, game);
+        const dist = t[0];
+        const prev = t[1];
+
+        const goalRow = game.pawnOfTurn.goalRow;
+        const distancesToGoalRow = dist[goalRow];
+        const goalCol = indicesOfMin(distancesToGoalRow)[0];
+            
+        const goalPosition = new PawnPosition(goalRow, goalCol);
+        const next = AI.getNextByReversingPrev(prev, goalPosition);
+        return next;
+    }
+
     static chooseShortestPathNextPawnPosition(game) {
         let nextPosition = null;
         // "if (AI.arePawnsAdjacent(game))"" part can deal with
@@ -375,31 +436,19 @@ class AI {
         // to find next position. It is the "else" part.
         // This impoves performece significantly.
         if (AI.arePawnsAdjacent(game)) {
-            const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
-            const distances = [];
-            for (let i = 0; i < valids.length; i++) {
-                const clonedGame = Game.clone(game);
-                clonedGame.movePawn(valids[i][0], valids[i][1]);
-                const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
-                distances.push(distance);
-            }
-            const index = randomChoice(indicesOfMin(distances));
-            nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
+            nextPosition = this.chooseShortestPathNextPawnPositionThoroughly(game);
         } else { 
-            const t = this.getRandomShortestPathToGoal(game.pawnOfTurn, game);
-            const dist = t[0];
-            const prev = t[1];
+            const next = AI.get2DArrayNextToGoalFor(game.pawnOfTurn, game);
+            const currentPosition = game.pawnOfTurn.position
+            nextPosition = next[currentPosition.row][currentPosition.col]; 
 
-            const goalRow = game.pawnOfTurn.goalRow;
-            const distancesToGoalRow = dist[goalRow];
-            const goalCol = indicesOfMin(distancesToGoalRow)[0];
-
+            /*
             let prevPosition;
             let position = new PawnPosition(goalRow, goalCol);
             while(prevPosition = prev[position.row][position.col]) {
                 nextPosition = position;
                 position = prevPosition;
-            }
+            }*/
             // if already in goal position.
             if (nextPosition === null) {
                 console.log("really?? already in goal position");
@@ -506,7 +555,7 @@ class AI {
         }
         
         const goalPosition = new PawnPosition(goalRow, goalCol);
-        const next = AI.getNextByReversingPrev(prev, goalPosition);
+        const next = AI.getMultiNextByReversingMultiPrev(prev, goalPosition);
         const paths = AI.getPathsToGoalFromNext(next, game.pawnOfTurn.position);
         //console.log(`goal position: (${goalPosition.row}, ${goalPosition.col})`);
         //console.log(`number of shortest paths: ${paths.length}`);
@@ -646,7 +695,7 @@ class AI {
         const searched = create2DArrayInitializedTo(9, 9, false);
         const visited = create2DArrayInitializedTo(9, 9, false);
         const dist = create2DArrayInitializedTo(9, 9, Infinity);
-        const prev = create2DArrayInitializedTo(9, 9, null);
+        const multiPrev = create2DArrayInitializedTo(9, 9, null);
 
         const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
         const queue = [];
@@ -664,9 +713,9 @@ class AI {
                         // because alt won't be decreased in this BFS.
                         if (alt < dist[nextPosition.row][nextPosition.col]) {
                             dist[nextPosition.row][nextPosition.col] = alt;
-                            prev[nextPosition.row][nextPosition.col] = [position];
+                            multiPrev[nextPosition.row][nextPosition.col] = [position];
                         } else if (alt === dist[nextPosition.row][nextPosition.col]) {
-                            prev[nextPosition.row][nextPosition.col].push(position);
+                            multiPrev[nextPosition.row][nextPosition.col].push(position);
                         }
                         if (!visited[nextPosition.row][nextPosition.col]) {
                             visited[nextPosition.row][nextPosition.col] = true;
@@ -677,19 +726,32 @@ class AI {
             }
             searched[position.row][position.col] = true;
         }
-        return [dist, prev];
+        return [dist, multiPrev];
     }
 
     // note that prev is generated with start position designated.
     // "next" which is partial reverse of "prev" needs a goal position.
     static getNextByReversingPrev(prev, goalPosition) {
         const next = create2DArrayInitializedTo(9, 9, null);
+        let prevPosition;
+        let position = goalPosition;
+        while(prevPosition = prev[position.row][position.col]) {
+            next[prevPosition.row][prevPosition.col] = position;
+            position = prevPosition;
+        }
+        return next;
+    }
+
+    // note that prev is generated with start position designated.
+    // "next" which is partial reverse of "prev" needs a goal position.
+    static getMultiNextByReversingMultiPrev(multiPrev, goalPosition) {
+        const multiNext = create2DArrayInitializedTo(9, 9, null);
         const visited = create2DArrayInitializedTo(9, 9, false);
         const queue = [];
         queue.push(goalPosition);
         while (queue.length > 0) {
             let position = queue.shift();
-            let prevs = prev[position.row][position.col];
+            let prevs = multiPrev[position.row][position.col];
             if (prevs === null) {
                 // for debug
                 if (queue.length !== 0) {
@@ -702,10 +764,10 @@ class AI {
             for (let i = 0; i < prevs.length; i++) {
                 let prevPosition = prevs[i];
                 //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
-                if (next[prevPosition.row][prevPosition.col] === null) {
-                    next[prevPosition.row][prevPosition.col] = [position];
+                if (multiNext[prevPosition.row][prevPosition.col] === null) {
+                    multiNext[prevPosition.row][prevPosition.col] = [position];
                 } else {
-                    next[prevPosition.row][prevPosition.col].push(position);
+                    multiNext[prevPosition.row][prevPosition.col].push(position);
                 }
                 if (!visited[prevPosition.row][prevPosition.col]) {
                     visited[prevPosition.row][prevPosition.col] = true;
@@ -713,7 +775,7 @@ class AI {
                 }
             }
         }
-        return next;
+        return multiNext;
     }
 
     static getValidWallsInterruptShortestPaths(pawn, game) {

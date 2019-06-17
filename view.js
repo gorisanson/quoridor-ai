@@ -1,8 +1,10 @@
 "use strict";
 
 class View {
-    constructor(controller) {
+    constructor(controller, aiDevelopMode = false) {
         this.controller = controller;
+        this.aiDevelopMode = aiDevelopMode;
+
         this._game = null;
 
         this.htmlBoardTable = document.getElementById("board_table");
@@ -85,17 +87,49 @@ class View {
             this.htmlChoosePawnMessageBox.classList.remove("hidden");
         };
         this.button.restart.onclick = onclickRestartButton.bind(this);
+
+        if (this.aiDevelopMode) {
+            const htmlDevelopButtonContainer = document.getElementById("develop_button_container");
+            htmlDevelopButtonContainer.classList.remove("hidden");
+            this.buttonForDevelop = {undo: document.getElementById("undo_button"),
+                                     aiDo: document.getElementById("aido_button")};
+            this.buttonForDevelop.undo.disabled = true;
+            this.buttonForDevelop.aiDo.disabled = true;
+            const onclickUndoButton = function(e) {
+                this.buttonForDevelop.undo.disabled = true;
+                this.buttonForDevelop.aiDo.disabled = true;
+                this.button.confirm.disabled = true;
+                this.button.cancel.disabled = true;
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                this.controller.undo();
+            };
+            const onclickAiDoButton = function(e) {
+                this._removePreviousRender();
+                this.buttonForDevelop.undo.disabled = true;
+                this.buttonForDevelop.aiDo.disabled = true;
+                this.button.confirm.disabled = true;
+                this.button.cancel.disabled = true;
+                View.cancelPawnClick();
+                View.cancelWallShadows();
+                this.controller.aiDo();
+            };
+            this.buttonForDevelop.undo.onclick = onclickUndoButton.bind(this);
+            this.buttonForDevelop.aiDo.onclick = onclickAiDoButton.bind(this);
+        }
     }
 
     set game(game) {
         this._game = game;
+
+        View.removeWalls();
         this.htmlPawns[0].classList.remove("hidden");
         this.htmlPawns[1].classList.remove("hidden");
 
         // initialize number of left walls box
         let symbolPawnList = document.getElementsByClassName("pawn symbol");
         let wallNumList = document.getElementsByClassName("wall_num");
-        if (this.game.board.pawns[0].position.row === 0) {
+        if (this.game.board.pawns[0].goalRow === 8) {
             symbolPawnList[0].classList.remove("pawn1");
             wallNumList[0].classList.remove("pawn1");
             symbolPawnList[0].classList.add("pawn0");
@@ -124,7 +158,6 @@ class View {
     }
    
     startNewGame(isHumanPlayerFirst) {
-        View.removeWalls();
         this.htmlRestartButtonContainer.classList.add("hidden");
         this.htmlCCButtonContainer.classList.remove("hidden");
         this.htmlChoosePawnMessageBox.classList.add("hidden");
@@ -176,6 +209,12 @@ class View {
                 this._renderValidNextPawnPositions();
                 this._renderValidNextWalls();
                 this.printMessage("Your turn")
+                if (this.aiDevelopMode) {
+                    if (this.controller.gameHistory.length >= 2) {
+                        this.buttonForDevelop.undo.disabled = false;
+                    }
+                    this.buttonForDevelop.aiDo.disabled = false;
+                }
             } else {
                 this.printMessage("AI's turn")
             }

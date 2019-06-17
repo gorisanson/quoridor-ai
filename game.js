@@ -192,6 +192,14 @@ class Game {
         this._validNextPositionsUpdated = false;
     }
 
+    get pawn0() {
+        return this.board.pawns[0];
+    }
+
+    get pawn1() {
+        return this.board.pawns[1];
+    }
+
     get pawnIndexOfTurn() {
         return this.turn % 2;
     }

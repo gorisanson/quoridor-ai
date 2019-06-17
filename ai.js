@@ -118,7 +118,7 @@ class MNode {
         if (this.numSims === 0) {
             return Infinity;
         }
-        const c = 2;
+        const c = 0.02;
         return (this.numWins / this.numSims) + Math.sqrt((c * Math.log(this.parent.numSims)) / this.numSims);
     }
 
@@ -139,6 +139,7 @@ class MNode {
             }
         }
         const maxUCTIndex = randomChoice(maxUCTIndices);
+        //const maxUCTIndex = maxUCTIndices[0];
         return this.children[maxUCTIndex];
     }
 
@@ -317,33 +318,50 @@ class MonteCarloTreeSearch {
         //let simulationDepth = 0;
         const cacheForPawns = [
             {
-                nextUpdated: false,
-                next: null
+                updated: false,
+                next: null,
+                distanceToGoal: null
             },
             {
-                nextUpdated: false,
-                next: null
+                updated: false,
+                next: null,
+                distanceToGoal: null
             }
         ];
         let pawnMoveFlag = false;
-        while (simulationGame.winner === null) {     
+        
+        while (simulationGame.winner === null) {
+            if (!cacheForPawns[0].updated) {
+                const t = AI.get2DArrayNextToGoalFor(simulationGame.pawn0, simulationGame);
+                cacheForPawns[0].next = t[0];
+                cacheForPawns[0].distanceToGoal = t[1];
+                cacheForPawns[0].updated = true;
+            }
+            if (!cacheForPawns[1].updated) {
+                const t = AI.get2DArrayNextToGoalFor(simulationGame.pawn1, simulationGame);
+                cacheForPawns[1].next = t[0];
+                cacheForPawns[1].distanceToGoal = t[1];
+                cacheForPawns[1].updated = true;
+            }
+            const pawnOfTurn = simulationGame.pawnOfTurn; 
+            const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
+            const pawnIndexOfNotTurn = simulationGame.pawnIndexOfNotTurn;    
             //simulationDepth++;
-            if (pawnMoveFlag || simulationGame.pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < 0.7) {
+            const distanceToGoalForPawnOfTurn = cacheForPawns[pawnIndexOfTurn].distanceToGoal;
+            const distanceToGoalForOfPawnOfNotTurn = cacheForPawns[pawnIndexOfNotTurn].distanceToGoal;
+            const distanceDiff = distanceToGoalForOfPawnOfNotTurn - distanceToGoalForPawnOfTurn
+            const pawnMoveProbability = 0.7 + 0.3 * (Math.max(0, distanceDiff) / 8);
+
+            if (pawnMoveFlag
+                || pawnOfTurn.numberOfLeftWalls === 0
+                || Math.random() < pawnMoveProbability) {
                 pawnMoveFlag = false;
                 let nextPosition;
-                const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
                 if (AI.arePawnsAdjacent(simulationGame)) {
-                    cacheForPawns[pawnIndexOfTurn].nextUpdated = false;
+                    cacheForPawns[pawnIndexOfTurn].updated = false;
                     nextPosition = AI.chooseShortestPathNextPawnPositionThoroughly(simulationGame);
                 } else {
-                    let next;
-                    if (cacheForPawns[pawnIndexOfTurn].nextUpdated) {
-                        next = cacheForPawns[pawnIndexOfTurn].next;
-                    } else {
-                        next = AI.get2DArrayNextToGoalFor(simulationGame.pawnOfTurn, simulationGame);
-                        cacheForPawns[pawnIndexOfTurn].next = next;
-                        cacheForPawns[pawnIndexOfTurn].nextUpdated = true;
-                    }
+                    const next = cacheForPawns[pawnIndexOfTurn].next;
                     const currentPosition = simulationGame.pawnOfTurn.position;
                     nextPosition = next[currentPosition.row][currentPosition.col];
                     if (nextPosition === null) {
@@ -357,13 +375,16 @@ class MonteCarloTreeSearch {
                 //if (simulationDepth <= 6) {
                 //    nextMove = AI.chooseNextWall(simulationGame);
                 //} else {
-                    nextMove = AI.chooseNextWallRandomly(simulationGame);
+                //nextMove = AI.chooseNextWall(simulationGame);
+                //if (nextMove === null) {
+                nextMove = AI.chooseNextWallRandomly(simulationGame);
                 //}
                 if (nextMove !== null) {
                     simulationGame.doMove(...nextMove);
-                    cacheForPawns[0].nextUpdated = false;
-                    cacheForPawns[1].nextUpdated = false;
+                    cacheForPawns[0].updated = false;
+                    cacheForPawns[1].updated = false;
                 } else {
+                    console.log("This is happening??")
                     pawnMoveFlag = true;
                 }
             }
@@ -418,14 +439,10 @@ class AI {
         const t = this.getRandomShortestPathToGoal(pawn, game);
         const dist = t[0];
         const prev = t[1];
-
-        const goalRow = game.pawnOfTurn.goalRow;
-        const distancesToGoalRow = dist[goalRow];
-        const goalCol = indicesOfMin(distancesToGoalRow)[0];
-            
-        const goalPosition = new PawnPosition(goalRow, goalCol);
+        const goalPosition = t[2];
+        const distanceToGoal = dist[goalPosition.row][goalPosition.col];
         const next = AI.getNextByReversingPrev(prev, goalPosition);
-        return next;
+        return [next, distanceToGoal];
     }
 
     static chooseShortestPathNextPawnPosition(game) {
@@ -640,7 +657,8 @@ class AI {
         while (queue.length > 0) {
             let position = queue.shift();
             if (position.row === pawn.goalRow) {
-                return [dist, prev];
+                const goalPosition = position;
+                return [dist, prev, goalPosition];
             }
             for (let i = 0; i < moveArrs.length; i++) {
                 if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
@@ -655,13 +673,17 @@ class AI {
                 }
             }
         }
-        return [dist, prev];
+        return [dist, prev, null];
     }
 
     static getShortestDistanceToGoalFor(pawn, game) {
-        const dist = AI.getRandomShortestPathToGoal(pawn, game)[0];
-        const distancesToGoalRow = dist[pawn.goalRow];
-        return Math.min(...distancesToGoalRow);
+        const t = AI.getRandomShortestPathToGoal(pawn, game);
+        const dist = t[0];
+        const goalPosition = t[2];
+        if (goalPosition === null) {
+            return Infinity;
+        }
+        return dist[goalPosition.row][goalPosition.col];
     }
 
     static getShortestDistanceToEveryPosition(pawn, game) {

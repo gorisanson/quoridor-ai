@@ -238,6 +238,12 @@
         .button.confirm, .button.restart {
             background-color: rgb(0, 71, 186);
         }
+        .button.undo {
+            background-color: rgb(36, 160, 112);
+        }
+        .button.aido {
+            background-color: rgb(36, 84, 160);
+        }
         #message_box {
             display: flex;
             align-items: center;
@@ -646,14 +652,18 @@
                 <button id="cancel_button" class="button cancel">cancel</button>
                 <button id="confirm_button" class="button confirm">confirm</button>
             </div>
+            <div id="develop_button_container", class="button_container hidden">
+                <button id="undo_button" class="button undo">undo</button>
+                <button id="aido_button" class="button aido">AI do</button>
+            </div>
             <div id="restart_button_container", class="button_container hidden">
                 <button id="restart_button" class="button restart">restart</button>
             </div>
         </div>
     </div>
     <script>
-        let isHumanPlayerFirst = true;
-        let controller = new Controller(isHumanPlayerFirst);
+        let aiDevelopMode = true;
+        let controller = new Controller(aiDevelopMode);
     </script>
 </body>
 </html>

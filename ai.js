@@ -35,8 +35,20 @@ Game.clone = function(game) {
         _clone.winner = _clone.board.pawns[game.winner.index];
     }
     _clone._turn = game._turn;
-    _clone.validNextWalls = {horizontal: create2DArrayClonedFrom(game.validNextWalls.horizontal), vertical: create2DArrayClonedFrom(game.validNextWalls.vertical)};
-    _clone.openWays = {upDown: create2DArrayClonedFrom(game.openWays.upDown), leftRight: create2DArrayClonedFrom(game.openWays.leftRight)};
+    _clone.validNextWalls = {
+        horizontal: create2DArrayClonedFrom(game.validNextWalls.horizontal),
+        vertical: create2DArrayClonedFrom(game.validNextWalls.vertical)
+    };
+    _clone._probableNextWalls = {
+        horizontal: create2DArrayClonedFrom(game._probableNextWalls.horizontal),
+        vertical: create2DArrayClonedFrom(game._probableNextWalls.vertical)
+    };
+    _clone._probableValidNextWalls = null;
+    _clone._probableValidNextWallsUpdated = false;
+    _clone.openWays = {
+        upDown: create2DArrayClonedFrom(game.openWays.upDown),
+        leftRight: create2DArrayClonedFrom(game.openWays.leftRight)
+    };
     _clone._validNextPositions = create2DArrayClonedFrom(game._validNextPositions);
     _clone._validNextPositionsUpdated = game._validNextPositionsUpdated;
     return _clone;
@@ -78,6 +90,32 @@ Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
     return noBlockNextVerticals;
 };
 
+Game.prototype.getArrOfProbableValidNoBlockNextHorizontalWallPositions = function() {
+    const nextHorizontals = indicesOfValueIn2DArray(this.probableValidNextWalls.horizontal, true);
+    const noBlockNextHorizontals = [];
+    for (let i = 0; i < nextHorizontals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+            noBlockNextHorizontals.push(nextHorizontals[i]);
+        } //else {
+            //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
+        //}
+    }
+    return noBlockNextHorizontals;
+};
+
+Game.prototype.getArrOfProbableValidNoBlockNextVerticalWallPositions = function() {
+    const nextVerticals = indicesOfValueIn2DArray(this.probableValidNextWalls.vertical, true);
+    const noBlockNextVerticals = [];
+    for (let i = 0; i < nextVerticals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+            noBlockNextVerticals.push(nextVerticals[i]);
+        } //else {
+            //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
+        //}
+    }
+    return noBlockNextVerticals;
+};
+
 
 /*
 * If it is named "M", the code work erroneously
@@ -86,13 +124,14 @@ Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
 * M stands for Move. 
 */
 class MNode {
-    constructor(move, parent) {
+    constructor(move, parent, uctConstant = 2) {
         // move is one of the following.
         // [[row, col], null, null] for moving pawn
         // [null, [row, col], null] for putting horizontal wall
         // [null, null, [row, col]] for putting vertical wall
         this.move = move;
         this.parent = parent;
+        this.uctConstant = uctConstant;
         this.numWins = 0;   // number of wins
         this.numSims = 0;   // number of simulations
         this.children = [];
@@ -118,7 +157,7 @@ class MNode {
         if (this.numSims === 0) {
             return Infinity;
         }
-        const c = 0.02;
+        const c = this.uctConstant;
         return (this.numWins / this.numSims) + Math.sqrt((c * Math.log(this.parent.numSims)) / this.numSims);
     }
 
@@ -187,10 +226,11 @@ class MNode {
 * (https://towardsdatascience.com/monte-carlo-tree-search-in-reinforcement-learning-b97d3e743d0f)
 */
 class MonteCarloTreeSearch {
-    constructor(game) {
-        this.root = new MNode(null, null);
+    constructor(game, uctConstant = 2) {
         this.game = game;
-        this.totalNumOfSimulations = 60000;
+        this.uctConstant = uctConstant;
+        this.root = new MNode(null, null, this.uctConstant);
+        this.totalNumOfSimulations = 120000;
         this.numOfSimulations = 0;
     }
 
@@ -213,7 +253,7 @@ class MonteCarloTreeSearch {
         while (this.numOfSimulations < this.totalNumOfSimulations) {            
             // Selection
             if (currentNode.isTerminal) {
-                console.log("one more terminal rollout...")
+                //console.log("one more terminal rollout...")
                 this.rollout(currentNode);
                 currentNode = this.root;
             } else if (currentNode.isLeaf) {
@@ -227,21 +267,21 @@ class MonteCarloTreeSearch {
                     let move, childNode;
                     for (let i = 0; i < nextPositions.length; i++) {
                         move = [nextPositions[i], null, null];
-                        childNode = new MNode(move, currentNode); 
+                        childNode = new MNode(move, currentNode, this.uctConstant); 
                         currentNode.addChild(childNode);
                     }
                     
                     if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                        const noBlockNextHorizontals = simulationGame.getArrOfValidNoBlockNextHorizontalWallPositions();
+                        const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
                         for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
                             move = [null, noBlockNextHorizontals[i], null];
-                            childNode = new MNode(move, currentNode); 
+                            childNode = new MNode(move, currentNode, this.uctConstant); 
                             currentNode.addChild(childNode);
                         }
-                        const noBlockNextVerticals = simulationGame.getArrOfValidNoBlockNextVerticalWallPositions();
+                        const noBlockNextVerticals = simulationGame.getArrOfProbableValidNoBlockNextVerticalWallPositions();
                         for (let i = 0; i < noBlockNextVerticals.length; i++) {
                             move = [null, null, noBlockNextVerticals[i]];
-                            childNode = new MNode(move, currentNode); 
+                            childNode = new MNode(move, currentNode, this.uctConstant); 
                             currentNode.addChild(childNode);
                         }
                     }
@@ -280,6 +320,7 @@ class MonteCarloTreeSearch {
         // this console.log prevents gargabe collection of the search tree...
         //console.log(this.root.children); 
         //return this.root.maxWinRateChild.move;
+        console.log("uctConstant:", this.uctConstant);
         return this.root.maxSimsChild.move;
     }
     
@@ -393,10 +434,13 @@ class MonteCarloTreeSearch {
         // Backpropagation
         let ancestor = node;
         let ancestorPawnIndex = nodePawnIndex;
+        //let i = 0;
         while(ancestor !== null) {
             ancestor.numSims++;
             if (simulationGame.winner.index === ancestorPawnIndex) {
                 ancestor.numWins++;
+                //ancestor.numWins += Math.pow(0.9, i);
+                //i++;
             }
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
@@ -414,8 +458,29 @@ class AI {
     }
 
     chooseNextMove(game) {
-        let mcts = new MonteCarloTreeSearch(game);
-        const bestMove = mcts.searchAndSelectBestMove();
+        let mcts;
+        if (game.pawnIndexOfTurn === 0) {
+            mcts = new MonteCarloTreeSearch(game, 0.02);
+        } else {
+            mcts = new MonteCarloTreeSearch(game, 0.02);
+        }
+        let bestMove = mcts.searchAndSelectBestMove();
+        // ToDo: need optimization..... and refactoring.
+        if (bestMove[0] !== null) {
+            let rightMove = false;
+            const nextPositions = AI.chooseShortestPathNextPawnPositionThoroughly2(game);
+            for (const nextPosition of nextPositions) {
+                if (bestMove[0][0] === nextPosition.row && bestMove[0][1] === nextPosition.col) {
+                    rightMove = true;
+                    break;
+                }
+            }
+            if (!rightMove) {
+                console.log("I'm effective! hahahaha original move:", bestMove);
+                let nextPosition = randomChoice(nextPositions);
+                bestMove = [[nextPosition.row, nextPosition.col], null, null];
+            }
+        }
         console.log("doMove!!!");
         return bestMove;
     }
@@ -433,6 +498,24 @@ class AI {
         const nextPosition = new PawnPosition(valids[index][0], valids[index][1]);
         return nextPosition;
     }
+
+    static chooseShortestPathNextPawnPositionThoroughly2(game) {
+        const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
+        const distances = [];
+        for (let i = 0; i < valids.length; i++) {
+            const clonedGame = Game.clone(game);
+            clonedGame.movePawn(valids[i][0], valids[i][1]);
+            const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
+            distances.push(distance);
+        }
+        const nextPositions = [];
+        for (const index of (indicesOfMin(distances))) {
+            nextPositions.push(new PawnPosition(valids[index][0], valids[index][1]));
+        }
+        return nextPositions;
+    }
+
+
 
     // get 2D array "next" to closest goal in the game
     static get2DArrayNextToGoalFor(pawn, game) {

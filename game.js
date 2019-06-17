@@ -54,7 +54,7 @@ const MOVE_LEFT = [0, -1];
 const MOVE_RIGHT = [0, 1];
 
 function create2DArrayInitializedTo(numOfRow, numOfCol, initialValue) {
-    let arr2D = [];
+    const arr2D = [];
     for (let i = 0; i < numOfRow; i++) {
         let row = [];
         for (let j = 0; j < numOfCol; j++) {
@@ -72,11 +72,24 @@ function set2DArrayEveryElementToValue(arr2D, value) {
 }
 
 function create2DArrayClonedFrom(arr2D) {
-    let arr2DCloned = [];
+    const arr2DCloned = [];
     for (let i = 0; i < arr2D.length; i++) {
         arr2DCloned.push([...arr2D[i]]);
     }
     return arr2DCloned;
+}
+
+// dimension of arr2DA and arr2DB should be the same.
+function logicalAndBetween2DArray(arr2DA, arr2DB) {
+    const arr2D = [];
+    for (let i = 0; i < arr2DA.length; i++) {
+        let row = [];
+        for (let j = 0; j < arr2DA[0].length; j++) {
+            row.push(arr2DA[i][j] && arr2DB[i][j]);
+        }
+        arr2D.push(row);
+    }
+    return arr2D;
 }
 
 
@@ -162,6 +175,9 @@ class Game {
         this.winner = null;
         this._turn = null;
         this.validNextWalls = null;
+        this._probableNextWalls = null;
+        this._probableValidNextWalls = null;
+        this._probableValidNextWallsUpdated = null;
         this.openWays = null;
         this._validNextPositions = null;
         this._validNextPositionsUpdated = null;
@@ -173,6 +189,11 @@ class Game {
             // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid wall location.
             // this should be only updated each time putting a wall 
             this.validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
+
+            // probable next probable walls: it's for expansion phase of Monte Carlo Tree Search.
+            this._probableNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, false), vertical: create2DArrayInitializedTo(8, 8, false)};
+            this._probableValidNextWalls = null;
+            this._probableValidNextWallsUpdated = false;
 
             // whether ways to adjacency is blocked (not open) or not blocked (open) by a wall
             // this should be only updated each time putting a wall
@@ -190,6 +211,7 @@ class Game {
     set turn(newTurn) {
         this._turn = newTurn;
         this._validNextPositionsUpdated = false;
+        this._probableValidNextWallsUpdated = false;
     }
 
     get pawn0() {
@@ -214,6 +236,81 @@ class Game {
 
     get pawnOfNotTurn() {
         return this.board.pawns[this.pawnIndexOfNotTurn];
+    }
+
+    get probableValidNextWalls() {
+        if (this._probableValidNextWallsUpdated) {
+            return this._probableValidNextWalls;
+        }
+        this._probableValidNextWallsUpdated = true;
+        const _probableValidNextWalls = {
+            horizontal: create2DArrayClonedFrom(this._probableNextWalls.horizontal),
+            vertical: create2DArrayClonedFrom(this._probableNextWalls.vertical)
+        }
+
+        //heuristic
+        for (let i = 0; i < 8; i++) {
+            _probableValidNextWalls.horizontal[i][0] = true;
+            _probableValidNextWalls.horizontal[i][7] = true;
+        }
+
+        for (let i = 0; i < 2; i++) {
+            const pawn = this.board.pawns[i];
+            const row = pawn.position.row;
+            const col = pawn.position.col;
+            if (row >= 1) {
+                if (col >= 1) {
+                    _probableValidNextWalls.horizontal[row-1][col-1] = true;
+                    _probableValidNextWalls.vertical[row-1][col-1] = true;
+                    if (col >= 2) {
+                        _probableValidNextWalls.horizontal[row-1][col-2] = true;
+                    }
+                }
+                if (col <= 7) {
+                    _probableValidNextWalls.horizontal[row-1][col] = true;
+                    _probableValidNextWalls.vertical[row-1][col] = true;
+                    if (col <= 6) {
+                        _probableValidNextWalls.horizontal[row-1][col+1] = true;
+                    }
+                }
+                if (row >=2) {
+                    if (col >= 1) { 
+                        _probableValidNextWalls.vertical[row-2][col-1] = true;
+                    }
+                    if (col <= 7) {
+                        _probableValidNextWalls.vertical[row-2][col] = true;
+                    }
+                }
+            }
+            if (row <= 7) {
+                if (col >= 1) {
+                    _probableValidNextWalls.horizontal[row][col-1] = true;
+                    _probableValidNextWalls.vertical[row][col-1] = true;
+                    if (col >= 2) {
+                        _probableValidNextWalls.horizontal[row][col-2] = true;
+                    }
+                }
+                if (col <= 7) {
+                    _probableValidNextWalls.horizontal[row][col] = true;
+                    _probableValidNextWalls.vertical[row][col] = true;
+                    if (col <= 6) {
+                        _probableValidNextWalls.horizontal[row][col+1] = true;
+                    }
+                }
+                if (row >=2) {
+                    if (col >= 1) { 
+                        _probableValidNextWalls.vertical[row-1][col-1] = true;
+                    }
+                    if (col <= 7) {
+                        _probableValidNextWalls.vertical[row-1][col] = true;
+                    }
+                }
+            }
+        }
+        _probableValidNextWalls.horizontal = logicalAndBetween2DArray(_probableValidNextWalls.horizontal, this.validNextWalls.horizontal);
+        _probableValidNextWalls.vertical = logicalAndBetween2DArray(_probableValidNextWalls.vertical, this.validNextWalls.vertical);
+        this._probableValidNextWalls = _probableValidNextWalls;
+        return _probableValidNextWalls;
     }
 
     get validNextPositions() {
@@ -458,6 +555,76 @@ class Game {
         }
     }
 
+    adjustProbableValidNextWallForAfterPutHorizontalWall(row, col) {
+        if (row >= 1) {
+            this._probableNextWalls.vertical[row-1][col] = true;
+        }
+        if (row <= 6) {
+            this._probableNextWalls.vertical[row+1][col] = true;
+        }
+        if (col >= 1) {
+            this._probableNextWalls.vertical[row][col-1] = true;
+            if (row >= 1) {
+                this._probableNextWalls.vertical[row-1][col-1] = true;
+            }
+            if (row <= 6) {
+                this._probableNextWalls.vertical[row+1][col-1] = true;
+            }
+            if (col >= 2) {
+                this._probableNextWalls.horizontal[row][col-2] = true;
+                this._probableNextWalls.vertical[row][col-2] = true;
+            }
+        }
+        if (col <= 6) {
+            this._probableNextWalls.vertical[row][col+1] = true;
+            if (row >= 1) {
+                this._probableNextWalls.vertical[row-1][col+1] = true;
+            }
+            if (row <= 6) {
+                this._probableNextWalls.vertical[row+1][col+1] = true;
+            }
+            if (col <= 5) {
+                this._probableNextWalls.horizontal[row][col+2] = true;
+                this._probableNextWalls.vertical[row][col+2] = true;
+            }
+        }
+    }
+
+    adjustProbableValidNextWallForAfterPutVerticalWall(row, col) {
+        if (col >= 1) {
+            this._probableNextWalls.horizontal[row][col-1] = true;
+        }
+        if (col <= 6) {
+            this._probableNextWalls.horizontal[row][col+1] = true;
+        }
+        if (row >= 1) {
+            this._probableNextWalls.horizontal[row-1][col] = true;
+            if (col >= 1) {
+                this._probableNextWalls.horizontal[row-1][col-1] = true;
+            }
+            if (col <= 6) {
+                this._probableNextWalls.horizontal[row-1][col+1] = true;
+            }
+            if (row >= 2) {
+                this._probableNextWalls.vertical[row-2][col] = true;
+                this._probableNextWalls.horizontal[row-2][col] = true;
+            }
+        }
+        if (row <= 6) {
+            this._probableNextWalls.horizontal[row+1][col] = true;
+            if (col >= 1) {
+                this._probableNextWalls.horizontal[row+1][col-1] = true;
+            }
+            if (col <= 6) {
+                this._probableNextWalls.horizontal[row+1][col+1] = true;
+            }
+            if (row <= 5) {
+                this._probableNextWalls.vertical[row+2][col] = true;
+                this._probableNextWalls.horizontal[row+2][col] = true;
+            }
+        }
+    }
+
     putHorizontalWall(row, col) {
         if (!this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
             return false;
@@ -473,6 +640,8 @@ class Game {
                 this.validNextWalls.horizontal[row][col + 1] = false;
             }
             this.board.walls.horizontal[row][col] = true;
+            
+            this.adjustProbableValidNextWallForAfterPutHorizontalWall(row, col);
             this.pawnOfTurn.numberOfLeftWalls--;
             this.turn++;
             return true;
@@ -494,6 +663,8 @@ class Game {
                 this.validNextWalls.vertical[row+1][col] = false;
             }
             this.board.walls.vertical[row][col] = true;
+            
+            this.adjustProbableValidNextWallForAfterPutVerticalWall(row, col);
             this.pawnOfTurn.numberOfLeftWalls--;
             this.turn++;
             return true;

@@ -230,7 +230,7 @@ class MonteCarloTreeSearch {
         this.game = game;
         this.uctConstant = uctConstant;
         this.root = new MNode(null, null, this.uctConstant);
-        this.totalNumOfSimulations = 120000;
+        this.totalNumOfSimulations = 60000;
         this.numOfSimulations = 0;
     }
 
@@ -398,6 +398,8 @@ class MonteCarloTreeSearch {
                 || Math.random() < pawnMoveProbability) {
                 pawnMoveFlag = false;
                 let nextPosition;
+                //nextPosition = AI.chooseNextPawnPositionRandomly(simulationGame);
+                
                 if (AI.arePawnsAdjacent(simulationGame)) {
                     cacheForPawns[pawnIndexOfTurn].updated = false;
                     nextPosition = AI.chooseShortestPathNextPawnPositionThoroughly(simulationGame);
@@ -410,6 +412,7 @@ class MonteCarloTreeSearch {
                         throw "already in goal Position...."
                     }
                 }
+                
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
             } else {
                 let nextMove;
@@ -418,7 +421,8 @@ class MonteCarloTreeSearch {
                 //} else {
                 //nextMove = AI.chooseNextWall(simulationGame);
                 //if (nextMove === null) {
-                nextMove = AI.chooseNextWallRandomly(simulationGame);
+                //nextMove = AI.chooseNextWallRandomly(simulationGame);
+                nextMove = AI.chooseProbableNextWall(simulationGame);
                 //}
                 if (nextMove !== null) {
                     simulationGame.doMove(...nextMove);
@@ -434,11 +438,17 @@ class MonteCarloTreeSearch {
         // Backpropagation
         let ancestor = node;
         let ancestorPawnIndex = nodePawnIndex;
+
+        // ToDo: not absolute value but diff from oppenent's left wall maybe more effective?? maybe not...
+        // need store wall some if other opponent has some wall left.
+        const numberOfLeftWalls = simulationGame.winner.numberOfLeftWalls;
+        const bonusScore = Math.min(0.9, numberOfLeftWalls * 0.25);
         //let i = 0;
         while(ancestor !== null) {
             ancestor.numSims++;
             if (simulationGame.winner.index === ancestorPawnIndex) {
-                ancestor.numWins++;
+                ancestor.numWins += 1;
+                ancestor.numWins += bonusScore;  // this is very effective heuristic!!
                 //ancestor.numWins += Math.pow(0.9, i);
                 //i++;
             }
@@ -558,6 +568,12 @@ class AI {
         return nextPosition;
     }
 
+    static chooseNextPawnPositionRandomly(game) {
+        const nextPositions = game.getArrOfValidNextPositionTuples();
+        const nextPosition = randomChoice(nextPositions);
+        return new PawnPosition(nextPosition[0], nextPosition[1]);
+    }
+    
     static chooseNextWallRandomly(game) {
         const nextMoves = [];
         const nextHorizontals = indicesOfValueIn2DArray(game.validNextWalls.horizontal, true);
@@ -565,6 +581,29 @@ class AI {
             nextMoves.push([null, nextHorizontals[i], null]);
         }
         const nextVerticals = indicesOfValueIn2DArray(game.validNextWalls.vertical, true);
+        for (let i = 0; i < nextVerticals.length; i++) {
+            nextMoves.push([null, null, nextVerticals[i]]);
+        }
+        let nextMoveIndex = randomIndex(nextMoves);
+        while(!game.isPossibleNextMove(...nextMoves[nextMoveIndex])) {
+            nextMoves.splice(nextMoveIndex, 1);
+            if (nextMoves.length === 0) {
+                console.log("Is it really possible???")
+                return null;  // is it possible?? I'm not sure..
+            }
+            //console.log("rechoose wall");
+            nextMoveIndex = randomIndex(nextMoves);
+        }
+        return nextMoves[nextMoveIndex];
+    }
+
+    static chooseProbableNextWall(game) {
+        const nextMoves = [];
+        const nextHorizontals = indicesOfValueIn2DArray(game.probableValidNextWalls.horizontal, true);
+        for (let i = 0; i < nextHorizontals.length; i++) { 
+            nextMoves.push([null, nextHorizontals[i], null]);
+        }
+        const nextVerticals = indicesOfValueIn2DArray(game.probableValidNextWalls.vertical, true);
         for (let i = 0; i < nextVerticals.length; i++) {
             nextMoves.push([null, null, nextVerticals[i]]);
         }

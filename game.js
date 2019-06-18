@@ -307,6 +307,19 @@ class Game {
                 }
             }
         }
+
+
+        // for test
+        /*
+        _probableValidNextWalls.horizontal = create2DArrayInitializedTo(8, 8, false);
+        _probableValidNextWalls.vertical = create2DArrayInitializedTo(8, 8, false);
+        _probableValidNextWalls.horizontal[4][1] = true;
+        _probableValidNextWalls.vertical[4][0] = true;
+        */
+        // for test
+
+
+
         _probableValidNextWalls.horizontal = logicalAndBetween2DArray(_probableValidNextWalls.horizontal, this.validNextWalls.horizontal);
         _probableValidNextWalls.vertical = logicalAndBetween2DArray(_probableValidNextWalls.vertical, this.validNextWalls.vertical);
         this._probableValidNextWalls = _probableValidNextWalls;
@@ -573,6 +586,9 @@ class Game {
             if (col >= 2) {
                 this._probableNextWalls.horizontal[row][col-2] = true;
                 this._probableNextWalls.vertical[row][col-2] = true;
+                if (col >= 3) {
+                    this._probableNextWalls.horizontal[row][col-3] = true;
+                }
             }
         }
         if (col <= 6) {
@@ -586,6 +602,9 @@ class Game {
             if (col <= 5) {
                 this._probableNextWalls.horizontal[row][col+2] = true;
                 this._probableNextWalls.vertical[row][col+2] = true;
+                if (col <= 4) {
+                    this._probableNextWalls.horizontal[row][col+3] = true;
+                }
             }
         }
     }
@@ -608,6 +627,9 @@ class Game {
             if (row >= 2) {
                 this._probableNextWalls.vertical[row-2][col] = true;
                 this._probableNextWalls.horizontal[row-2][col] = true;
+                if (row >= 3) {
+                    this._probableNextWalls.vertical[row-3][col] = true;
+                }
             }
         }
         if (row <= 6) {
@@ -621,6 +643,9 @@ class Game {
             if (row <= 5) {
                 this._probableNextWalls.vertical[row+2][col] = true;
                 this._probableNextWalls.horizontal[row+2][col] = true;
+                if (row <= 4) {
+                    this._probableNextWalls.vertical[row+3][col] = true;
+                }
             }
         }
     }

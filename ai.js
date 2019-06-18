@@ -428,7 +428,7 @@ class MonteCarloTreeSearch {
             const distanceToGoalForPawnOfTurn = cacheForPawns[pawnIndexOfTurn].distanceToGoal;
             const distanceToGoalForOfPawnOfNotTurn = cacheForPawns[pawnIndexOfNotTurn].distanceToGoal;
             const distanceDiff = distanceToGoalForOfPawnOfNotTurn - distanceToGoalForPawnOfTurn
-            const pawnMoveProbability = 0.7 + 0.3 * (Math.max(0, distanceDiff) / 8);
+            const pawnMoveProbability = 0.8 + 0.2 * (Math.max(0, distanceDiff) / 8);
 
             if (pawnMoveFlag
                 || pawnOfTurn.numberOfLeftWalls === 0
@@ -479,7 +479,11 @@ class MonteCarloTreeSearch {
         // ToDo: not absolute value but diff from oppenent's left wall maybe more effective?? maybe not...
         // need store wall some if other opponent has some wall left.
         const numberOfLeftWalls = simulationGame.winner.numberOfLeftWalls;
+        //const numberOfLeftWallsOfOpponent = simulationGame.board.pawns[(simulationGame.winner.index + 1) % 2].numberOfLeftWalls;
         const bonusScore = Math.min(0.9, numberOfLeftWalls * 0.25);
+        //const diff = numberOfLeftWalls - numberOfLeftWallsOfOpponent;
+        //let bonusScore = Math.min(0.9, diff * 0.2);
+        //bonusScore = Math.max(-0.9, bonusScore);
         //let i = 0;
         while(ancestor !== null) {
             ancestor.numSims++;

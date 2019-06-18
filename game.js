@@ -248,7 +248,7 @@ class Game {
             vertical: create2DArrayClonedFrom(this._probableNextWalls.vertical)
         }
 
-        //heuristic
+        //heuristic: left side, right side horizontal wall
         for (let i = 0; i < 8; i++) {
             _probableValidNextWalls.horizontal[i][0] = true;
             _probableValidNextWalls.horizontal[i][7] = true;
@@ -273,7 +273,7 @@ class Game {
                         _probableValidNextWalls.horizontal[row-1][col+1] = true;
                     }
                 }
-                if (row >=2) {
+                if (row >= 2) {
                     if (col >= 1) { 
                         _probableValidNextWalls.vertical[row-2][col-1] = true;
                     }
@@ -297,12 +297,12 @@ class Game {
                         _probableValidNextWalls.horizontal[row][col+1] = true;
                     }
                 }
-                if (row >=2) {
+                if (row <= 6) {
                     if (col >= 1) { 
-                        _probableValidNextWalls.vertical[row-1][col-1] = true;
+                        _probableValidNextWalls.vertical[row+1][col-1] = true;
                     }
                     if (col <= 7) {
-                        _probableValidNextWalls.vertical[row-1][col] = true;
+                        _probableValidNextWalls.vertical[row+1][col] = true;
                     }
                 }
             }

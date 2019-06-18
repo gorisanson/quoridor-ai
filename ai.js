@@ -1041,7 +1041,15 @@ class AI {
                 }
             }
         }
-        return {horizontal: validInterruptHorizontalWalls, vertical: validInterruptVerticalWalls};
+        const wall2DArrays = {horizontal: validInterruptHorizontalWalls, vertical: validInterruptVerticalWalls}
+        
+        // ToDo: need refactoring and optimization here, and This is not included the method name.. so..
+        // divide this from the method later...
+        Game.setWallsBesidePawn(wall2DArrays, pawn);
+        wall2DArrays.horizontal = logicalAndBetween2DArray(wall2DArrays.horizontal, game.validNextWalls.horizontal);
+        wall2DArrays.vertical = logicalAndBetween2DArray(wall2DArrays.vertical, game.validNextWalls.vertical);
+        
+        return wall2DArrays;
     }
 
     static getPathsToGoalFromNext(next, startPosition) {

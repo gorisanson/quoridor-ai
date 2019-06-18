@@ -238,6 +238,59 @@ class Game {
         return this.board.pawns[this.pawnIndexOfNotTurn];
     }
 
+    static setWallsBesidePawn(wall2DArrays, pawn) {       
+        const row = pawn.position.row;
+        const col = pawn.position.col;
+        if (row >= 1) {
+            if (col >= 1) {
+                wall2DArrays.horizontal[row-1][col-1] = true;
+                wall2DArrays.vertical[row-1][col-1] = true;
+                if (col >= 2) {
+                    wall2DArrays.horizontal[row-1][col-2] = true;
+                }
+            }
+            if (col <= 7) {
+                wall2DArrays.horizontal[row-1][col] = true;
+                wall2DArrays.vertical[row-1][col] = true;
+                if (col <= 6) {
+                    wall2DArrays.horizontal[row-1][col+1] = true;
+                }
+            }
+            if (row >= 2) {
+                if (col >= 1) { 
+                    wall2DArrays.vertical[row-2][col-1] = true;
+                }
+                if (col <= 7) {
+                    wall2DArrays.vertical[row-2][col] = true;
+                }
+            }
+        }
+        if (row <= 7) {
+            if (col >= 1) {
+                wall2DArrays.horizontal[row][col-1] = true;
+                wall2DArrays.vertical[row][col-1] = true;
+                if (col >= 2) {
+                    wall2DArrays.horizontal[row][col-2] = true;
+                }
+            }
+            if (col <= 7) {
+                wall2DArrays.horizontal[row][col] = true;
+                wall2DArrays.vertical[row][col] = true;
+                if (col <= 6) {
+                    wall2DArrays.horizontal[row][col+1] = true;
+                }
+            }
+            if (row <= 6) {
+                if (col >= 1) { 
+                    wall2DArrays.vertical[row+1][col-1] = true;
+                }
+                if (col <= 7) {
+                    wall2DArrays.vertical[row+1][col] = true;
+                }
+            }
+        }
+    }
+
     get probableValidNextWalls() {
         if (this._probableValidNextWallsUpdated) {
             return this._probableValidNextWalls;
@@ -254,71 +307,8 @@ class Game {
             _probableValidNextWalls.horizontal[i][7] = true;
         }
 
-        for (let i = 0; i < 2; i++) {
-            const pawn = this.board.pawns[i];
-            const row = pawn.position.row;
-            const col = pawn.position.col;
-            if (row >= 1) {
-                if (col >= 1) {
-                    _probableValidNextWalls.horizontal[row-1][col-1] = true;
-                    _probableValidNextWalls.vertical[row-1][col-1] = true;
-                    if (col >= 2) {
-                        _probableValidNextWalls.horizontal[row-1][col-2] = true;
-                    }
-                }
-                if (col <= 7) {
-                    _probableValidNextWalls.horizontal[row-1][col] = true;
-                    _probableValidNextWalls.vertical[row-1][col] = true;
-                    if (col <= 6) {
-                        _probableValidNextWalls.horizontal[row-1][col+1] = true;
-                    }
-                }
-                if (row >= 2) {
-                    if (col >= 1) { 
-                        _probableValidNextWalls.vertical[row-2][col-1] = true;
-                    }
-                    if (col <= 7) {
-                        _probableValidNextWalls.vertical[row-2][col] = true;
-                    }
-                }
-            }
-            if (row <= 7) {
-                if (col >= 1) {
-                    _probableValidNextWalls.horizontal[row][col-1] = true;
-                    _probableValidNextWalls.vertical[row][col-1] = true;
-                    if (col >= 2) {
-                        _probableValidNextWalls.horizontal[row][col-2] = true;
-                    }
-                }
-                if (col <= 7) {
-                    _probableValidNextWalls.horizontal[row][col] = true;
-                    _probableValidNextWalls.vertical[row][col] = true;
-                    if (col <= 6) {
-                        _probableValidNextWalls.horizontal[row][col+1] = true;
-                    }
-                }
-                if (row <= 6) {
-                    if (col >= 1) { 
-                        _probableValidNextWalls.vertical[row+1][col-1] = true;
-                    }
-                    if (col <= 7) {
-                        _probableValidNextWalls.vertical[row+1][col] = true;
-                    }
-                }
-            }
-        }
-
-
-        // for test
-        /*
-        _probableValidNextWalls.horizontal = create2DArrayInitializedTo(8, 8, false);
-        _probableValidNextWalls.vertical = create2DArrayInitializedTo(8, 8, false);
-        _probableValidNextWalls.horizontal[4][1] = true;
-        _probableValidNextWalls.vertical[4][0] = true;
-        */
-        // for test
-
-
+        Game.setWallsBesidePawn(_probableValidNextWalls, this.pawn0);
+        Game.setWallsBesidePawn(_probableValidNextWalls, this.pawn1);
 
         _probableValidNextWalls.horizontal = logicalAndBetween2DArray(_probableValidNextWalls.horizontal, this.validNextWalls.horizontal);
         _probableValidNextWalls.vertical = logicalAndBetween2DArray(_probableValidNextWalls.vertical, this.validNextWalls.vertical);

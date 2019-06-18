@@ -116,6 +116,25 @@ Game.prototype.getArrOfProbableValidNoBlockNextVerticalWallPositions = function(
     return noBlockNextVerticals;
 };
 
+Game.prototype.getArrOfValidNoBlackNextWallsInterruptShortestPaths = function(pawn) {
+    const validNextWallsInterupt = AI.getValidNextWallsInterruptShortestPaths(pawn, this);
+    const nextHorizontals = indicesOfValueIn2DArray(validNextWallsInterupt.horizontal, true);
+    const noBlockNextHorizontals = [];
+    for (let i = 0; i < nextHorizontals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+            noBlockNextHorizontals.push(nextHorizontals[i]);
+        }
+    }
+    const nextVerticals = indicesOfValueIn2DArray(validNextWallsInterupt.vertical, true);
+    const noBlockNextVerticals = [];
+    for (let i = 0; i < nextVerticals.length; i++) {
+        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+            noBlockNextVerticals.push(nextVerticals[i]);
+        }
+    }
+    return {arrOfHorizontal: noBlockNextHorizontals, arrOfVertical: noBlockNextVerticals};
+}
+
 
 /*
 * If it is named "M", the code work erroneously
@@ -272,17 +291,35 @@ class MonteCarloTreeSearch {
                     }
                     
                     if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                        const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
-                        for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
-                            move = [null, noBlockNextHorizontals[i], null];
-                            childNode = new MNode(move, currentNode, this.uctConstant); 
-                            currentNode.addChild(childNode);
-                        }
-                        const noBlockNextVerticals = simulationGame.getArrOfProbableValidNoBlockNextVerticalWallPositions();
-                        for (let i = 0; i < noBlockNextVerticals.length; i++) {
-                            move = [null, null, noBlockNextVerticals[i]];
-                            childNode = new MNode(move, currentNode, this.uctConstant); 
-                            currentNode.addChild(childNode);
+                        if (simulationGame.pawnOfNotTurn.numberOfLeftWalls > 0) { 
+                            const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
+                            for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
+                                move = [null, noBlockNextHorizontals[i], null];
+                                childNode = new MNode(move, currentNode, this.uctConstant); 
+                                currentNode.addChild(childNode);
+                            }
+                            const noBlockNextVerticals = simulationGame.getArrOfProbableValidNoBlockNextVerticalWallPositions();
+                            for (let i = 0; i < noBlockNextVerticals.length; i++) {
+                                move = [null, null, noBlockNextVerticals[i]];
+                                childNode = new MNode(move, currentNode, this.uctConstant); 
+                                currentNode.addChild(childNode);
+                            }
+                        } else {    // if opponent has no left walls
+                            const noBlockNextWallsInterupt =
+                            simulationGame.getArrOfValidNoBlackNextWallsInterruptShortestPaths(simulationGame.pawnOfNotTurn);
+                            const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
+                            for (let i = 0; i < noBlockNextHorizontalsInterupt.length; i++) {
+                                move = [null, noBlockNextHorizontalsInterupt[i], null];
+                                childNode = new MNode(move, currentNode, this.uctConstant);
+                                currentNode.addChild(childNode);
+                            }
+                            const noBlockNextVerticalsInterupt = noBlockNextWallsInterupt.arrOfVertical;
+                            for (let i = 0; i < noBlockNextVerticalsInterupt.length; i++) {
+                                move = [null, null, noBlockNextVerticalsInterupt[i]];
+                                childNode = new MNode(move, currentNode, this.uctConstant);
+                                currentNode.addChild(childNode);
+                            }
+
                         }
                     }
                     
@@ -319,8 +356,8 @@ class MonteCarloTreeSearch {
         }
         // this console.log prevents gargabe collection of the search tree...
         //console.log(this.root.children); 
-        //return this.root.maxWinRateChild.move;
         console.log("uctConstant:", this.uctConstant);
+        //return this.root.maxWinRateChild.move;
         return this.root.maxSimsChild.move;
     }
     
@@ -417,9 +454,9 @@ class MonteCarloTreeSearch {
             } else {
                 let nextMove;
                 //if (simulationDepth <= 6) {
-                //    nextMove = AI.chooseNextWall(simulationGame);
+                //    nextMove = AI.chooseNextWallWisely(simulationGame);
                 //} else {
-                //nextMove = AI.chooseNextWall(simulationGame);
+                //nextMove = AI.chooseNextWallWisely(simulationGame);
                 //if (nextMove === null) {
                 //nextMove = AI.chooseNextWallRandomly(simulationGame);
                 nextMove = AI.chooseProbableNextWall(simulationGame);
@@ -620,8 +657,8 @@ class AI {
         return nextMoves[nextMoveIndex];
     }
 
-    static chooseNextWall(game) {
-        const validInterruptWalls = AI.getValidWallsInterruptShortestPaths(game.pawnOfNotTurn, game);
+    static chooseNextWallWisely(game) {
+        const validInterruptWalls = AI.getValidNextWallsInterruptShortestPaths(game.pawnOfNotTurn, game);
         const nextMoves = [];
         const nextHorizontals = indicesOfValueIn2DArray(validInterruptWalls.horizontal, true);
         for (let i = 0; i < nextHorizontals.length; i++) {
@@ -638,7 +675,7 @@ class AI {
     
         const currentDistanceForMe = AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
         const currentDistanceForOpponent = AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-        const futureDiffDiff = [];
+        const futureDiffDiffs = [];
         for (let i = 0; i < nextMoves.length; i++) {
             const nextMove = nextMoves[i];
             if (nextMove[1] !== null) {
@@ -649,7 +686,7 @@ class AI {
                 // getShortestDistanceFror only depends on game.openWays so...
                 const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
                 const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-                futureDiffDiff.push(diffForOpponent - diffForMe);
+                futureDiffDiffs.push(diffForOpponent - diffForMe);
                 game.openWays.upDown[row][col] = true;
                 game.openWays.upDown[row][col + 1] = true;
             } else { // nextMove[2] !== null
@@ -659,17 +696,17 @@ class AI {
                 game.openWays.leftRight[row+1][col] = false;
                 const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
                 const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-                futureDiffDiff.push(diffForOpponent - diffForMe);
+                futureDiffDiffs.push(diffForOpponent - diffForMe);
                 game.openWays.leftRight[row][col] = true;
                 game.openWays.leftRight[row+1][col] = true;
             }
         }
-        const indices = indicesOfSemiMax(futureDiffDiff);
+        const indices = indicesOfSemiMax(futureDiffDiffs);
         if (indices.length === 0) {
             // console.log("no walls to put", game.turn);
             return null;
         }
-        if (futureDiffDiff[indices[0]] < 5) {
+        if (futureDiffDiffs[indices[0]] < 5) {
             return null;
         } 
         const index = randomChoice(indices);
@@ -922,7 +959,7 @@ class AI {
         return multiNext;
     }
 
-    static getValidWallsInterruptShortestPaths(pawn, game) {
+    static getValidNextWallsInterruptShortestPaths(pawn, game) {
         const validInterruptHorizontalWalls = create2DArrayInitializedTo(8, 8, false);
         const validInterruptVerticalWalls = create2DArrayInitializedTo(8, 8, false);
         const visited = create2DArrayInitializedTo(9, 9, false);

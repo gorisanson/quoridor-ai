@@ -11,3 +11,4 @@ onmessage = function(event) {
         postMessage(move);
     }
 };
+

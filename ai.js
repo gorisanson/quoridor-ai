@@ -50,7 +50,7 @@ Game.clone = function(game) {
 };
 
 // left (this instance) PawnPosition - right (argument) PawnPosition 
-PawnPosition.prototype.getDisplacementMoveArrFrom = function(position) {
+PawnPosition.prototype.getDisplacementPawnMoveTupleFrom = function(position) {
     return [this.row - position.row, this.col - position.col];
 }
 
@@ -312,7 +312,6 @@ class MonteCarloTreeSearch {
                                 childNode = new MNode(move, currentNode, this.uctConstant);
                                 currentNode.addChild(childNode);
                             }
-
                         }
                     }
                     
@@ -378,13 +377,13 @@ class MonteCarloTreeSearch {
         
         while (simulationGame.winner === null) {
             if (!cacheForPawns[0].updated) {
-                const t = AI.get2DArrayNextToGoalFor(simulationGame.pawn0, simulationGame);
+                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn0, simulationGame);
                 cacheForPawns[0].next = t[0];
                 cacheForPawns[0].distanceToGoal = t[1];
                 cacheForPawns[0].updated = true;
             }
             if (!cacheForPawns[1].updated) {
-                const t = AI.get2DArrayNextToGoalFor(simulationGame.pawn1, simulationGame);
+                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn1, simulationGame);
                 cacheForPawns[1].next = t[0];
                 cacheForPawns[1].distanceToGoal = t[1];
                 cacheForPawns[1].updated = true;
@@ -430,7 +429,7 @@ class MonteCarloTreeSearch {
                     cacheForPawns[0].updated = false;
                     cacheForPawns[1].updated = false;
                 } else {
-                    console.log("This is happening??")
+                    console.log("No probable walls possible")
                     pawnMoveFlag = true;
                 }
             }
@@ -469,6 +468,20 @@ class AI {
         let d = new Date();
         const startTime = d.getTime();
         
+        // heuristic:
+        // for first move of each pawn
+        // go forward if possible
+        if (game.turn < 2) {
+            const nextPosition = AI.chooseShortestPathNextPawnPosition(game);
+            const pawnMoveTuple = nextPosition.getDisplacementPawnMoveTupleFrom(game.pawnOfTurn.position);
+            if (pawnMoveTuple[1] === 0) {
+                if (this.forWorker) {
+                    postMessage(1);
+                }
+                return [[nextPosition.row, nextPosition.col], null, null];
+            }
+        }
+
         const mcts = new MonteCarloTreeSearch(game, 0.02);
         if (this.forWorker) {
             const nSearch = 50;
@@ -486,9 +499,12 @@ class AI {
         let bestMove = best.move;
         const winRate = best.winRate;
         
-        // If AI is loosing seriously, it get difficulty to find shortest path pawn move
-        // So, if estimated winRate is low enough, help AI to find shortest path pawn move.
-        if (winRate < 0.1 && bestMove[0] !== null) {
+        // heuristic:
+        // For initial phase of a game, AI get difficulty, so help AI.
+        // And if AI is loosing seriously, it get difficulty too.
+        // So, if it is initial phase of a game or estimated winRate is low enough,
+        // help AI to find shortest path pawn move.
+        if (((game.turn < 6 && game.pawnOfTurn.position.col === 4) || winRate < 0.1) && bestMove[0] !== null) {
             let rightMove = false;
             const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(game);
             for (const nextPosition of nextPositions) {
@@ -549,7 +565,7 @@ class AI {
     }
 
     // get 2D array "next" to closest goal in the game
-    static get2DArrayNextToGoalFor(pawn, game) {
+    static get2DArrayNextAndDistanceToGoalFor(pawn, game) {
         const t = this.getRandomShortestPathToGoal(pawn, game);
         const dist = t[0];
         const prev = t[1];
@@ -570,21 +586,14 @@ class AI {
             const nextPositions = this.chooseShortestPathNextPawnPositionsThoroughly(game);
             nextPosition = randomChoice(nextPositions);
         } else { 
-            const next = AI.get2DArrayNextToGoalFor(game.pawnOfTurn, game);
+            const next = AI.get2DArrayNextAndDistanceToGoalFor(game.pawnOfTurn, game)[0];
             const currentPosition = game.pawnOfTurn.position
             nextPosition = next[currentPosition.row][currentPosition.col]; 
 
-            /*
-            let prevPosition;
-            let position = new PawnPosition(goalRow, goalCol);
-            while(prevPosition = prev[position.row][position.col]) {
-                nextPosition = position;
-                position = prevPosition;
-            }*/
             // if already in goal position.
             if (nextPosition === null) {
                 console.log("really?? already in goal position");
-                throw "already in goal Position...."
+                //throw "already in goal Position...."
             }
         }
         return nextPosition;
@@ -628,6 +637,9 @@ class AI {
         const nextVerticals = indicesOfValueIn2DArray(game.probableValidNextWalls.vertical, true);
         for (let i = 0; i < nextVerticals.length; i++) {
             nextMoves.push([null, null, nextVerticals[i]]);
+        }
+        if (nextMoves.length === 0) {
+            return null;
         }
         let nextMoveIndex = randomIndex(nextMoves);
         while(!game.isPossibleNextMove(nextMoves[nextMoveIndex])) {
@@ -803,7 +815,7 @@ class AI {
             //console.log(`prevs.length: ${prevs.length}`)
             for (let i = 0; i < prevs.length; i++) {
                 let prevPosition = prevs[i];
-                const pawnMoveTuple = position.getDisplacementMoveArrFrom(prevPosition);
+                const pawnMoveTuple = position.getDisplacementPawnMoveTupleFrom(prevPosition);
                 // mark valid walls which can interupt the pawn move
                 if (pawnMoveTuple[0] === -1 && pawnMoveTuple[1] === 0) { // up
                     if (prevPosition.col < 8) {

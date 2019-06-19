@@ -93,3 +93,4 @@ class Controller {
         this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
     }    
 }
+

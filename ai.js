@@ -501,10 +501,10 @@ class AI {
         
         // heuristic:
         // For initial phase of a game, AI get difficulty, so help AI.
-        // And if AI is loosing seriously, it get difficulty too.
-        // So, if it is initial phase of a game or estimated winRate is low enough,
+        // And if AI is loosing seriously or winning seriously, it get difficulty too.
+        // So, if it is initial phase of a game or estimated winRate is low enough or high enough,
         // help AI to find shortest path pawn move.
-        if (((game.turn < 6 && game.pawnOfTurn.position.col === 4) || winRate < 0.1) && bestMove[0] !== null) {
+        if (((game.turn < 6 && game.pawnOfTurn.position.col === 4) || winRate < 0.1 || winRate > 0.9) && bestMove[0] !== null) {
             let rightMove = false;
             const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(game);
             for (const nextPosition of nextPositions) {

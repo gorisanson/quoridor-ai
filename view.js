@@ -7,6 +7,7 @@ class View {
 
         this._game = null;
         this.progressBarIntervalId = null;
+        this.aiLevel = null;
         this.numOfMCTSSimulations = null;
 
         this.htmlBoardTable = document.getElementById("board_table");
@@ -29,12 +30,16 @@ class View {
         const onclickAILevelButton = function(e) {
             const x = e.target;
             if (x.id === "novice_level") {
+                this.aiLevel = "Novice";
                 this.numOfMCTSSimulations = 15000;
             } else if (x.id === "good_level") {
+                this.aiLevel = "Good";
                 this.numOfMCTSSimulations = 30000;
             } else if (x.id === "strong_level") {
+                this.aiLevel = "Strong";
                 this.numOfMCTSSimulations = 60000;
             } else if (x.id === "expert_level") {
+                this.aiLevel = "Expert";
                 this.numOfMCTSSimulations = 120000;
             }
             this.htmlChooseAILevelMessageBox.classList.add("hidden");
@@ -242,20 +247,20 @@ class View {
         this._renderWalls();
         if (this.game.winner !== null) {
             if (this.game.winner.isHumanPlayer) {
-                this.printGameResultMessage("You win!")
-                this.printMessage("You win!")
+                this.printGameResultMessage("You win against " + this.aiLevel + " AI!");
+                this.printMessage("You win!");
             } else {
-                this.printGameResultMessage("AI wins!")
-                this.printMessage("AI wins!")
+                this.printGameResultMessage(this.aiLevel + " AI wins!");
+                this.printMessage(this.aiLevel + " AI wins!");
             }
             this._renderRestartButton();
         } else {
             if (this.game.pawnOfTurn.isHumanPlayer) {
                 this._renderValidNextPawnPositions();
                 this._renderValidNextWalls();
-                this.printMessage("Your turn")
+                this.printMessage("Your turn");
             } else {
-                this.printMessage("AI's turn")
+                this.printMessage(this.aiLevel + " AI's turn");
             }
 
             if (this.controller.gameHistory.length < 2) {

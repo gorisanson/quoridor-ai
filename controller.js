@@ -94,3 +94,85 @@ class Controller {
     }    
 }
 
+
+class AICompetition {
+    constructor(isHumanPlayerFirstArrangement, numOfMCTSSimulations0, numOfMCTSSimulations1) {
+        this.isHumanPlayerFirstArrangement = isHumanPlayerFirstArrangement;
+        this.numOfGames = 0;
+        this.ais = [
+            {numOfMCTSSimulations: numOfMCTSSimulations0, numWins: 0},
+            {numOfMCTSSimulations: numOfMCTSSimulations1, numWins: 0}
+        ];
+        this.game = null;
+        this.gameHistory = []; // for view check this length propery...
+        this.view = new View(this, this.aiDevelopMode);
+        this.worker = null;
+        this.setNewWorker();
+        this.startNewGame();
+        this.view.htmlChooseAILevelMessageBox.classList.add("hidden");
+    }
+
+    setNewWorker() {
+        if (this.worker !== null) {
+            this.worker.terminate();
+        }
+        this.worker = new Worker('worker.js');
+        const onMessageFunc = function(event) {
+            const data = event.data;
+            if (typeof(data) === "number") {
+                this.view.adjustProgressBar(data * 100);
+            } else {
+                const move = data;
+                this.doMove(move);
+            }
+        }
+        this.worker.onmessage = onMessageFunc.bind(this);
+        this.worker.onerror = function(error) {
+            console.log('Worker error: ' + error.message + '\n');
+            throw error;
+        };
+    }
+
+    startNewGame() {
+        let game = new Game(this.isHumanPlayerFirstArrangement);
+        this.game = game;
+        this.game.board.pawns[0].isHumanPlayer = true;
+        this.game.board.pawns[1].isHumanPlayer = true;
+        this.view.game = game;
+        this.view.render();
+        console.log("Game start!")
+        console.log(this.ais[this.numOfGames%2].numOfMCTSSimulations, "is light-colored pawn!");
+        this.aiDo();
+    }
+
+    doMove(move) {
+        if (this.game.doMove(move, true)) {
+            this.view.render();
+            if (this.game.winner === null) {
+                this.aiDo();
+            } else { // game ended.
+                if (this.game.winner.index === 0) {
+                    this.ais[(this.numOfGames % 2)].numWins++;
+                } else {
+                    this.ais[((this.numOfGames + 1) % 2)].numWins++;
+                }
+                this.numOfGames++;
+                console.log("Game ended! total games:", this.numOfGames, "Here the following statistics...")
+                console.log(this.ais[0].numOfMCTSSimulations, "numWins:", this.ais[0].numWins);
+                console.log(this.ais[1].numOfMCTSSimulations, "numWins:", this.ais[1].numWins);
+                this.startNewGame();
+            }
+        } else {
+            // suppose that pawnMove can not be return false, if make the View perfect.
+            // so if doMove return false, it's from placeWalls.
+            this.view.printImpossibleWallMessage();
+        }
+    }
+
+    aiDo() {
+        const index = (this.numOfGames + this.game.turn) % 2 
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.ais[index].numOfMCTSSimulations, aiDevelopMode: false});
+    }
+}
+
+

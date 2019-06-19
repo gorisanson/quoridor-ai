@@ -20,7 +20,7 @@ class Controller {
                 this.view.adjustProgressBar(data * 100);
             } else {
                 const move = data;
-                this.doMove(...move);
+                this.doMove(move);
             }
         }
         this.worker.onmessage = onMessageFunc.bind(this);
@@ -48,8 +48,8 @@ class Controller {
         }
     }
 
-    doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
-        if (this.game.doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt)) {
+    doMove(move) {
+        if (this.game.doMove(move, true)) {
             this.gameHistory.push(Game.clone(this.game));
             this.view.render();
             //this.funcForDEBUG();
@@ -58,7 +58,7 @@ class Controller {
             }
         } else {
             // suppose that pawnMove can not be return false, if make the View perfect.
-            // so if doMove return false, it's form putWalls.
+            // so if doMove return false, it's from putWalls.
             this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
         }
     }

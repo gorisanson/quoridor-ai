@@ -399,8 +399,8 @@ class Game {
         }
     }
 
-    movePawn(row, col) {
-        if (this.validNextPositions[row][col] !== true) {
+    movePawn(row, col, needCheck = false) {
+        if (needCheck && this.validNextPositions[row][col] !== true) {
             return false;
         }
         this.pawnOfTurn.position.row = row;
@@ -548,13 +548,16 @@ class Game {
         return result
     }
 
-    isPossibleNextMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
+    isPossibleNextMove(move) {
+        const movePawnTo = move[0];
+        const putHorizontalWallAt = move[1];
+        const putVerticalWallAt = move[2];
         if (movePawnTo) {
             return this.validNextPositions[movePawnTo[0]][movePawnTo[1]];
         } else if (putHorizontalWallAt) {
             return this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
         } else if (putVerticalWallAt) {
-            return this.testIfAdjecentToOtherWallForVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+            return this.testIfExistPathsToGoalLinesAfterPutVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
         }
     }
 
@@ -640,64 +643,65 @@ class Game {
         }
     }
 
-    putHorizontalWall(row, col) {
-        if (!this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
+    putHorizontalWall(row, col, needCheck = false) {
+        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
             return false;
-        } else {
-            this.openWays.upDown[row][col] = false;
-            this.openWays.upDown[row][col + 1] = false;
-            this.validNextWalls.vertical[row][col] = false;
-            this.validNextWalls.horizontal[row][col] = false;
-            if (col > 0) {
-                this.validNextWalls.horizontal[row][col - 1] = false;
-            }
-            if (col < 7) {
-                this.validNextWalls.horizontal[row][col + 1] = false;
-            }
-            this.board.walls.horizontal[row][col] = true;
-            
-            this.adjustProbableValidNextWallForAfterPutHorizontalWall(row, col);
-            this.pawnOfTurn.numberOfLeftWalls--;
-            this.turn++;
-            return true;
         }
+        this.openWays.upDown[row][col] = false;
+        this.openWays.upDown[row][col + 1] = false;
+        this.validNextWalls.vertical[row][col] = false;
+        this.validNextWalls.horizontal[row][col] = false;
+        if (col > 0) {
+            this.validNextWalls.horizontal[row][col - 1] = false;
+        }
+        if (col < 7) {
+            this.validNextWalls.horizontal[row][col + 1] = false;
+        }
+        this.board.walls.horizontal[row][col] = true;
+        
+        this.adjustProbableValidNextWallForAfterPutHorizontalWall(row, col);
+        this.pawnOfTurn.numberOfLeftWalls--;
+        this.turn++;
+        return true;
     }
 
-    putVerticalWall(row, col) {
-        if (!this.testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col)) {
+    putVerticalWall(row, col, needCheck = false) {
+        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col)) {
             return false;
-        } else {
-            this.openWays.leftRight[row][col] = false;
-            this.openWays.leftRight[row+1][col] = false;
-            this.validNextWalls.horizontal[row][col] = false;
-            this.validNextWalls.vertical[row][col] = false;
-            if (row > 0) {
-                this.validNextWalls.vertical[row-1][col] = false;
-            }
-            if (row < 7) {
-                this.validNextWalls.vertical[row+1][col] = false;
-            }
-            this.board.walls.vertical[row][col] = true;
-            
-            this.adjustProbableValidNextWallForAfterPutVerticalWall(row, col);
-            this.pawnOfTurn.numberOfLeftWalls--;
-            this.turn++;
-            return true;
         }
+        this.openWays.leftRight[row][col] = false;
+        this.openWays.leftRight[row+1][col] = false;
+        this.validNextWalls.horizontal[row][col] = false;
+        this.validNextWalls.vertical[row][col] = false;
+        if (row > 0) {
+            this.validNextWalls.vertical[row-1][col] = false;
+        }
+        if (row < 7) {
+            this.validNextWalls.vertical[row+1][col] = false;
+        }
+        this.board.walls.vertical[row][col] = true;
+        
+        this.adjustProbableValidNextWallForAfterPutVerticalWall(row, col);
+        this.pawnOfTurn.numberOfLeftWalls--;
+        this.turn++;
+        return true;
     }
 
     // only one argument must be provided by 2-element array.
     // other two arguments must be null.
-    doMove(movePawnTo, putHorizontalWallAt, putVerticalWallAt) {
+    doMove(move, needCheck = false) {
         if (this.winner !== null) {
             console.log("error: doMove after already terminal......") // for debug
         }
+        const movePawnTo = move[0];
+        const putHorizontalWallAt = move[1];
+        const putVerticalWallAt = move[2];
         if (movePawnTo) {
-            return this.movePawn(movePawnTo[0], movePawnTo[1]);
+            return this.movePawn(movePawnTo[0], movePawnTo[1], needCheck);
         } else if (putHorizontalWallAt) {
-            return this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
+            return this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1], needCheck);
         } else if (putVerticalWallAt) {
-            return this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+            return this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1], needCheck);
         }
     }
 

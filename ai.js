@@ -366,7 +366,7 @@ class MonteCarloTreeSearch {
         
         while (stack.length > 0) {
             const move = stack.pop();
-            simulationGame.doMove(...move);
+            simulationGame.doMove(move);
         }
         return simulationGame;
     }
@@ -455,7 +455,7 @@ class MonteCarloTreeSearch {
                 nextMove = AI.chooseProbableNextWall(simulationGame);
                 //}
                 if (nextMove !== null) {
-                    simulationGame.doMove(...nextMove);
+                    simulationGame.doMove(nextMove);
                     cacheForPawns[0].updated = false;
                     cacheForPawns[1].updated = false;
                 } else {
@@ -644,7 +644,7 @@ class AI {
             nextMoves.push([null, null, nextVerticals[i]]);
         }
         let nextMoveIndex = randomIndex(nextMoves);
-        while(!game.isPossibleNextMove(...nextMoves[nextMoveIndex])) {
+        while(!game.isPossibleNextMove(nextMoves[nextMoveIndex])) {
             nextMoves.splice(nextMoveIndex, 1);
             if (nextMoves.length === 0) {
                 console.log("Is it really possible???")
@@ -667,7 +667,7 @@ class AI {
             nextMoves.push([null, null, nextVerticals[i]]);
         }
         let nextMoveIndex = randomIndex(nextMoves);
-        while(!game.isPossibleNextMove(...nextMoves[nextMoveIndex])) {
+        while(!game.isPossibleNextMove(nextMoves[nextMoveIndex])) {
             nextMoves.splice(nextMoveIndex, 1);
             if (nextMoves.length === 0) {
                 console.log("Is it really possible???")

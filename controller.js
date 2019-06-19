@@ -44,7 +44,7 @@ class Controller {
         this.view.render();
         //this.funcForDEBUG();
         if (!this.aiDevelopMode && !isHumanPlayerFirst) {
-            this.worker.postMessage(this.game);
+            this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
         }
     }
 
@@ -54,7 +54,7 @@ class Controller {
             this.view.render();
             //this.funcForDEBUG();
             if (!this.game.pawnOfTurn.isHumanPlayer) {
-                this.worker.postMessage(this.game);
+                this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
             }
         } else {
             // suppose that pawnMove can not be return false, if make the View perfect.
@@ -80,7 +80,7 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage(this.game); 
+        this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
     }
 
     funcForDEBUG() {

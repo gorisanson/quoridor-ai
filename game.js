@@ -47,7 +47,7 @@
 *  Follow the notation above.
 */
 
-// moveArr: represent pawn move
+// pawnMoveTuple: represent pawn move
 const MOVE_UP = [-1, 0];
 const MOVE_DOWN = [1, 0];
 const MOVE_LEFT = [0, -1];
@@ -107,8 +107,8 @@ class PawnPosition {
     }
 
     // "new" indicates that it returns new PawnPosition instance.
-    newAddMove(moveArr) {
-        return new PawnPosition(this.row + moveArr[0], this.col + moveArr[1]);
+    newAddMove(pawnMoveTuple) {
+        return new PawnPosition(this.row + pawnMoveTuple[0], this.col + pawnMoveTuple[1]);
     }
 }
 
@@ -366,36 +366,36 @@ class Game {
         }
     }
 
-    // this method checks if the moveArr of the pawn of this turn is valid against walls on the board and the board size.
+    // this method checks if the pawnMoveTuple of the pawn of this turn is valid against walls on the board and the board size.
     // this method do not check the validity against the other pawn's position. 
-    isValidNextMoveNotConsideringOtherPawn(currentPosition, moveArr) {
-        if (moveArr[0] === -1 && moveArr[1] === 0) { // up
+    isValidNextMoveNotConsideringOtherPawn(currentPosition, pawnMoveTuple) {
+        if (pawnMoveTuple[0] === -1 && pawnMoveTuple[1] === 0) { // up
             return (currentPosition.row > 0 && this.openWays.upDown[currentPosition.row - 1][currentPosition.col]);
         }
-        if (moveArr[0] === 1 && moveArr[1] === 0) { // down
+        if (pawnMoveTuple[0] === 1 && pawnMoveTuple[1] === 0) { // down
             return (currentPosition.row < 8 && this.openWays.upDown[currentPosition.row][currentPosition.col]);
         }
-        else if (moveArr[0] === 0 && moveArr[1] === -1) { // left
+        else if (pawnMoveTuple[0] === 0 && pawnMoveTuple[1] === -1) { // left
             return (currentPosition.col > 0 && this.openWays.leftRight[currentPosition.row][currentPosition.col - 1]);
         }
-        else if (moveArr[0] === 0 && moveArr[1] === 1) { // right
+        else if (pawnMoveTuple[0] === 0 && pawnMoveTuple[1] === 1) { // right
             return (currentPosition.col < 8 && this.openWays.leftRight[currentPosition.row][currentPosition.col]);
         } else {
-            throw "moveArr should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
+            throw "pawnMoveTuple should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
         }
     }
 
-    isOpenWay(currentRow, currentCol, moveArr) {
-        if (moveArr[0] === -1 && moveArr[1] === 0)  {   // up
+    isOpenWay(currentRow, currentCol, pawnMoveTuple) {
+        if (pawnMoveTuple[0] === -1 && pawnMoveTuple[1] === 0)  {   // up
             return (currentRow > 0 && this.openWays.upDown[currentRow - 1][currentCol]);
-        } else if (moveArr[0] === 1 && moveArr[1] === 0) {  //down
+        } else if (pawnMoveTuple[0] === 1 && pawnMoveTuple[1] === 0) {  //down
             return (currentRow < 8 && this.openWays.upDown[currentRow][currentCol]);
-        } else if (moveArr[0] === 0 && moveArr[1] === -1) {  // left
+        } else if (pawnMoveTuple[0] === 0 && pawnMoveTuple[1] === -1) {  // left
             return (currentCol > 0 && this.openWays.leftRight[currentRow][currentCol - 1]);
-        } else if (moveArr[0] === 0 && moveArr[1] === 1) {  // right
+        } else if (pawnMoveTuple[0] === 0 && pawnMoveTuple[1] === 1) {  // right
             return (currentCol < 8 && this.openWays.leftRight[currentRow][currentCol]);
         } else {
-            throw "moveArr should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
+            throw "pawnMoveTuple should be one of [1, 0], [-1, 0], [0, 1], [0, -1]"
         }
     }
 
@@ -713,12 +713,12 @@ class Game {
     // Tested somewhat between DFS and BFS for checking intuition.
     _existPathToGoalLineFor(pawn) {
         const visited = create2DArrayInitializedTo(9, 9, false);
-        const moveArrs = [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN];
+        const pawnMoveTuples = [MOVE_UP, MOVE_LEFT, MOVE_RIGHT, MOVE_DOWN];
         const depthFirstSearch = function(currentRow, currentCol, goalRow) {
-            for (const moveArr of moveArrs) {
-                if (this.isOpenWay(currentRow, currentCol, moveArr)) {
-                    const nextRow = currentRow + moveArr[0];
-                    const nextCol = currentCol + moveArr[1];
+            for (const pawnMoveTuple of pawnMoveTuples) {
+                if (this.isOpenWay(currentRow, currentCol, pawnMoveTuple)) {
+                    const nextRow = currentRow + pawnMoveTuple[0];
+                    const nextCol = currentCol + pawnMoveTuple[1];
                     if (!visited[nextRow][nextCol]) {
                         visited[nextRow][nextCol] = true;
                         if (nextRow === goalRow) {

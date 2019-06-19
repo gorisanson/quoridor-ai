@@ -6,6 +6,7 @@ class View {
         this.aiDevelopMode = aiDevelopMode;
 
         this._game = null;
+        this.progressBarIntervalId = null;
 
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
@@ -30,16 +31,18 @@ class View {
 
         this.button = {confirm: document.getElementById("confirm_button"),
                        cancel: document.getElementById("cancel_button"),
+                       undo: document.getElementById("undo_button"),
+                       aiDo: document.getElementById("aido_button"),
                        restart: document.getElementById("restart_button")};
         this.button.confirm.disabled = true;
         this.button.cancel.disabled = true;
+        this.button.undo.disabled = true;
+        this.button.aiDo.disabled = true;
         this.button.restart.disabled = true;
-        this.htmlRestartButtonContainer = document.getElementById("restart_button_container");
-        this.htmlCCButtonContainer = document.getElementById("confirm_cancel_button_container");
-        let htmlCCButtonContainerStyle = window.getComputedStyle(this.htmlCCButtonContainer);
-        
+                
+        const htmlConfirmButtonStyle = window.getComputedStyle(this.button.confirm);
         // decide whether it is touch device or not, this display attribute is under css media query.
-        this.isHoverPossible = (htmlCCButtonContainerStyle.display === "none");
+        this.isHoverPossible = (htmlConfirmButtonStyle.display === "none");
         
         // set UI for touch device
         if (!this.isHoverPossible) {
@@ -82,40 +85,39 @@ class View {
             this.button.cancel.onclick = onclickCancelButton.bind(this);
         }
 
+        const onclickUndoButton = function(e) {
+            this.button.undo.disabled = true;
+            this.button.aiDo.disabled = true;
+            this.button.confirm.disabled = true;
+            this.button.cancel.disabled = true;
+            View.cancelPawnClick();
+            View.cancelWallShadows();
+            this.controller.undo();
+        };
+        this.button.undo.onclick = onclickUndoButton.bind(this);
+
         const onclickRestartButton = function(e) {
+            this.button.restart.disabled = true;
+            this.button.undo.disabled = true;
+            this.button.aiDo.disabled = true;
+            this.button.restart.classList.add("hidden");
             View.removePreviousFadeInoutBox();
             this.htmlChoosePawnMessageBox.classList.remove("hidden");
         };
         this.button.restart.onclick = onclickRestartButton.bind(this);
 
         if (this.aiDevelopMode) {
-            const htmlDevelopButtonContainer = document.getElementById("develop_button_container");
-            htmlDevelopButtonContainer.classList.remove("hidden");
-            this.buttonForDevelop = {undo: document.getElementById("undo_button"),
-                                     aiDo: document.getElementById("aido_button")};
-            this.buttonForDevelop.undo.disabled = true;
-            this.buttonForDevelop.aiDo.disabled = true;
-            const onclickUndoButton = function(e) {
-                this.buttonForDevelop.undo.disabled = true;
-                this.buttonForDevelop.aiDo.disabled = true;
-                this.button.confirm.disabled = true;
-                this.button.cancel.disabled = true;
-                View.cancelPawnClick();
-                View.cancelWallShadows();
-                this.controller.undo();
-            };
             const onclickAiDoButton = function(e) {
                 this._removePreviousRender();
-                this.buttonForDevelop.undo.disabled = true;
-                this.buttonForDevelop.aiDo.disabled = true;
+                this.button.aiDo.disabled = true;
                 this.button.confirm.disabled = true;
                 this.button.cancel.disabled = true;
                 View.cancelPawnClick();
                 View.cancelWallShadows();
                 this.controller.aiDo();
             };
-            this.buttonForDevelop.undo.onclick = onclickUndoButton.bind(this);
-            this.buttonForDevelop.aiDo.onclick = onclickAiDoButton.bind(this);
+            this.button.aiDo.onclick = onclickAiDoButton.bind(this);
+            this.button.aiDo.classList.remove("hidden");
         }
     }
 
@@ -125,6 +127,11 @@ class View {
         View.removeWalls();
         this.htmlPawns[0].classList.remove("hidden");
         this.htmlPawns[1].classList.remove("hidden");
+
+        // initialize buttons
+        this.button.restart.classList.add("hidden");
+        this.button.confirm.classList.remove("hidden");
+        this.button.cancel.classList.remove("hidden");
 
         // initialize number of left walls box
         let symbolPawnList = document.getElementsByClassName("pawn symbol");
@@ -158,14 +165,22 @@ class View {
     }
    
     startNewGame(isHumanPlayerFirst) {
-        this.htmlRestartButtonContainer.classList.add("hidden");
-        this.htmlCCButtonContainer.classList.remove("hidden");
+        this.button.restart.classList.add("hidden");
+        this.button.confirm.classList.remove("hidden");
+        this.button.cancel.classList.remove("hidden");
         this.htmlChoosePawnMessageBox.classList.add("hidden");
         this.controller.startNewGame(isHumanPlayerFirst);
     }
 
     printMessage(message) {
-        this.htmlMessageBox.innerHTML = message;
+        let textNode;
+        for (let i = 0; i < this.htmlMessageBox.childNodes.length; i++) {
+            if (this.htmlMessageBox.childNodes[i].nodeType === Node.TEXT_NODE) {
+                textNode = this.htmlMessageBox.childNodes[i];
+                break;
+            }
+        }
+        textNode.nodeValue = message;
     }
 
     printNoteMessage(message) {
@@ -209,21 +224,26 @@ class View {
                 this._renderValidNextPawnPositions();
                 this._renderValidNextWalls();
                 this.printMessage("Your turn")
-                if (this.aiDevelopMode) {
-                    if (this.controller.gameHistory.length >= 2) {
-                        this.buttonForDevelop.undo.disabled = false;
-                    }
-                    this.buttonForDevelop.aiDo.disabled = false;
-                }
             } else {
                 this.printMessage("AI's turn")
+            }
+
+            if (this.controller.gameHistory.length < 2) {
+                this.button.undo.disabled = true;
+            } else {
+                this.button.undo.disabled = false;
+            }
+
+            if (this.aiDevelopMode) {
+                this.button.aiDo.disabled = false;
             }
         }
     }
 
     _renderRestartButton() {
-        this.htmlCCButtonContainer.classList.add("hidden");
-        this.htmlRestartButtonContainer.classList.remove("hidden");
+        this.button.confirm.classList.add("hidden");
+        this.button.cancel.classList.add("hidden");
+        this.button.restart.classList.remove("hidden");
         this.button.restart.disabled = false;
     }
 
@@ -460,6 +480,38 @@ class View {
         previousWalls = document.querySelectorAll("td > .vertical_wall");
         for (let i = 0; i < previousWalls.length; i++) {
             previousWalls[i].remove();
+        }
+    }
+
+    adjustProgressBar(percentage) {
+        percentage = Math.round(percentage);
+        const htmlProgressBar = document.getElementById("progress_bar");
+        if (this.progressBarIntervalId !== null) {
+            clearInterval(this.progressBarIntervalId);
+            this.progressBarIntervalId = null;
+        }
+        let width = parseInt(htmlProgressBar.style.width, 10);
+        if (width > percentage) {
+            width = 0;
+            htmlProgressBar.style.width = width + '%';
+        }
+        const frame = function() {
+            if (width >= percentage) {
+                clearInterval(this.progressBarIntervalId);
+                this.progressBarIntervalId = null;
+                if (percentage >= 100) {
+                    width = 0;
+                    htmlProgressBar.style.width = width + '%';
+                }
+            } else {
+                width++;
+                htmlProgressBar.style.width = width + '%'; 
+            }
+        }
+        if (percentage >= 100) {
+            this.progressBarIntervalId = setInterval(frame.bind(this), 5);
+        } else {
+            this.progressBarIntervalId = setInterval(frame.bind(this), 10);
         }
     }
 }

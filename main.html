@@ -11,7 +11,8 @@
         :root {
             --board-table-side-length: 90vmin;
             --long-short-ratio: 3.2;
-            --short-length: calc(var(--board-table-side-length) / (9 * var(--long-short-ratio) + 8));
+            --short-length-number-in-board-table: calc(9 * var(--long-short-ratio) + 8);
+            --short-length: calc(var(--board-table-side-length) / var(--short-length-number-in-board-table));
             --long-length: calc(var(--long-short-ratio) * var(--short-length));
             --wall-gap: calc(var(--short-length) * 0.25);
             --wall-length: calc(2 * var(--long-length) + var(--short-length) - 2 * var(--wall-gap));
@@ -199,7 +200,7 @@
             0%   {visibility: visible; z-index: 10; opacity: 0;}
             25%  {opacity: 1;}
             75%  {opacity: 1;}
-            100% {visibility: none; z-index: 10; opacity: 0;}
+            100% {visibility: hidden; z-index: 10; opacity: 0;}
         }
         #select_mode_message_box, #choose_pawn_message_box {
             background-color:rgba(0, 0, 255, 0.8);
@@ -245,6 +246,7 @@
             background-color: rgb(36, 84, 160);
         }
         #message_box {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -252,13 +254,22 @@
             text-align: center;
             text-decoration: none;
         }
+        #progress_bar {
+            position: absolute;
+            z-index: -1;
+            top: 15%;
+            left: 0;
+            /*width: width is set on style property of progress_bar element;*/
+            height: 70%;
+            background-color: rgb(82, 153, 247);
+        }
         div.pawn.hidden {
             visibility: hidden;
         }
         div.pawn.clicked {
             opacity: 0.7;
         }
-        .fade_box.in.hidden, .button_container.hidden {
+        .fade_box.in.hidden, button.button.hidden {
             display: none;
         }
         .button:disabled {
@@ -268,7 +279,7 @@
         @media only screen and (min-width: 768px), (orientation: landscape) {
             .gridcontainer0 {
                 grid-template-rows: var(--board-table-side-length);
-                grid-template-columns: var(--board-table-side-length) calc(100vmin - var(--board-table-side-length));
+                grid-template-columns: var(--board-table-side-length) calc(95vmin - var(--board-table-side-length));
             }
             .gridcontainer1 {
                 display:grid;
@@ -277,14 +288,18 @@
             }
             .button_container {
                 grid-column: unset;
-                grid-template-rows: 1fr 1fr;
-                grid-template-columns: 1fr;
                 flex-direction: column;
                 /*flex-direction: column-reverse;*/
             }
         }
+        /* For iPhone 5&6 landscape */
+        @media only screen and (max-height: 375px) and (min-width: 568px) and (orientation:landscape) {
+            .gridcontainer0 {
+                grid-template-columns: var(--board-table-side-length) calc(105vmin - var(--board-table-side-length));
+            }
+        }
         @media (hover: hover) {
-            #confirm_cancel_button_container {
+            #confirm_button, #cancel_button {
                 display: none;
             }
             div.pawn.shadow:hover {
@@ -306,8 +321,8 @@
 <body>
     <div class="gridcontainer0">
         <div id="board_table_container">
-            <!--<div class="fade_box inout" id="game_result_message_box"><div>test--</div></div>
-            <div class="fade_box inout" id="note_message_box">test---</div>-->           
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>test1</div></div>
+            <div class="fade_box inout" id="note_message_box">test12</div>-->           
             <div class="fade_box in" id="choose_pawn_message_box">
                 Choose your pawn (light-colored pawn moves first)
                 <div>
@@ -647,17 +662,13 @@
                 <div><div class="pawn pawn0 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div></div>
                 <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
             </div>
-            <div id="message_box">Your turn</div>
-            <div id="confirm_cancel_button_container", class="button_container">
+            <div id="message_box">Your turn<div id="progress_bar" style="width:0%;"></div></div>
+            <div class="button_container">
+                <button id="undo_button" class="button undo">undo</button>
                 <button id="cancel_button" class="button cancel">cancel</button>
                 <button id="confirm_button" class="button confirm">confirm</button>
-            </div>
-            <div id="develop_button_container", class="button_container hidden">
-                <button id="undo_button" class="button undo">undo</button>
-                <button id="aido_button" class="button aido">AI do</button>
-            </div>
-            <div id="restart_button_container", class="button_container hidden">
-                <button id="restart_button" class="button restart">restart</button>
+                <button id="aido_button" class="button aido hidden">AI do</button>
+                <button id="restart_button" class="button restart hidden">restart</button>
             </div>
         </div>
     </div>

@@ -176,8 +176,7 @@ class MNode {
         if (this.numSims === 0) {
             return Infinity;
         }
-        const c = this.uctConstant;
-        return (this.numWins / this.numSims) + Math.sqrt((c * Math.log(this.parent.numSims)) / this.numSims);
+        return (this.numWins / this.numSims) + Math.sqrt((this.uctConstant * Math.log(this.parent.numSims)) / this.numSims);
     }
 
     get winRate() {
@@ -245,12 +244,11 @@ class MNode {
 * (https://towardsdatascience.com/monte-carlo-tree-search-in-reinforcement-learning-b97d3e743d0f)
 */
 class MonteCarloTreeSearch {
-    constructor(game, uctConstant = 2) {
+    constructor(game, uctConstant = 0.02) {
         this.game = game;
         this.uctConstant = uctConstant;
         this.root = new MNode(null, null, this.uctConstant);
-        this.totalNumOfSimulations = 60000;
-        this.numOfSimulations = 0;
+        this.totalNumOfSimulations = 0;
     }
 
     static maxDepth(node) {
@@ -264,12 +262,10 @@ class MonteCarloTreeSearch {
         return max;
     }
 
-    searchAndSelectBestMove() {
-        let currentNode = this.root;
-        
-        let d = new Date();
-        const startTime = d.getTime();
-        while (this.numOfSimulations < this.totalNumOfSimulations) {            
+    search(numOfSimulations) {
+        let currentNode = this.root;   
+        const limitOfTotalNumOfSimulations = this.totalNumOfSimulations + numOfSimulations;
+        while (this.totalNumOfSimulations < limitOfTotalNumOfSimulations) {         
             // Selection
             if (currentNode.isTerminal) {
                 //console.log("one more terminal rollout...")
@@ -330,12 +326,9 @@ class MonteCarloTreeSearch {
                 currentNode = currentNode.maxUCTChild;
             }
         }
-        d = new Date();
-        const endTime = d.getTime();
-        console.log(`total Time: ${(endTime - startTime)/1000} sec`);
-        console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(this.root)}`);
-        console.log(`estimated winrate: ${this.root.maxWinRateChild.winRate}`);
-        
+    }
+
+    selectBestMove() {
         let node = this.root
         let i = 1;
         while(node.children.length > 0) {
@@ -380,7 +373,7 @@ class MonteCarloTreeSearch {
 
     // also called playout
     rollout(node) {
-        this.numOfSimulations++;
+        this.totalNumOfSimulations++;
         const simulationGame = this.getSimulationGameAtNode(node);
         
         // the pawn of this node is the pawn who moved immediately before,
@@ -496,7 +489,7 @@ class MonteCarloTreeSearch {
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
-        //console.log(`${this.numOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
+        //console.log(`${this.totalNumOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
     }
 }
 
@@ -504,18 +497,38 @@ class MonteCarloTreeSearch {
 * Represents an AI Player
 */
 class AI {
-    constructor() {
-        // need something??
+    constructor(totalNumOfMCTSSimulations, forWorker = false) {
+        this.totalNumOfMCTSSimulations = totalNumOfMCTSSimulations // number
+        this.forWorker = forWorker; // boolean;
     }
 
     chooseNextMove(game) {
-        let mcts;
+        let d = new Date();
+        const startTime = d.getTime();
+        const mcts = new MonteCarloTreeSearch(game, 0.02);
+        
+        /*
+        let mcts; // to find best uct constant
         if (game.pawnIndexOfTurn === 0) {
             mcts = new MonteCarloTreeSearch(game, 0.02);
         } else {
             mcts = new MonteCarloTreeSearch(game, 0.02);
         }
-        let bestMove = mcts.searchAndSelectBestMove();
+        */
+
+        if (this.forWorker) {
+            const nSearch = 50;
+            const nBatch = Math.ceil(this.totalNumOfMCTSSimulations / nSearch);
+            postMessage(0);
+            for (let i = 0; i < nSearch; i++) {
+                mcts.search(nBatch);
+                postMessage((i+1)/nSearch);
+            }
+        } else {
+            mcts.search(this.totalNumOfMCTSSimulations);
+        }
+
+        let bestMove = mcts.selectBestMove();
         // ToDo: need optimization..... and refactoring.
         if (bestMove[0] !== null) {
             let rightMove = false;
@@ -533,6 +546,11 @@ class AI {
             }
         }
         console.log("doMove!!!");
+        d = new Date();
+        const endTime = d.getTime();
+        console.log(`total Time: ${(endTime - startTime)/1000} sec`);
+        console.log(`maxDepth: ${MonteCarloTreeSearch.maxDepth(mcts.root)}`);
+        console.log(`estimated winrate: ${mcts.root.maxWinRateChild.winRate}`);
         return bestMove;
     }
 

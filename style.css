@@ -158,10 +158,10 @@ div.wall_num {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    top: calc((var(--board-table-side-length) - 5 * var(--long-length)) / 2);
+    top: 0;
     left: 0;
     width: var(--board-table-side-length);
-    height: calc(5 * var(--long-length));
+    height: var(--board-table-side-length);
     font-size: var(--font-size);
     padding-left: var(--font-size);
     padding-right: var(--font-size);
@@ -192,7 +192,7 @@ div.wall_num {
     75%  {opacity: 1;}
     100% {visibility: hidden; z-index: 10; opacity: 0;}
 }
-#select_mode_message_box, #choose_pawn_message_box {
+#choose_ai_level_message_box, #choose_pawn_message_box {
     background-color:rgba(0, 0, 255, 0.8);
     animation-duration: 1s;
 }
@@ -220,6 +220,18 @@ button.button {
     font-size: calc(var(--font-size) * 1.2);
     text-align: center;
     text-decoration: none;
+}
+button.ai_level {
+    display: inline-block;
+    height: calc(2 * var(--font-size));
+    width: calc(3.5 * var(--font-size));
+    border: none;
+    margin: 2px;
+    padding: 0;
+    font-size: var(--font-size);
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
 }
 .button.cancel {
     background-color: white;
@@ -282,12 +294,22 @@ div.pawn.clicked {
         /*flex-direction: column-reverse;*/
     }
 }
+@media only screen and (min-width: 768px) and (min-height: 768px) {
+    .fade_box {
+        top: calc((var(--board-table-side-length) - 5 * var(--long-length)) / 2);
+        left: 0;
+        width: var(--board-table-side-length);
+        height: calc(5 * var(--long-length));
+    }
+}
+
 /* For iPhone 5&6 landscape */
 @media only screen and (max-height: 375px) and (min-width: 568px) and (orientation:landscape) {
     .gridcontainer0 {
         grid-template-columns: var(--board-table-side-length) calc(105vmin - var(--board-table-side-length));
     }
 }
+
 @media (hover: hover) {
     #confirm_button, #cancel_button {
         display: none;
@@ -295,10 +317,10 @@ div.pawn.clicked {
     div.pawn.shadow:hover {
         opacity: 0.7;
     }
-    div.pawn.button {
-        opacity: 0.7;
+    div.pawn.button, button.ai_level {
+        opacity: 0.9;
     }
-    div.pawn.button:hover {
+    div.pawn.button:hover, button.ai_level:hover {
         opacity: 1;
     }
 }

@@ -1,7 +1,5 @@
 "use strict";
 
-const DEBUG = true;
-
 class Controller {
     constructor(aiDevelopMode = false) {
         this.aiDevelopMode = aiDevelopMode;
@@ -9,10 +7,13 @@ class Controller {
         this.gameHistory = null;
         this.view = new View(this, this.aiDevelopMode);
         this.worker = null;
-        this.setNewWorker();
+        this.numOfMCTSSimulations = null;
     }
 
     setNewWorker() {
+        if (this.worker !== null) {
+            this.worker.terminate();
+        }
         this.worker = new Worker('worker.js');
         const onMessageFunc = function(event) {
             const data = event.data;
@@ -30,7 +31,9 @@ class Controller {
         };
     }
 
-    startNewGame(isHumanPlayerFirst) {
+    startNewGame(isHumanPlayerFirst, numOfMCTSSimulations) {
+        this.numOfMCTSSimulations = numOfMCTSSimulations;
+        this.setNewWorker();
         let game = new Game(isHumanPlayerFirst);
         this.game = game;
         this.gameHistory = [];
@@ -42,9 +45,11 @@ class Controller {
         this.gameHistory.push(Game.clone(this.game));
         this.view.game = game;
         this.view.render();
-        //this.funcForDEBUG();
+        if (this.aiDevelopMode) {
+            this.renderDistancesForAIDevelopMode();
+        }
         if (!this.aiDevelopMode && !isHumanPlayerFirst) {
-            this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
+            this.aiDo();
         }
     }
 
@@ -52,19 +57,20 @@ class Controller {
         if (this.game.doMove(move, true)) {
             this.gameHistory.push(Game.clone(this.game));
             this.view.render();
-            //this.funcForDEBUG();
+            if (this.aiDevelopMode) {
+                this.renderDistancesForAIDevelopMode();
+            }
             if (!this.game.pawnOfTurn.isHumanPlayer) {
-                this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
+                this.aiDo();
             }
         } else {
             // suppose that pawnMove can not be return false, if make the View perfect.
-            // so if doMove return false, it's from putWalls.
-            this.view.printNoteMessage("There must be at least one path to the goal for each pawn.");
+            // so if doMove return false, it's from placeWalls.
+            this.view.printImpossibleWallMessage();
         }
     }
 
     undo() {
-        this.worker.terminate();
         this.setNewWorker();
         this.view.adjustProgressBar(0);
         
@@ -80,12 +86,10 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage({game: this.game, aiDevelopMode: this.aiDevelopMode});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, aiDevelopMode: this.aiDevelopMode});
     }
 
-    funcForDEBUG() {
-        if (DEBUG) {
-            this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
-        }
+    renderDistancesForAIDevelopMode() {
+        this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
     }    
 }

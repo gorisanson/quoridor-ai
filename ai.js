@@ -63,7 +63,7 @@ Game.prototype.getArrOfValidNoBlockNextHorizontalWallPositions = function() {
     const nextHorizontals = indicesOfValueIn2DArray(this.validNextWalls.horizontal, true);
     const noBlockNextHorizontals = [];
     for (let i = 0; i < nextHorizontals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+        if (this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
             noBlockNextHorizontals.push(nextHorizontals[i]);
         } //else {
             //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
@@ -76,7 +76,7 @@ Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
     const nextVerticals = indicesOfValueIn2DArray(this.validNextWalls.vertical, true);
     const noBlockNextVerticals = [];
     for (let i = 0; i < nextVerticals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+        if (this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
             noBlockNextVerticals.push(nextVerticals[i]);
         } //else {
             //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
@@ -89,7 +89,7 @@ Game.prototype.getArrOfProbableValidNoBlockNextHorizontalWallPositions = functio
     const nextHorizontals = indicesOfValueIn2DArray(this.probableValidNextWalls.horizontal, true);
     const noBlockNextHorizontals = [];
     for (let i = 0; i < nextHorizontals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+        if (this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
             noBlockNextHorizontals.push(nextHorizontals[i]);
         } //else {
             //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
@@ -102,7 +102,7 @@ Game.prototype.getArrOfProbableValidNoBlockNextVerticalWallPositions = function(
     const nextVerticals = indicesOfValueIn2DArray(this.probableValidNextWalls.vertical, true);
     const noBlockNextVerticals = [];
     for (let i = 0; i < nextVerticals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+        if (this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
             noBlockNextVerticals.push(nextVerticals[i]);
         } //else {
             //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
@@ -116,14 +116,14 @@ Game.prototype.getArrOfValidNoBlackNextWallsDisturbPathOf = function(pawn) {
     const nextHorizontals = indicesOfValueIn2DArray(validNextWallsInterupt.horizontal, true);
     const noBlockNextHorizontals = [];
     for (let i = 0; i < nextHorizontals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
+        if (this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
             noBlockNextHorizontals.push(nextHorizontals[i]);
         }
     }
     const nextVerticals = indicesOfValueIn2DArray(validNextWallsInterupt.vertical, true);
     const noBlockNextVerticals = [];
     for (let i = 0; i < nextVerticals.length; i++) {
-        if (this.testIfExistPathsToGoalLinesAfterPutVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
+        if (this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
             noBlockNextVerticals.push(nextVerticals[i]);
         }
     }
@@ -141,8 +141,8 @@ class MNode {
     constructor(move, parent, uctConstant = 2) {
         // move is one of the following.
         // [[row, col], null, null] for moving pawn
-        // [null, [row, col], null] for putting horizontal wall
-        // [null, null, [row, col]] for putting vertical wall
+        // [null, [row, col], null] for placing horizontal wall
+        // [null, null, [row, col]] for placing vertical wall
         this.move = move;
         this.parent = parent;
         this.uctConstant = uctConstant;
@@ -459,8 +459,8 @@ class MonteCarloTreeSearch {
 * Represents an AI Player
 */
 class AI {
-    constructor(totalNumOfMCTSSimulations, aiDevelopMode = false, forWorker = false) {
-        this.totalNumOfMCTSSimulations = totalNumOfMCTSSimulations // number
+    constructor(numOfMCTSSimulations, aiDevelopMode = false, forWorker = false) {
+        this.numOfMCTSSimulations = numOfMCTSSimulations // number
         this.aiDevelopMode = aiDevelopMode; // boolean;
         this.forWorker = forWorker; // boolean;
     }
@@ -472,14 +472,14 @@ class AI {
         const mcts = new MonteCarloTreeSearch(game, 0.02);
         if (this.forWorker) {
             const nSearch = 50;
-            const nBatch = Math.ceil(this.totalNumOfMCTSSimulations / nSearch);
+            const nBatch = Math.ceil(this.numOfMCTSSimulations / nSearch);
             postMessage(0);
             for (let i = 0; i < nSearch; i++) {
                 mcts.search(nBatch);
                 postMessage((i+1)/nSearch);
             }
         } else {
-            mcts.search(this.totalNumOfMCTSSimulations);
+            mcts.search(this.numOfMCTSSimulations);
         }
 
         const best = mcts.selectBestMove();
@@ -488,7 +488,7 @@ class AI {
         
         // If AI is loosing seriously, it get difficulty to find shortest path pawn move
         // So, if estimated winRate is low enough, help AI to find shortest path pawn move.
-        if (winRate < 0.001 && bestMove[0] !== null) {
+        if (winRate < 0.1 && bestMove[0] !== null) {
             let rightMove = false;
             const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(game);
             for (const nextPosition of nextPositions) {
@@ -1058,7 +1058,7 @@ function chooseNextWallWisely(game) {
     }
     const indices = indicesOfSemiMax(futureDiffDiffs);
     if (indices.length === 0) {
-        // console.log("no walls to put", game.turn);
+        // console.log("no walls to place", game.turn);
         return null;
     }
     if (futureDiffDiffs[indices[0]] < 5) {

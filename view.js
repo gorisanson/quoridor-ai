@@ -7,6 +7,7 @@ class View {
 
         this._game = null;
         this.progressBarIntervalId = null;
+        this.numOfMCTSSimulations = null;
 
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
@@ -14,16 +15,45 @@ class View {
         this.htmlPawns[1].classList.add("hidden");
         this.htmlMessageBox = document.getElementById("message_box");
         
-        // for choosing pawn
+        
+        this.htmlChooseAILevelMessageBox = document.getElementById("choose_ai_level_message_box");
         this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
-        let pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
-        let pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
-        let onclickPawnButton = function(e) {
+        
+        // for choosing AI level
+        const aiLevelButton = {
+            novice: document.getElementById("novice_level"),
+            good: document.getElementById("good_level"),
+            strong: document.getElementById("strong_level"),
+            expert: document.getElementById("expert_level")
+        }
+        const onclickAILevelButton = function(e) {
+            const x = e.target;
+            if (x.id === "novice_level") {
+                this.numOfMCTSSimulations = 15000;
+            } else if (x.id === "good_level") {
+                this.numOfMCTSSimulations = 30000;
+            } else if (x.id === "strong_level") {
+                this.numOfMCTSSimulations = 60000;
+            } else if (x.id === "expert_level") {
+                this.numOfMCTSSimulations = 120000;
+            }
+            this.htmlChooseAILevelMessageBox.classList.add("hidden");
+            this.htmlChoosePawnMessageBox.classList.remove("hidden");
+        };
+        aiLevelButton.novice.onclick = onclickAILevelButton.bind(this);
+        aiLevelButton.good.onclick = onclickAILevelButton.bind(this);
+        aiLevelButton.strong.onclick = onclickAILevelButton.bind(this);
+        aiLevelButton.expert.onclick = onclickAILevelButton.bind(this);
+
+        // for choosing pawn
+        const pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];
+        const pawn1Button = document.getElementsByClassName("pawn pawn1 button")[0];
+        const onclickPawnButton = function(e) {
             const x = e.target;
             if (x.classList.contains("pawn0")) {
-                this.startNewGame(true);
+                this.startNewGame(true, this.numOfMCTSSimulations);
             } else if (x.classList.contains("pawn1")) {
-                this.startNewGame(false);
+                this.startNewGame(false, this.numOfMCTSSimulations);
             }
         };
         pawn0Button.onclick = onclickPawnButton.bind(this);
@@ -102,7 +132,7 @@ class View {
             this.button.aiDo.disabled = true;
             this.button.restart.classList.add("hidden");
             View.removePreviousFadeInoutBox();
-            this.htmlChoosePawnMessageBox.classList.remove("hidden");
+            this.htmlChooseAILevelMessageBox.classList.remove("hidden");
         };
         this.button.restart.onclick = onclickRestartButton.bind(this);
 
@@ -164,12 +194,12 @@ class View {
         return this._game;
     }
    
-    startNewGame(isHumanPlayerFirst) {
+    startNewGame(isHumanPlayerFirst, numOfMCTSSimulations) {
         this.button.restart.classList.add("hidden");
         this.button.confirm.classList.remove("hidden");
         this.button.cancel.classList.remove("hidden");
         this.htmlChoosePawnMessageBox.classList.add("hidden");
-        this.controller.startNewGame(isHumanPlayerFirst);
+        this.controller.startNewGame(isHumanPlayerFirst, numOfMCTSSimulations);
     }
 
     printMessage(message) {
@@ -183,13 +213,13 @@ class View {
         textNode.nodeValue = message;
     }
 
-    printNoteMessage(message) {
+    printImpossibleWallMessage() {
         View.removePreviousFadeInoutBox();
         const box = document.createElement("div");
         box.classList.add("fade_box")
         box.classList.add("inout");
         box.id = "note_message_box";
-        box.innerHTML = message;
+        box.innerHTML = "There must be at least one path to the goal for each pawn.";
         const boardTableContainer = document.getElementById("board_table_container");
         boardTableContainer.appendChild(box);
     }

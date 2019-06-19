@@ -17,14 +17,23 @@
         <div id="board_table_container">
             <!--<div class="fade_box inout" id="game_result_message_box"><div>test1</div></div>
             <div class="fade_box inout" id="note_message_box">test12</div>-->           
-            <div class="fade_box in" id="choose_pawn_message_box">
+            <div class="fade_box in" id="choose_ai_level_message_box">
+                Choose AI level. Higher level AI takes more time.<br>(Recommend Chrome browser since it computes fast.)
+                <div>
+                    <button class="ai_level" id="novice_level">Novice</button>
+                    <button class="ai_level" id="good_level">Good</button>
+                    <button class="ai_level" id="strong_level">Strong</button>
+                    <button class="ai_level" id="expert_level">Expert</button>
+                </div>
+            </div>
+            
+            <div class="fade_box in hidden" id="choose_pawn_message_box">
                 Choose your pawn (light-colored pawn moves first)
                 <div>
                     <div class="pawn pawn0 button"></div>
                     <div class="pawn pawn1 button"></div>
                 </div>
             </div>
-            
             <table id="board_table">
                 <tr class="row row0">
                     <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>

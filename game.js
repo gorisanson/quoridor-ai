@@ -187,7 +187,7 @@ class Game {
             this._turn = 0;
 
             // horizontal, vertical: each is a 8 by 8 2D bool array; true indicates valid location, false indicates not valid wall location.
-            // this should be only updated each time putting a wall 
+            // this should be only updated each time placing a wall 
             this.validNextWalls = {horizontal: create2DArrayInitializedTo(8, 8, true), vertical: create2DArrayInitializedTo(8, 8, true)};
 
             // probable next probable walls: it's for expansion phase of Monte Carlo Tree Search.
@@ -196,7 +196,7 @@ class Game {
             this._probableValidNextWallsUpdated = false;
 
             // whether ways to adjacency is blocked (not open) or not blocked (open) by a wall
-            // this should be only updated each time putting a wall
+            // this should be only updated each time placing a wall
             this.openWays = {upDown: create2DArrayInitializedTo(8, 9, true), leftRight: create2DArrayInitializedTo(9, 8, true)};
 
             this._validNextPositions = create2DArrayInitializedTo(9, 9, false);
@@ -520,7 +520,7 @@ class Game {
         return false;
     }
 
-    testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col) {
+    testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(row, col) {
         // performance can be improved by the fact?:
         // wall which does not adjecent other wall do not block path.
         if (!this.testIfAdjecentToOtherWallForHorizontalWall(row, col)) {
@@ -534,7 +534,7 @@ class Game {
         return result
     }
 
-    testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col) {
+    testIfExistPathsToGoalLinesAfterPlaceVerticalWall(row, col) {
         // performance can be improved by the fact?:
         // wall which does not adjecent other wall do not block path.
         if (!this.testIfAdjecentToOtherWallForVerticalWall(row, col)) {
@@ -550,18 +550,18 @@ class Game {
 
     isPossibleNextMove(move) {
         const movePawnTo = move[0];
-        const putHorizontalWallAt = move[1];
-        const putVerticalWallAt = move[2];
+        const placeHorizontalWallAt = move[1];
+        const placeVerticalWallAt = move[2];
         if (movePawnTo) {
             return this.validNextPositions[movePawnTo[0]][movePawnTo[1]];
-        } else if (putHorizontalWallAt) {
-            return this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1]);
-        } else if (putVerticalWallAt) {
-            return this.testIfExistPathsToGoalLinesAfterPutVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1]);
+        } else if (placeHorizontalWallAt) {
+            return this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(placeHorizontalWallAt[0], placeHorizontalWallAt[1]);
+        } else if (placeVerticalWallAt) {
+            return this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(placeVerticalWallAt[0], placeVerticalWallAt[1]);
         }
     }
 
-    adjustProbableValidNextWallForAfterPutHorizontalWall(row, col) {
+    adjustProbableValidNextWallForAfterPlaceHorizontalWall(row, col) {
         if (row >= 1) {
             this._probableNextWalls.vertical[row-1][col] = true;
         }
@@ -602,7 +602,7 @@ class Game {
         }
     }
 
-    adjustProbableValidNextWallForAfterPutVerticalWall(row, col) {
+    adjustProbableValidNextWallForAfterPlaceVerticalWall(row, col) {
         if (col >= 1) {
             this._probableNextWalls.horizontal[row][col-1] = true;
         }
@@ -643,8 +643,8 @@ class Game {
         }
     }
 
-    putHorizontalWall(row, col, needCheck = false) {
-        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPutHorizontalWall(row, col)) {
+    placeHorizontalWall(row, col, needCheck = false) {
+        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(row, col)) {
             return false;
         }
         this.openWays.upDown[row][col] = false;
@@ -659,14 +659,14 @@ class Game {
         }
         this.board.walls.horizontal[row][col] = true;
         
-        this.adjustProbableValidNextWallForAfterPutHorizontalWall(row, col);
+        this.adjustProbableValidNextWallForAfterPlaceHorizontalWall(row, col);
         this.pawnOfTurn.numberOfLeftWalls--;
         this.turn++;
         return true;
     }
 
-    putVerticalWall(row, col, needCheck = false) {
-        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPutVerticalWall(row, col)) {
+    placeVerticalWall(row, col, needCheck = false) {
+        if (needCheck && !this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(row, col)) {
             return false;
         }
         this.openWays.leftRight[row][col] = false;
@@ -681,7 +681,7 @@ class Game {
         }
         this.board.walls.vertical[row][col] = true;
         
-        this.adjustProbableValidNextWallForAfterPutVerticalWall(row, col);
+        this.adjustProbableValidNextWallForAfterPlaceVerticalWall(row, col);
         this.pawnOfTurn.numberOfLeftWalls--;
         this.turn++;
         return true;
@@ -694,14 +694,14 @@ class Game {
             console.log("error: doMove after already terminal......") // for debug
         }
         const movePawnTo = move[0];
-        const putHorizontalWallAt = move[1];
-        const putVerticalWallAt = move[2];
+        const placeHorizontalWallAt = move[1];
+        const placeVerticalWallAt = move[2];
         if (movePawnTo) {
             return this.movePawn(movePawnTo[0], movePawnTo[1], needCheck);
-        } else if (putHorizontalWallAt) {
-            return this.putHorizontalWall(putHorizontalWallAt[0], putHorizontalWallAt[1], needCheck);
-        } else if (putVerticalWallAt) {
-            return this.putVerticalWall(putVerticalWallAt[0], putVerticalWallAt[1], needCheck);
+        } else if (placeHorizontalWallAt) {
+            return this.placeHorizontalWall(placeHorizontalWallAt[0], placeHorizontalWallAt[1], needCheck);
+        } else if (placeVerticalWallAt) {
+            return this.placeVerticalWall(placeVerticalWallAt[0], placeVerticalWallAt[1], needCheck);
         }
     }
 

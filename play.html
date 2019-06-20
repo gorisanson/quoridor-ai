@@ -2,23 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <title>Play Quoridor against AI</title>
+
     <meta name="description" content="Quoridor AI based on Monte Carlo tree search">
     <meta name="author" content="Lee Kyutae">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quoridor AI</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="apple-mobile-web-app-title" content="Quoridor AI">
+
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.png">
     <script src="game.js"></script>
     <script src="ai.js"></script>
     <script src="view.js"></script>
     <script src="controller.js"></script>
 </head>
 <body>
+    <a href="https://ko.wikipedia.org/wiki/초신성" target="_blank">about</a>
     <div class="gridcontainer0">
         <div id="board_table_container">
-            <!--<div class="fade_box inout" id="game_result_message_box"><div>test1</div></div>
-            <div class="fade_box inout" id="note_message_box">test12</div>-->           
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>
+            <div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
             <div class="fade_box in" id="choose_ai_level_message_box">
-                Choose AI level. Higher level AI takes more time.<br>(Recommend Chrome browser since it computes fast.)
+                Choose AI level. Higher level AI takes more time.
                 <div>
                     <button class="ai_level" id="novice_level">Novice</button>
                     <button class="ai_level" id="good_level">Good</button>
@@ -28,7 +40,7 @@
             </div>
             
             <div class="fade_box in hidden" id="choose_pawn_message_box">
-                Choose your pawn (light-colored pawn moves first)
+                Choose your pawn<br>(light-colored pawn moves first)
                 <div>
                     <div class="pawn pawn0 button"></div>
                     <div class="pawn pawn1 button"></div>
@@ -371,14 +383,14 @@
                 <button id="cancel_button" class="button cancel">cancel</button>
                 <button id="confirm_button" class="button confirm">confirm</button>
                 <button id="aido_button" class="button aido hidden">AI do</button>
-                <button id="restart_button" class="button restart hidden">restart</button>
+                <button id="restart_button" class="button restart">restart</button>
             </div>
         </div>
     </div>
     <script>
-        //const aiDevelopMode = false;
-        //const controller = new Controller(aiDevelopMode);
-        const aiCompetition = new AICompetition(true, 60000, 120000);
+        const aiDevelopMode = true;
+        const controller = new Controller(aiDevelopMode);
+        //const aiCompetition = new AICompetition(true, 60000, 120000);
     </script>
 </body>
 </html>

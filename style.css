@@ -158,10 +158,10 @@ div.wall_num {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    top: 0;
+    top: calc((var(--board-table-side-length) - 7 * var(--long-length)) / 2);
     left: 0;
     width: var(--board-table-side-length);
-    height: var(--board-table-side-length);
+    height: calc(7 * var(--long-length));
     font-size: var(--font-size);
     padding-left: var(--font-size);
     padding-right: var(--font-size);

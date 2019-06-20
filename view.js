@@ -135,7 +135,6 @@ class View {
             this.button.restart.disabled = true;
             this.button.undo.disabled = true;
             this.button.aiDo.disabled = true;
-            this.button.restart.classList.add("hidden");
             View.removePreviousFadeInoutBox();
             this.htmlChooseAILevelMessageBox.classList.remove("hidden");
         };
@@ -162,11 +161,6 @@ class View {
         View.removeWalls();
         this.htmlPawns[0].classList.remove("hidden");
         this.htmlPawns[1].classList.remove("hidden");
-
-        // initialize buttons
-        this.button.restart.classList.add("hidden");
-        this.button.confirm.classList.remove("hidden");
-        this.button.cancel.classList.remove("hidden");
 
         // initialize number of left walls box
         let symbolPawnList = document.getElementsByClassName("pawn symbol");
@@ -200,10 +194,8 @@ class View {
     }
    
     startNewGame(isHumanPlayerFirst, numOfMCTSSimulations) {
-        this.button.restart.classList.add("hidden");
-        this.button.confirm.classList.remove("hidden");
-        this.button.cancel.classList.remove("hidden");
         this.htmlChoosePawnMessageBox.classList.add("hidden");
+        this.button.restart.disabled = false;
         this.controller.startNewGame(isHumanPlayerFirst, numOfMCTSSimulations);
     }
 
@@ -253,7 +245,6 @@ class View {
                 this.printGameResultMessage(this.aiLevel + " AI wins!");
                 this.printMessage(this.aiLevel + " AI wins!");
             }
-            this._renderRestartButton();
         } else {
             if (this.game.pawnOfTurn.isHumanPlayer) {
                 this._renderValidNextPawnPositions();
@@ -273,13 +264,6 @@ class View {
                 this.button.aiDo.disabled = false;
             }
         }
-    }
-
-    _renderRestartButton() {
-        this.button.confirm.classList.add("hidden");
-        this.button.cancel.classList.add("hidden");
-        this.button.restart.classList.remove("hidden");
-        this.button.restart.disabled = false;
     }
 
     _removePreviousRender() {

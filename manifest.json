@@ -1,0 +1,13 @@
+{
+    "short_name": "Quoridor AI",
+    "name": "Play Quoridor against AI",
+    "icons": [
+      {
+        "src": "favicon.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "/play.html",
+    "display": "standalone"
+  }

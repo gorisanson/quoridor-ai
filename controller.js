@@ -46,7 +46,7 @@ class Controller {
         this.view.game = game;
         this.view.render();
         if (this.aiDevelopMode) {
-            this.renderDistancesForAIDevelopMode();
+            //this.renderDistancesForAIDevelopMode();
         }
         if (!this.aiDevelopMode && !isHumanPlayerFirst) {
             this.aiDo();
@@ -58,7 +58,7 @@ class Controller {
             this.gameHistory.push(Game.clone(this.game));
             this.view.render();
             if (this.aiDevelopMode) {
-                this.renderDistancesForAIDevelopMode();
+                //this.renderDistancesForAIDevelopMode();
             }
             if (!this.game.pawnOfTurn.isHumanPlayer) {
                 this.aiDo();

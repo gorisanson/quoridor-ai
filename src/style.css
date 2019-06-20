@@ -15,6 +15,9 @@ html {
 *, *:before, *:after {
     box-sizing: inherit;
 }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
 .gridcontainer0 {
     display: grid;
     width: 100%;

@@ -14,7 +14,7 @@ class Controller {
         if (this.worker !== null) {
             this.worker.terminate();
         }
-        this.worker = new Worker('worker.js');
+        this.worker = new Worker('js/worker.js');
         const onMessageFunc = function(event) {
             const data = event.data;
             if (typeof(data) === "number") {
@@ -116,7 +116,7 @@ class AICompetition {
         if (this.worker !== null) {
             this.worker.terminate();
         }
-        this.worker = new Worker('worker.js');
+        this.worker = new Worker('js/worker.js');
         const onMessageFunc = function(event) {
             const data = event.data;
             if (typeof(data) === "number") {

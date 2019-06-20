@@ -8,6 +8,7 @@
         "type": "image/png"
       }
     ],
-    "start_url": "/play.html",
+    "start_url": "../",
+    "scope": "../",
     "display": "standalone"
   }

@@ -12,16 +12,16 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="apple-touch-icon" href="meta/favicon.png">
     <meta name="apple-mobile-web-app-title" content="Quoridor AI">
 
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="favicon.png">
-    <script src="game.js"></script>
-    <script src="ai.js"></script>
-    <script src="view.js"></script>
-    <script src="controller.js"></script>
+    <link rel="manifest" href="meta/manifest.json">
+    <link rel="icon" href="meta/favicon.png">
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/view.js"></script>
+    <script src="js/controller.js"></script>
 </head>
 <body>
     <a href="https://ko.wikipedia.org/wiki/초신성" target="_blank">about</a>
@@ -388,7 +388,7 @@
         </div>
     </div>
     <script>
-        const aiDevelopMode = true;
+        const aiDevelopMode = false;
         const controller = new Controller(aiDevelopMode);
         //const aiCompetition = new AICompetition(true, 60000, 120000);
     </script>

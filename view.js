@@ -224,7 +224,7 @@ class View {
         box.classList.add("fade_box")
         box.classList.add("inout");
         box.id = "note_message_box";
-        box.innerHTML = "There must be at least one path to the goal for each pawn.";
+        box.innerHTML = "There must remain at least one path to the goal for each pawn.";
         const boardTableContainer = document.getElementById("board_table_container");
         boardTableContainer.appendChild(box);
     }

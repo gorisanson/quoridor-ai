@@ -100,8 +100,8 @@ class AICompetition {
         this.isHumanPlayerFirstArrangement = isHumanPlayerFirstArrangement;
         this.numOfGames = 0;
         this.ais = [
-            {numOfMCTSSimulations: numOfMCTSSimulations0, numWins: 0},
-            {numOfMCTSSimulations: numOfMCTSSimulations1, numWins: 0}
+            {numOfMCTSSimulations: numOfMCTSSimulations0, numWinsLight: 0, numWinsDark: 0},
+            {numOfMCTSSimulations: numOfMCTSSimulations1, numWinsLight: 0, numWinsDark: 0}
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...
@@ -152,14 +152,15 @@ class AICompetition {
                 this.aiDo();
             } else { // game ended.
                 if (this.game.winner.index === 0) {
-                    this.ais[(this.numOfGames % 2)].numWins++;
+                    this.ais[(this.numOfGames % 2)].numWinsLight++;
                 } else {
-                    this.ais[((this.numOfGames + 1) % 2)].numWins++;
+                    this.ais[((this.numOfGames + 1) % 2)].numWinsDark++;
                 }
                 this.numOfGames++;
-                console.log("Game ended! total games:", this.numOfGames, "Here the following statistics...")
-                console.log(this.ais[0].numOfMCTSSimulations, "numWins:", this.ais[0].numWins);
-                console.log(this.ais[1].numOfMCTSSimulations, "numWins:", this.ais[1].numWins);
+                console.log("Game ended! Here the statistics following...")
+                console.log("Number of total games:", this.numOfGames);
+                console.log(this.ais[0].numOfMCTSSimulations, "numWinsLight:", this.ais[0].numWinsLight, "numWinsDark", this.ais[0].numWinsDark);
+                console.log(this.ais[1].numOfMCTSSimulations, "numWinsLight:", this.ais[1].numWinsLight, "numWinsDark", this.ais[1].numWinsDark);
                 this.startNewGame();
             }
         } else {

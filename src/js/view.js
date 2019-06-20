@@ -69,11 +69,13 @@ class View {
             confirm: document.getElementById("confirm_button"),
             cancel: document.getElementById("cancel_button"),
             undo: document.getElementById("undo_button"),
+            redo: document.getElementById("redo_button"),
             aiDo: document.getElementById("aido_button")
         };
         this.button.confirm.disabled = true;
         this.button.cancel.disabled = true;
         this.button.undo.disabled = true;
+        this.button.redo.disabled = true;
         this.button.aiDo.disabled = true;
 
         const htmlConfirmButtonStyle = window.getComputedStyle(this.button.confirm);
@@ -123,6 +125,7 @@ class View {
 
         const onclickUndoButton = function(e) {
             this.button.undo.disabled = true;
+            this.button.redo.disabled = true;
             this.button.aiDo.disabled = true;
             this.button.confirm.disabled = true;
             this.button.cancel.disabled = true;
@@ -132,9 +135,22 @@ class View {
         };
         this.button.undo.onclick = onclickUndoButton.bind(this);
 
+        const onclickRedoButton = function(e) {
+            this.button.redo.disabled = true;
+            this.button.undo.disabled = true;
+            this.button.aiDo.disabled = true;
+            this.button.confirm.disabled = true;
+            this.button.cancel.disabled = true;
+            View.cancelPawnClick();
+            View.cancelWallShadows();
+            this.controller.redo();
+        }
+        this.button.redo.onclick = onclickRedoButton.bind(this);
+
         const restartButton = document.getElementById("restart_button");
         const onclickRestartButton = function(e) {
             this.button.undo.disabled = true;
+            this.button.redo.disabled = true
             this.button.aiDo.disabled = true;
             View.removePreviousFadeInoutBox();
             this.htmlAboutBox.classList.add("hidden");
@@ -154,7 +170,7 @@ class View {
             if (x.id === "restart_yes") {
                 this.htmlChooseAILevelMessageBox.classList.remove("hidden");
             } else {
-                this.enableUndoButtonIfNecessary();
+                this.enableUndoRedoButtonIfNecessary();
             }
         }
         restartYesNoButton.yes.onclick = onclickRestartYesNoButton.bind(this);
@@ -163,6 +179,7 @@ class View {
         const onclickAboutButton = function(e) {
             if (this.htmlAboutBox.classList.contains("hidden")) {
                 this.button.undo.disabled = true;
+                this.button.redo.disabled = true;
                 View.removePreviousFadeInoutBox();
                 this.htmlRestartMessageBox.classList.add("hidden");
                 this.htmlChooseAILevelMessageBox.classList.add("hidden");
@@ -170,7 +187,7 @@ class View {
                 this.htmlAboutBox.classList.remove("hidden");
             } else {
                 this.htmlAboutBox.classList.add("hidden");
-                this.enableUndoButtonIfNecessary();
+                this.enableUndoRedoButtonIfNecessary();
             }
         }
         const aboutButton = document.getElementById("about_button");
@@ -178,7 +195,7 @@ class View {
 
         const onclickCloseButtonInAbout = function(e) {
             this.htmlAboutBox.classList.add("hidden");
-            this.enableUndoButtonIfNecessary();
+            this.enableUndoRedoButtonIfNecessary();
         }
         const closeButtonInAbout = document.getElementById("about_close_button");
         closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
@@ -296,15 +313,21 @@ class View {
                 this.printMessage(this.aiLevel + " AI's turn");
             }
 
-            if (this.controller.gameHistory.length > 2) {
-                this.button.undo.disabled = false;
-            } else {
-                this.button.undo.disabled = true;
-            }
-
             if (this.aiDevelopMode) {
                 this.button.aiDo.disabled = false;
             }
+        }
+        
+        if (this.controller.gameHistory.length > 2) {
+            this.button.undo.disabled = false;
+        } else {
+            this.button.undo.disabled = true;
+        }
+        
+        if (this.controller.gameHistoryTrashCan.length > 0) {
+            this.button.redo.disabled = false;
+        } else {
+            this.button.redo.disabled = true;
         }
     }
 
@@ -510,9 +533,15 @@ class View {
         }
     }
 
-    enableUndoButtonIfNecessary() {
-        if (this.controller.gameHistory !== null && this.controller.gameHistory.length > 2) {
+    enableUndoRedoButtonIfNecessary() {
+        const gameHistory = this.controller.gameHistory;
+        if (gameHistory !== null && gameHistory.length > 2) {
             this.button.undo.disabled = false;
+        }
+
+        const gameHistoryTrashCan = this.controller.gameHistoryTrashCan;
+        if (gameHistoryTrashCan !== null && gameHistoryTrashCan.length > 0) {
+            this.button.redo.disabled = false;
         }
     }
 

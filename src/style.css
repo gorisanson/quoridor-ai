@@ -33,7 +33,7 @@ body {
     justify-content: center;
     align-content: center;
     grid-template-rows: 1fr;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }
 .gridcontainer2 {
     display: grid;
@@ -236,8 +236,11 @@ div.wall_num {
     align-items: center;
     justify-content: flex-end;
 }
+.button_container.above.left {
+    grid-column: 1 / span 3;
+}
 .button_container.above.right {
-    grid-column: 4;
+    grid-column-start: 5;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -291,6 +294,9 @@ button.close {
 }
 .button.undo {
     background-color: rgb(36, 160, 112);
+}
+.button.redo {
+    background-color: rgb(36, 131, 160);
 }
 .button.aido {
     background-color: rgb(36, 84, 160);

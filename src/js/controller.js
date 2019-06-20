@@ -5,7 +5,7 @@ class Controller {
         this.aiDevelopMode = aiDevelopMode;
         this.game = null;
         this.gameHistory = null;
-        //this.gameHistoryTrashCan = null;  // For Redo
+        this.gameHistoryTrashCan = null;  // For Redo
         this.view = new View(this, this.aiDevelopMode);
         this.worker = null;
         this.numOfMCTSSimulations = null;
@@ -38,13 +38,14 @@ class Controller {
         let game = new Game(isHumanPlayerFirst);
         this.game = game;
         this.gameHistory = [];
+        this.gameHistoryTrashCan = [];
         if (this.aiDevelopMode) {
             console.log('Welcome to AI Develop Mode!');
             this.game.board.pawns[0].isHumanPlayer = true;
             this.game.board.pawns[1].isHumanPlayer = true;
         }
         this.gameHistory.push(Game.clone(this.game));
-        this.view.game = game;
+        this.view.game = this.game;
         this.view.render();
         if (this.aiDevelopMode) {
             //this.renderDistancesForAIDevelopMode();
@@ -57,6 +58,7 @@ class Controller {
     doMove(move) {
         if (this.game.doMove(move, true)) {
             this.gameHistory.push(Game.clone(this.game));
+            this.gameHistoryTrashCan = [];
             this.view.render();
             if (this.aiDevelopMode) {
                 //this.renderDistancesForAIDevelopMode();
@@ -75,14 +77,25 @@ class Controller {
         this.setNewWorker();
         this.view.adjustProgressBar(0);
         
-        this.gameHistory.pop();  // this pops current game state
-        let game = this.gameHistory.pop();
+        // this pops and pushes current game state
+        this.gameHistoryTrashCan.push(this.gameHistory.pop());  
+        
+        let game = this.gameHistory.pop(); // this pops one-turn-before game state
         while (!game.pawnOfTurn.isHumanPlayer) {
+            console.log("hah")
+            this.gameHistoryTrashCan.push(game);
             game = this.gameHistory.pop();  // this pops last game state
         }
         this.game = game;
         this.gameHistory.push(Game.clone(this.game));
-        this.view.game = game;
+        this.view.game = this.game;
+        this.view.render();
+    }
+
+    redo() {
+        this.game = this.gameHistoryTrashCan.pop();
+        this.gameHistory.push(Game.clone(this.game));
+        this.view.game = this.game;
         this.view.render();
     }
 
@@ -139,7 +152,7 @@ class AICompetition {
         this.game = game;
         this.game.board.pawns[0].isHumanPlayer = true;
         this.game.board.pawns[1].isHumanPlayer = true;
-        this.view.game = game;
+        this.view.game = this.game;
         this.view.render();
         console.log("Game start!")
         console.log(this.ais[this.numOfGames%2].numOfMCTSSimulations, "is light-colored pawn!");

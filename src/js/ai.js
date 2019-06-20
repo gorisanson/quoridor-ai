@@ -521,7 +521,7 @@ class AI {
         }
         d = new Date();
         const endTime = d.getTime();
-        console.log(`time taken by AI: ${(endTime - startTime)/1000} sec`);
+        console.log(`time taken by AI for ${(this.numOfMCTSSimulations)} rollout: ${(endTime - startTime)/1000} sec`);
         if (this.aiDevelopMode) {
             console.log("descend maxWinRateChild")
             let node = mcts.root

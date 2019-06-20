@@ -24,10 +24,18 @@ body {
     height: 100vh;
     justify-content: center;
     align-content: center;
-    grid-template-rows: var(--board-table-side-length) calc(8 * var(--font-size));
+    grid-template-rows: calc(3 * var(--font-size)) var(--board-table-side-length) calc(8 * var(--font-size));
     grid-template-columns: var(--board-table-side-length);
+    grid-gap: 10px;
 }
 .gridcontainer1 {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+.gridcontainer2 {
     display: grid;
     justify-content: center;
     align-content: center;
@@ -45,8 +53,12 @@ body {
         --board-table-side-length: 70vmin;
     }
 }
+h1 {
+    font-size: calc(1.2 * var(--font-size));
+}
 #board_table_container {
     position: relative;
+    grid-row-start: 2;
 }
 table {
     table-layout: fixed;
@@ -178,6 +190,14 @@ div.wall_num {
     visibility: visible;
     opacity: 1;
     animation-name: fade_in;
+    animation-duration: 1s;
+}
+.fade_box.in.about {
+    z-index: 11;
+    align-items: flex-start;
+    top: 0;
+    height: calc(2 *var(--board-table-side-length));
+    text-align: left;
 }
 @keyframes fade_in {
     0%   {opacity: 0;}
@@ -195,9 +215,12 @@ div.wall_num {
     75%  {opacity: 1;}
     100% {visibility: hidden; z-index: 10; opacity: 0;}
 }
-#choose_ai_level_message_box, #choose_pawn_message_box {
+#about_box {
+    background-color: rgba(255, 255, 255, 0.8);
+    
+}
+#choose_ai_level_message_box, #choose_pawn_message_box, #restart_message_box {
     background-color:rgba(0, 0, 255, 0.8);
-    animation-duration: 1s;
 }
 #note_message_box{
     background-color:rgba(255, 0, 0, 0.8);
@@ -207,34 +230,56 @@ div.wall_num {
     background-color: rgba(0, 0, 255, 0.8);
     animation-duration: 10s;
 }
-.button_container {
+.button_container.above.left, .button_container.below {
     grid-column: 1 / span 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.button_container.above.right {
+    grid-column: 4;
     display: flex;
     align-items: center;
     justify-content: flex-end;
 }
 button.button {
     display: inline-block;
-    height: calc(4 * var(--font-size));
+    height: calc(3 * var(--font-size));
     width: 100%;
     border: none;
+    border-radius: 10px;
     padding: 0;
     color: white;
     font-size: calc(var(--font-size) * 1.2);
     text-align: center;
     text-decoration: none;
+    margin: 2%;
 }
-button.ai_level {
+button.ai_level, button.close, button.restart_yes_no {
     display: inline-block;
     height: calc(2 * var(--font-size));
     width: calc(3.5 * var(--font-size));
     border: none;
     margin: 2px;
     padding: 0;
+    background-color: white;
+    color: black;
     font-size: var(--font-size);
     text-align: center;
     text-decoration: none;
     border-radius: 10px;
+}
+#restart_no {
+    margin-left: var(--short-length);
+}
+#restart_yes {
+    margin-right: var(--short-length);
+}
+button.close {
+    background-color: black;
+    color: white;
+    display: block;
+    margin: 0 auto;
 }
 .button.cancel {
     background-color: white;
@@ -249,6 +294,9 @@ button.ai_level {
 }
 .button.aido {
     background-color: rgb(36, 84, 160);
+}
+.button.about {
+    background-color: rgb(115, 115, 115);
 }
 #message_box {
     position: relative;
@@ -268,6 +316,12 @@ button.ai_level {
     height: 70%;
     background-color: rgb(82, 153, 247);
 }
+span.no_wrap {
+    white-space: nowrap;
+}
+span.thick {
+    font-weight: 900;
+}
 div.pawn.hidden {
     visibility: hidden;
 }
@@ -281,20 +335,26 @@ div.pawn.clicked {
     opacity: 0.6;
     cursor: not-allowed;
 }
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 @media only screen and (min-width: 768px), (orientation: landscape) {
     .gridcontainer0 {
-        grid-template-rows: var(--board-table-side-length);
+        grid-template-rows: calc(3 * var(--font-size)) var(--board-table-side-length);
         grid-template-columns: var(--board-table-side-length) calc(95vmin - var(--board-table-side-length));
     }
-    .gridcontainer1 {
+    .gridcontainer2 {
         display:grid;
+        grid-row-start: 2;
+        grid-column-start: 2;
         grid-template-columns: 1fr;
         grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
     }
-    .button_container {
+    .button_container.below {
         grid-column: unset;
-        flex-direction: column;
-        /*flex-direction: column-reverse;*/
+        flex-direction: column-reverse;
     }
 }
 @media only screen and (min-width: 768px) and (min-height: 768px) {
@@ -305,14 +365,12 @@ div.pawn.clicked {
         height: calc(5 * var(--long-length));
     }
 }
-
 /* For iPhone 5&6 landscape */
 @media only screen and (max-height: 375px) and (min-width: 568px) and (orientation:landscape) {
     .gridcontainer0 {
         grid-template-columns: var(--board-table-side-length) calc(105vmin - var(--board-table-side-length));
     }
 }
-
 @media (hover: hover) {
     #confirm_button, #cancel_button {
         display: none;
@@ -320,10 +378,10 @@ div.pawn.clicked {
     div.pawn.shadow:hover {
         opacity: 0.7;
     }
-    div.pawn.button, button.ai_level {
+    div.pawn.button, button.ai_level, button.restart_yes_no {
         opacity: 0.9;
     }
-    div.pawn.button:hover, button.ai_level:hover {
+    div.pawn.button:hover, button.ai_level:hover, button.restart_yes_no:hover {
         opacity: 1;
     }
 }

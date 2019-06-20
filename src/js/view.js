@@ -16,9 +16,10 @@ class View {
         this.htmlPawns[1].classList.add("hidden");
         this.htmlMessageBox = document.getElementById("message_box");
         
-        
+        this.htmlAboutBox = document.getElementById("about_box");
         this.htmlChooseAILevelMessageBox = document.getElementById("choose_ai_level_message_box");
         this.htmlChoosePawnMessageBox = document.getElementById("choose_pawn_message_box");
+        this.htmlRestartMessageBox = document.getElementById("restart_message_box");
         
         // for choosing AI level
         const aiLevelButton = {
@@ -31,16 +32,16 @@ class View {
             const x = e.target;
             if (x.id === "novice_level") {
                 this.aiLevel = "Novice";
-                this.numOfMCTSSimulations = 15000;
+                this.numOfMCTSSimulations = 7500;
             } else if (x.id === "good_level") {
                 this.aiLevel = "Good";
-                this.numOfMCTSSimulations = 30000;
+                this.numOfMCTSSimulations = 15000;
             } else if (x.id === "strong_level") {
                 this.aiLevel = "Strong";
-                this.numOfMCTSSimulations = 60000;
+                this.numOfMCTSSimulations = 30000;
             } else if (x.id === "expert_level") {
                 this.aiLevel = "Expert";
-                this.numOfMCTSSimulations = 120000;
+                this.numOfMCTSSimulations = 60000;
             }
             this.htmlChooseAILevelMessageBox.classList.add("hidden");
             this.htmlChoosePawnMessageBox.classList.remove("hidden");
@@ -64,17 +65,17 @@ class View {
         pawn0Button.onclick = onclickPawnButton.bind(this);
         pawn1Button.onclick = onclickPawnButton.bind(this);
 
-        this.button = {confirm: document.getElementById("confirm_button"),
-                       cancel: document.getElementById("cancel_button"),
-                       undo: document.getElementById("undo_button"),
-                       aiDo: document.getElementById("aido_button"),
-                       restart: document.getElementById("restart_button")};
+        this.button = {
+            confirm: document.getElementById("confirm_button"),
+            cancel: document.getElementById("cancel_button"),
+            undo: document.getElementById("undo_button"),
+            aiDo: document.getElementById("aido_button")
+        };
         this.button.confirm.disabled = true;
         this.button.cancel.disabled = true;
         this.button.undo.disabled = true;
         this.button.aiDo.disabled = true;
-        this.button.restart.disabled = true;
-                
+
         const htmlConfirmButtonStyle = window.getComputedStyle(this.button.confirm);
         // decide whether it is touch device or not, this display attribute is under css media query.
         this.isHoverPossible = (htmlConfirmButtonStyle.display === "none");
@@ -131,14 +132,56 @@ class View {
         };
         this.button.undo.onclick = onclickUndoButton.bind(this);
 
+        const restartButton = document.getElementById("restart_button");
         const onclickRestartButton = function(e) {
-            this.button.restart.disabled = true;
             this.button.undo.disabled = true;
             this.button.aiDo.disabled = true;
             View.removePreviousFadeInoutBox();
-            this.htmlChooseAILevelMessageBox.classList.remove("hidden");
+            this.htmlAboutBox.classList.add("hidden");
+            this.htmlChoosePawnMessageBox.classList.add("hidden");
+            this.htmlChooseAILevelMessageBox.classList.add("hidden");
+            this.htmlRestartMessageBox.classList.remove("hidden");
         };
-        this.button.restart.onclick = onclickRestartButton.bind(this);
+        restartButton.onclick = onclickRestartButton.bind(this);
+        
+        const restartYesNoButton = {
+            yes: document.getElementById("restart_yes"),
+            no: document.getElementById("restart_no")
+        }
+        const onclickRestartYesNoButton = function(e) {
+            const x = e.target;
+            this.htmlRestartMessageBox.classList.add("hidden");
+            if (x.id === "restart_yes") {
+                this.htmlChooseAILevelMessageBox.classList.remove("hidden");
+            } else {
+                this.enableUndoButtonIfNecessary();
+            }
+        }
+        restartYesNoButton.yes.onclick = onclickRestartYesNoButton.bind(this);
+        restartYesNoButton.no.onclick = onclickRestartYesNoButton.bind(this);
+        
+        const onclickAboutButton = function(e) {
+            if (this.htmlAboutBox.classList.contains("hidden")) {
+                this.button.undo.disabled = true;
+                View.removePreviousFadeInoutBox();
+                this.htmlRestartMessageBox.classList.add("hidden");
+                this.htmlChooseAILevelMessageBox.classList.add("hidden");
+                this.htmlChoosePawnMessageBox.classList.add("hidden");
+                this.htmlAboutBox.classList.remove("hidden");
+            } else {
+                this.htmlAboutBox.classList.add("hidden");
+                this.enableUndoButtonIfNecessary();
+            }
+        }
+        const aboutButton = document.getElementById("about_button");
+        aboutButton.onclick = onclickAboutButton.bind(this);
+
+        const onclickCloseButtonInAbout = function(e) {
+            this.htmlAboutBox.classList.add("hidden");
+            this.enableUndoButtonIfNecessary();
+        }
+        const closeButtonInAbout = document.getElementById("about_close_button");
+        closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
 
         if (this.aiDevelopMode) {
             const onclickAiDoButton = function(e) {
@@ -195,7 +238,6 @@ class View {
    
     startNewGame(isHumanPlayerFirst, numOfMCTSSimulations) {
         this.htmlChoosePawnMessageBox.classList.add("hidden");
-        this.button.restart.disabled = false;
         this.controller.startNewGame(isHumanPlayerFirst, numOfMCTSSimulations);
     }
 
@@ -254,10 +296,10 @@ class View {
                 this.printMessage(this.aiLevel + " AI's turn");
             }
 
-            if (this.controller.gameHistory.length < 2) {
-                this.button.undo.disabled = true;
-            } else {
+            if (this.controller.gameHistory.length > 2) {
                 this.button.undo.disabled = false;
+            } else {
+                this.button.undo.disabled = true;
             }
 
             if (this.aiDevelopMode) {
@@ -436,6 +478,44 @@ class View {
         }
     }
 
+    adjustProgressBar(percentage) {
+        percentage = Math.round(percentage);
+        const htmlProgressBar = document.getElementById("progress_bar");
+        if (this.progressBarIntervalId !== null) {
+            clearInterval(this.progressBarIntervalId);
+            this.progressBarIntervalId = null;
+        }
+        let width = parseInt(htmlProgressBar.style.width, 10);
+        if (width > percentage) {
+            width = 0;
+            htmlProgressBar.style.width = width + '%';
+        }
+        const frame = function() {
+            if (width >= percentage) {
+                clearInterval(this.progressBarIntervalId);
+                this.progressBarIntervalId = null;
+                if (percentage >= 100) {
+                    width = 0;
+                    htmlProgressBar.style.width = width + '%';
+                }
+            } else {
+                width++;
+                htmlProgressBar.style.width = width + '%'; 
+            }
+        }
+        if (percentage >= 100) {
+            this.progressBarIntervalId = setInterval(frame.bind(this), 5);
+        } else {
+            this.progressBarIntervalId = setInterval(frame.bind(this), 10);
+        }
+    }
+
+    enableUndoButtonIfNecessary() {
+        if (this.controller.gameHistory !== null && this.controller.gameHistory.length > 2) {
+            this.button.undo.disabled = false;
+        }
+    }
+
     static horizontalWallShadow(x, turnOn) {
         if (turnOn === true) {
             const _horizontalWallShadow = document.createElement("div");
@@ -499,38 +579,6 @@ class View {
         previousWalls = document.querySelectorAll("td > .vertical_wall");
         for (let i = 0; i < previousWalls.length; i++) {
             previousWalls[i].remove();
-        }
-    }
-
-    adjustProgressBar(percentage) {
-        percentage = Math.round(percentage);
-        const htmlProgressBar = document.getElementById("progress_bar");
-        if (this.progressBarIntervalId !== null) {
-            clearInterval(this.progressBarIntervalId);
-            this.progressBarIntervalId = null;
-        }
-        let width = parseInt(htmlProgressBar.style.width, 10);
-        if (width > percentage) {
-            width = 0;
-            htmlProgressBar.style.width = width + '%';
-        }
-        const frame = function() {
-            if (width >= percentage) {
-                clearInterval(this.progressBarIntervalId);
-                this.progressBarIntervalId = null;
-                if (percentage >= 100) {
-                    width = 0;
-                    htmlProgressBar.style.width = width + '%';
-                }
-            } else {
-                width++;
-                htmlProgressBar.style.width = width + '%'; 
-            }
-        }
-        if (percentage >= 100) {
-            this.progressBarIntervalId = setInterval(frame.bind(this), 5);
-        } else {
-            this.progressBarIntervalId = setInterval(frame.bind(this), 10);
         }
     }
 }

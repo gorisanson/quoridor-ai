@@ -5,6 +5,7 @@ class Controller {
         this.aiDevelopMode = aiDevelopMode;
         this.game = null;
         this.gameHistory = null;
+        //this.gameHistoryTrashCan = null;  // For Redo
         this.view = new View(this, this.aiDevelopMode);
         this.worker = null;
         this.numOfMCTSSimulations = null;

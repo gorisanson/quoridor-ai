@@ -6,7 +6,7 @@
     
     <title>Play Quoridor against AI</title>
 
-    <meta name="description" content="Quoridor AI based on Monte Carlo tree search">
+    <meta name="description" content="Play Quoridor against AI based on Monte Carlo tree search">
     <meta name="author" content="Lee Kyutae">
 
     <meta name="mobile-web-app-capable" content="yes">
@@ -24,13 +24,43 @@
     <script src="js/controller.js"></script>
 </head>
 <body>
-    <a href="https://ko.wikipedia.org/wiki/초신성" target="_blank">about</a>
     <div class="gridcontainer0">
+        <div class="gridcontainer1">
+            <div class="button_container above left">
+                <button id="restart_button" class="button above restart">new game</button>
+                <button id="undo_button" class="button above undo">undo</button>
+            </div>
+            <div class="button_container above right">
+                <button id="about_button" class="button above about">about</button>
+            </div>
+        </div>
         <div id="board_table_container">
-            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>
-            <div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
+            <div class="fade_box in about hidden" id="about_box">
+                <div>
+                    <h1>Play Quoridor against AI</h1>
+                    <p>
+                        Quoridor is a board game where the objective is to get your pawn
+                        to the opposite side of the board. You can read
+                        the rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
+                        They are simple.
+                    </p>
+                    <p>
+                        This AI is based on Monte Carlo tree search.
+                        The source code was written by <span class="no_wrap">Lee Kyutae</span>.
+                        You can view the source code on <a href="https://gitlab.com/gorisanson/quoridor-ai" target="_blank">GitHub</a>.
+                    </p>
+                    <p>
+                        <span class="thick">Tip:</span><br>
+                        If you <span class="no_wrap">"Add to Home Screen"</span> this page on mobile device,
+                        it becomes an app which doesn't need an internet connection.
+                    </p>
+                    <button id="about_close_button" class="close">close</button>
+                </div>
+            </div>
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
+            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
             <div class="fade_box in" id="choose_ai_level_message_box">
-                Choose AI level. Higher level AI takes more time.
+                Choose AI level. Higher-level AI takes more time.
                 <div>
                     <button class="ai_level" id="novice_level">Novice</button>
                     <button class="ai_level" id="good_level">Good</button>
@@ -40,10 +70,17 @@
             </div>
             
             <div class="fade_box in hidden" id="choose_pawn_message_box">
-                Choose your pawn<br>(light-colored pawn moves first)
+                Choose your pawn.<br>(Light-colored pawn moves first.)
                 <div>
                     <div class="pawn pawn0 button"></div>
                     <div class="pawn pawn1 button"></div>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="restart_message_box">
+                Are you sure to start a new game?<br>(Current game will be gone.)
+                <div>
+                    <button class="restart_yes_no" id="restart_no">No</button>
+                    <button class="restart_yes_no" id="restart_yes">Yes</button>
                 </div>
             </div>
             <table id="board_table">
@@ -372,18 +409,16 @@
                 </tr>
             </table>
         </div>
-        <div class="gridcontainer1">
+        <div class="gridcontainer2">
             <div id="number_of_left_walls_box">
                 <div><div class="pawn pawn0 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div></div>
                 <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
             </div>
             <div id="message_box">Your turn<div id="progress_bar" style="width:0%;"></div></div>
-            <div class="button_container">
-                <button id="undo_button" class="button undo">undo</button>
-                <button id="cancel_button" class="button cancel">cancel</button>
-                <button id="confirm_button" class="button confirm">confirm</button>
-                <button id="aido_button" class="button aido hidden">AI do</button>
-                <button id="restart_button" class="button restart">restart</button>
+            <div class="button_container below">
+                <button id="cancel_button" class="button below cancel">cancel</button>
+                <button id="confirm_button" class="button below confirm">confirm</button>
+                <button id="aido_button" class="button below aido hidden">AI do</button>
             </div>
         </div>
     </div>
@@ -392,5 +427,6 @@
         const controller = new Controller(aiDevelopMode);
         //const aiCompetition = new AICompetition(true, 60000, 120000);
     </script>
+    <noscript>This site needs JavaScript enabled to work.</noscript>
 </body>
 </html>

@@ -62,7 +62,7 @@
             <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
             <div class="fade_box in" id="choose_ai_level_message_box">
                 Choose AI level. Higher-level AI takes more time.
-                <div>
+                <div class="button_container in_message_box">
                     <button class="ai_level" id="novice_level">Novice</button>
                     <button class="ai_level" id="good_level">Good</button>
                     <button class="ai_level" id="strong_level">Strong</button>
@@ -72,16 +72,16 @@
             
             <div class="fade_box in hidden" id="choose_pawn_message_box">
                 Choose your pawn.<br>(Light-colored pawn moves first.)
-                <div>
+                <div class="button_container in_message_box">
                     <div class="pawn pawn0 button"></div>
                     <div class="pawn pawn1 button"></div>
                 </div>
             </div>
             <div class="fade_box in hidden" id="restart_message_box">
                 Are you sure to start a new game?<br>(Current game will be gone.)
-                <div>
-                    <button class="restart_yes_no" id="restart_no">No</button>
-                    <button class="restart_yes_no" id="restart_yes">Yes</button>
+                <div class="button_container in_message_box">
+                    <button class="restart_yes_no" id="restart_no">cancel</button>
+                    <button class="restart_yes_no" id="restart_yes">start</button>
                 </div>
             </div>
             <table id="board_table">

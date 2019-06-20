@@ -171,12 +171,13 @@ div.wall_num {
     position: absolute;
     display: flex;
     flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    top: calc((var(--board-table-side-length) - 7 * var(--long-length)) / 2);
+    justify-content: space-evenly;
+    top: calc((var(--board-table-side-length) - 8 * var(--long-length)) / 2);
     left: 0;
     width: var(--board-table-side-length);
-    height: calc(7 * var(--long-length));
+    height: calc(8 * var(--long-length));
     font-size: var(--font-size);
     padding-left: var(--font-size);
     padding-right: var(--font-size);
@@ -193,8 +194,7 @@ div.wall_num {
     animation-duration: 1s;
 }
 .fade_box.in.about {
-    z-index: 11;
-    align-items: flex-start;
+    justify-content: flex-start;
     top: 0;
     height: calc(2 *var(--board-table-side-length));
     text-align: left;
@@ -234,7 +234,7 @@ div.wall_num {
     grid-column: 1 / span 2;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
 }
 .button_container.above.left {
     grid-column: 1 / span 3;
@@ -272,14 +272,8 @@ button.ai_level, button.close, button.restart_yes_no {
     text-decoration: none;
     border-radius: 10px;
 }
-#restart_no {
-    margin-left: var(--short-length);
-}
-#restart_yes {
-    margin-right: var(--short-length);
-}
 button.close {
-    background-color: black;
+    background-color: rgb(50, 50, 50);
     color: white;
     display: block;
     margin: 0 auto;
@@ -287,7 +281,7 @@ button.close {
 .button.cancel {
     background-color: white;
     color: black;
-    border: 2px solid rgb(85,85,85);
+    border: 2px solid rgb(85, 85, 85);
 }
 .button.confirm, .button.restart {
     background-color: rgb(0, 71, 186);
@@ -302,7 +296,7 @@ button.close {
     background-color: rgb(36, 84, 160);
 }
 .button.about {
-    background-color: rgb(115, 115, 115);
+    background-color: rgb(50, 50, 50);
 }
 #message_box {
     position: relative;
@@ -361,6 +355,7 @@ footer {
     .button_container.below {
         grid-column: unset;
         flex-direction: column-reverse;
+        justify-content: flex-start;
     }
 }
 @media only screen and (min-width: 768px) and (min-height: 768px) {

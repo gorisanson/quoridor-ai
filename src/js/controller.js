@@ -182,7 +182,7 @@ class AICompetition {
                 if (this.numOfGames < this.numOfGamesToCompete) {
                     this.startNewGame();
                 } else {
-                    console.log("Competition Ended.")
+                    console.log("Competition Ended.");
                 }
             }
         } else {

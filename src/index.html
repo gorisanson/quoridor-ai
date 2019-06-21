@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head>  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
@@ -444,7 +444,16 @@
     <script>
         const aiDevelopMode = false;
         const controller = new Controller(aiDevelopMode);
-        //const aiCompetition = new AICompetition(true, 60000, 120000);
+        //const aiCompetition = new AICompetition(true, 60000, 120000);  
+        
+        // For some touch device, @media (hover: hover) is not working, so add this.
+        window.addEventListener('touchstart', function onFirstTouch() {
+            controller.view.isHoverPossible = false;
+            controller.view.button.confirm.style.display = "inline-block";
+            controller.view.button.cancel.style.display = "inline-block";
+            controller.view.setUIForTouchDevice();
+            window.removeEventListener('touchstart', onFirstTouch, false);
+        }, false);
     </script>
     <noscript>This site needs JavaScript enabled to work.</noscript>
 </body>

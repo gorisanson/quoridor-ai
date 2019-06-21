@@ -112,9 +112,10 @@ class Controller {
 
 
 class AICompetition {
-    constructor(isHumanPlayerFirstArrangement, numOfMCTSSimulations0, numOfMCTSSimulations1) {
+    constructor(isHumanPlayerFirstArrangement, numOfMCTSSimulations0, numOfMCTSSimulations1, numOfGamesToCompete = 50) {
         this.isHumanPlayerFirstArrangement = isHumanPlayerFirstArrangement;
         this.numOfGames = 0;
+        this.numOfGamesToCompete = numOfGamesToCompete;
         this.ais = [
             {numOfMCTSSimulations: numOfMCTSSimulations0, numWinsLight: 0, numWinsDark: 0},
             {numOfMCTSSimulations: numOfMCTSSimulations1, numWinsLight: 0, numWinsDark: 0}
@@ -178,7 +179,11 @@ class AICompetition {
                 console.log("Number of total games:", this.numOfGames);
                 console.log(this.ais[0].numOfMCTSSimulations, "numWinsLight:", this.ais[0].numWinsLight, "numWinsDark", this.ais[0].numWinsDark);
                 console.log(this.ais[1].numOfMCTSSimulations, "numWinsLight:", this.ais[1].numWinsLight, "numWinsDark", this.ais[1].numWinsDark);
-                this.startNewGame();
+                if (this.numOfGames < this.numOfGamesToCompete) {
+                    this.startNewGame();
+                } else {
+                    console.log("Competition Ended.")
+                }
             }
         } else {
             // suppose that pawnMove can not be return false, if make the View perfect.

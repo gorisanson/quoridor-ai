@@ -77,52 +77,7 @@ class View {
         this.button.undo.disabled = true;
         this.button.redo.disabled = true;
         this.button.aiDo.disabled = true;
-
-        const htmlConfirmButtonStyle = window.getComputedStyle(this.button.confirm);
-        // decide whether it is touch device or not, this display attribute is under css media query.
-        this.isHoverPossible = (htmlConfirmButtonStyle.display === "none");
         
-        // set UI for touch device
-        if (!this.isHoverPossible) {
-            const onclickConfirmButton = function(e) {
-                this.button.confirm.disabled = true;
-                this.button.cancel.disabled = true;
-                const clickedPawns = document.getElementsByClassName("pawn clicked");
-                if (clickedPawns.length > 0) {
-                    const clickedPawn = clickedPawns[0];
-                    const row = clickedPawn.parentElement.parentElement.rowIndex / 2;
-                    const col = clickedPawn.parentElement.cellIndex / 2;
-                    View.cancelPawnClick();
-                    this.controller.doMove([[row, col], null, null]);
-                } else {
-                    const horizontalWallShadows = document.getElementsByClassName("horizontal_wall shadow");
-                    const verticalWallShadows = document.getElementsByClassName("vertical_wall shadow");
-                    if (horizontalWallShadows.length > 0) {
-                        const horizontalWallShadow = horizontalWallShadows[0];
-                        const row = (horizontalWallShadow.parentElement.parentElement.rowIndex - 1) / 2;
-                        const col = horizontalWallShadow.parentElement.cellIndex / 2;
-                        View.cancelWallShadows();
-                        this.controller.doMove([null, [row, col], null]);
-                    } else if (verticalWallShadows.length > 0) {
-                        const verticalWallShadow = verticalWallShadows[0];
-                        const row = verticalWallShadow.parentElement.parentElement.rowIndex / 2;
-                        const col = (verticalWallShadow.parentElement.cellIndex - 1) / 2;
-                        View.cancelWallShadows();
-                        this.controller.doMove([null, null, [row, col]]);
-                    }
-                }
-            };
-            const onclickCancelButton = function(e) {
-                this.button.confirm.disabled = true;
-                this.button.cancel.disabled = true;
-                View.cancelPawnClick();
-                View.cancelWallShadows();
-            };
-            
-            this.button.confirm.onclick = onclickConfirmButton.bind(this);
-            this.button.cancel.onclick = onclickCancelButton.bind(this);
-        }
-
         const onclickUndoButton = function(e) {
             this.button.undo.disabled = true;
             this.button.redo.disabled = true;
@@ -213,6 +168,15 @@ class View {
             this.button.aiDo.onclick = onclickAiDoButton.bind(this);
             this.button.aiDo.classList.remove("hidden");
         }
+
+        const htmlConfirmButtonStyle = window.getComputedStyle(this.button.confirm);
+        // decide whether it is touch device or not, this display attribute is under css media query.
+        this.isHoverPossible = (htmlConfirmButtonStyle.display === "none");
+
+        // set UI for touch device
+        if (!this.isHoverPossible) {
+            this.setUIForTouchDevice();
+        }
     }
 
     set game(game) {
@@ -252,7 +216,47 @@ class View {
     get game() {
         return this._game;
     }
-   
+    
+    setUIForTouchDevice() {
+        const onclickConfirmButton = function(e) {
+            this.button.confirm.disabled = true;
+            this.button.cancel.disabled = true;
+            const clickedPawns = document.getElementsByClassName("pawn clicked");
+            if (clickedPawns.length > 0) {
+                const clickedPawn = clickedPawns[0];
+                const row = clickedPawn.parentElement.parentElement.rowIndex / 2;
+                const col = clickedPawn.parentElement.cellIndex / 2;
+                View.cancelPawnClick();
+                this.controller.doMove([[row, col], null, null]);
+            } else {
+                const horizontalWallShadows = document.getElementsByClassName("horizontal_wall shadow");
+                const verticalWallShadows = document.getElementsByClassName("vertical_wall shadow");
+                if (horizontalWallShadows.length > 0) {
+                    const horizontalWallShadow = horizontalWallShadows[0];
+                    const row = (horizontalWallShadow.parentElement.parentElement.rowIndex - 1) / 2;
+                    const col = horizontalWallShadow.parentElement.cellIndex / 2;
+                    View.cancelWallShadows();
+                    this.controller.doMove([null, [row, col], null]);
+                } else if (verticalWallShadows.length > 0) {
+                    const verticalWallShadow = verticalWallShadows[0];
+                    const row = verticalWallShadow.parentElement.parentElement.rowIndex / 2;
+                    const col = (verticalWallShadow.parentElement.cellIndex - 1) / 2;
+                    View.cancelWallShadows();
+                    this.controller.doMove([null, null, [row, col]]);
+                }
+            }
+        };
+        const onclickCancelButton = function(e) {
+            this.button.confirm.disabled = true;
+            this.button.cancel.disabled = true;
+            View.cancelPawnClick();
+            View.cancelWallShadows();
+        };
+        
+        this.button.confirm.onclick = onclickConfirmButton.bind(this);
+        this.button.cancel.onclick = onclickCancelButton.bind(this);
+    }
+
     startNewGame(isHumanPlayerFirst, numOfMCTSSimulations) {
         this.htmlChoosePawnMessageBox.classList.add("hidden");
         this.controller.startNewGame(isHumanPlayerFirst, numOfMCTSSimulations);

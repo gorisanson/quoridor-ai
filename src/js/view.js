@@ -32,16 +32,16 @@ class View {
             const x = e.target;
             if (x.id === "novice_level") {
                 this.aiLevel = "Novice";
-                this.numOfMCTSSimulations = 7500;
+                this.numOfMCTSSimulations = 15000;
             } else if (x.id === "good_level") {
                 this.aiLevel = "Good";
-                this.numOfMCTSSimulations = 15000;
+                this.numOfMCTSSimulations = 30000;
             } else if (x.id === "strong_level") {
                 this.aiLevel = "Strong";
-                this.numOfMCTSSimulations = 30000;
+                this.numOfMCTSSimulations = 60000;
             } else if (x.id === "expert_level") {
                 this.aiLevel = "Expert";
-                this.numOfMCTSSimulations = 60000;
+                this.numOfMCTSSimulations = 120000;
             }
             this.htmlChooseAILevelMessageBox.classList.add("hidden");
             this.htmlChoosePawnMessageBox.classList.remove("hidden");

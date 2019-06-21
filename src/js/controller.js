@@ -121,6 +121,7 @@ class AICompetition {
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...
+        this.gameHistoryTrashCan = []; // for view check this length propery...
         this.view = new View(this, this.aiDevelopMode);
         this.worker = null;
         this.setNewWorker();

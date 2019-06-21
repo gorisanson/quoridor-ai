@@ -132,9 +132,9 @@ Game.prototype.getArrOfValidNoBlackNextWallsDisturbPathOf = function(pawn) {
 
 
 /*
-* If it is named "M", the code work erroneously
-* because maybe "M" is already used name in Web APIs?
-* (see https://developer.mozilla.org/en-US/docs/Web/API/M)
+* If it is named "Node", the code work erroneously
+* because maybe "Node" is already used name in Web APIs?
+* (see https://developer.mozilla.org/en-US/docs/Web/API/Node)
 * M stands for Move. 
 */
 class MNode {
@@ -397,7 +397,7 @@ class MonteCarloTreeSearch {
             
             // If my pawn is closer to goal, increase pawnMoveProbability
             // This heuristic is taken from the paper
-            // Victor Massagué Respall, Joseph Alexander Brown, "Monte Carlo Tree Search for Quoridor".
+            // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor".
             const pawnMoveProbability = 0.8 + 0.2 * (Math.max(0, distanceDiff) / 8);
 
             if (pawnMoveFlag || pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < pawnMoveProbability) {
@@ -440,12 +440,15 @@ class MonteCarloTreeSearch {
         let ancestorPawnIndex = nodePawnIndex;
 
         const numberOfLeftWalls = simulationGame.winner.numberOfLeftWalls;
+        // heuristic:
+        // keep 3-4 walls to the end of game is good strategy.
+        // this is a quite effective heuristic!  
         const bonusScore = Math.min(0.9, numberOfLeftWalls * 0.25);
         while(ancestor !== null) {
             ancestor.numSims++;
             if (simulationGame.winner.index === ancestorPawnIndex) {
                 ancestor.numWins += 1;
-                ancestor.bonusScore += bonusScore;  // this is very effective heuristic!!
+                ancestor.bonusScore += bonusScore;
             }
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;

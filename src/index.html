@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <title>Play Quoridor against AI</title>
+
+    <meta name="description" content="Play Quoridor against AI based on Monte Carlo tree search">
+    <meta name="author" content="Lee Kyutae">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <meta name="apple-mobile-web-app-title" content="Quoridor AI">
+    <link rel="apple-touch-icon" href="meta/icons_square.png">
+    <link rel="apple-touch-startup-image" href="meta/apple_splash.png">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="meta/manifest.json">
+    <link rel="icon" href="meta/icons_512.png">
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/view.js"></script>
+    <script src="js/controller.js"></script>
+    <script>
+    if ('caches' in window) {
+        console.log("Cache API supported");// The Cache API is supported
+    }
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js').then(function(registration) {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+    </script>
+</head>
+<body>
+    <div class="gridcontainer0">
+        <div class="gridcontainer1">
+            <div class="button_container above left">
+                <button id="restart_button" class="button above restart">new game</button>
+                <button id="undo_button" class="button above undo">undo</button>
+                <button id="redo_button" class="button above redo">redo</button>
+            </div>
+            <div class="button_container above right">
+                <button id="about_button" class="button above about">about</button>
+            </div>
+        </div>
+        <div id="board_table_container">
+            <div class="fade_box in about hidden" id="about_box">
+                <div>
+                    <h1>Play Quoridor against AI</h1>
+                    <p>
+                        Quoridor is a board game where the objective is to get your pawn
+                        to the opposite side of the board. You can read
+                        the rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
+                        They are simple.
+                    </p>
+                    <p>
+                        This AI is based on Monte Carlo tree search.
+                        The source code was written by <span class="no_wrap">Lee Kyutae</span>.
+                        You can view the source code on <a href="https://github.com/gorisanson/quoridor-ai" target="_blank">GitHub</a>.
+                    </p>
+                    <p>
+                        <span class="thick">Tip:</span><br>
+                        If you <span class="no_wrap">"Add to Home Screen"</span> this page on mobile device,
+                        it becomes an app which doesn't need an internet connection.
+                    </p>
+                    <button id="about_close_button" class="close">close</button>
+                </div>
+            </div>
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
+            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
+            <div class="fade_box in" id="choose_ai_level_message_box">
+                Choose AI level. Higher-level AI takes more time.
+                <div class="button_container in_message_box">
+                    <button class="ai_level" id="novice_level">Novice</button>
+                    <button class="ai_level" id="good_level">Good</button>
+                    <button class="ai_level" id="strong_level">Strong</button>
+                    <button class="ai_level" id="expert_level">Expert</button>
+                </div>
+            </div>
+            
+            <div class="fade_box in hidden" id="choose_pawn_message_box">
+                Choose your pawn.<br>(Light-colored pawn moves first.)
+                <div class="button_container in_message_box">
+                    <div class="pawn pawn0 button"></div>
+                    <div class="pawn pawn1 button"></div>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="restart_message_box">
+                Are you sure to start a new game?<br>(Current game will be gone.)
+                <div class="button_container in_message_box">
+                    <button class="restart_yes_no" id="restart_no">cancel</button>
+                    <button class="restart_yes_no" id="restart_yes">start</button>
+                </div>
+            </div>
+            <table id="board_table">
+                <tr class="row row0">
+                    <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"><div class="pawn pawn1" id="pawn1"></div></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>  
+                <tr class="between_rows row0">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row1">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>  
+                <tr class="between_rows row1">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row2">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="between_rows row2">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row3">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>  
+                <tr class="between_rows row3">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row4">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="between_rows row4">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row5">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>  
+                <tr class="between_rows row5">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row6">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="between_rows row6">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row7">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>  
+                <tr class="between_rows row7">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+                <tr class="row row8">
+                    <td class="col col0"></td>
+                    <td class="between_cols col0"></td>
+                    <td class="col col1"></td>
+                    <td class="between_cols col1"></td>
+                    <td class="col col2"></td>
+                    <td class="between_cols col2"></td>
+                    <td class="col col3"></td>
+                    <td class="between_cols col3"></td>
+                    <td class="col col4"></td>
+                    <td class="between_cols col4"></td>
+                    <td class="col col5"></td>
+                    <td class="between_cols col5"></td>
+                    <td class="col col6"></td>
+                    <td class="between_cols col6"></td>
+                    <td class="col col7"></td>
+                    <td class="between_cols col7"></td>
+                    <td class="col col8"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="gridcontainer2">
+            <div id="number_of_left_walls_box">
+                <div><div class="pawn pawn0 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn0">10</div></div></div>
+                <div><div class="pawn pawn1 symbol"></div><div class="horizontal_wall symbol"></div><div class="mul_sign_wall_num_container"><div class="multiplication_sign">×</div><div class="wall_num pawn1">10</div></div></div>
+            </div>
+            <div id="message_box">Your turn<div id="progress_bar" style="width:0%;"></div></div>
+            <div class="button_container below">
+                <button id="cancel_button" class="button below cancel">cancel</button>
+                <button id="confirm_button" class="button below confirm">confirm</button>
+                <button id="aido_button" class="button below aido hidden">AI do</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const aiDevelopMode = false;
+        const controller = new Controller(aiDevelopMode);
+        //const aiCompetition = new AICompetition(true, 60000, 120000);
+    </script>
+    <noscript>This site needs JavaScript enabled to work.</noscript>
+</body>
+</html>

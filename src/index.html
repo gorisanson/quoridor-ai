@@ -12,16 +12,34 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="meta/favicon.png">
+    
     <meta name="apple-mobile-web-app-title" content="Quoridor AI">
-
+    <link rel="apple-touch-icon" href="meta/icons_square.png">
+    <link rel="apple-touch-startup-image" href="meta/apple_splash.png">
+    
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="meta/manifest.json">
-    <link rel="icon" href="meta/favicon.png">
+    <link rel="icon" href="meta/icons_512.png">
     <script src="js/game.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/view.js"></script>
     <script src="js/controller.js"></script>
+    <script>
+    if ('caches' in window) {
+        console.log("Cache API supported");// The Cache API is supported
+    }
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('./sw.js').then(function(registration) {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+    </script>
 </head>
 <body>
     <div class="gridcontainer0">

@@ -217,17 +217,15 @@ div.wall_num {
 }
 #about_box {
     background-color: rgba(255, 255, 255, 0.8);
-    
 }
-#choose_ai_level_message_box, #choose_pawn_message_box, #restart_message_box {
-    background-color:rgba(0, 0, 255, 0.8);
+#choose_ai_level_message_box, #choose_pawn_message_box, #restart_message_box, #game_result_message_box, button.restart {
+    background-color:rgba(0, 81, 255, 0.85);
 }
 #note_message_box{
     background-color:rgba(255, 0, 0, 0.8);
     animation-duration: 3s;
 }
 #game_result_message_box{
-    background-color: rgba(0, 0, 255, 0.8);
     animation-duration: 10s;
 }
 .button_container.above.left, .button_container.below {
@@ -283,7 +281,7 @@ button.close {
     color: black;
     border: 2px solid rgb(85, 85, 85);
 }
-.button.confirm, .button.restart {
+.button.confirm {
     background-color: rgb(0, 71, 186);
 }
 .button.undo {

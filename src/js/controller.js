@@ -3,6 +3,9 @@
 class Controller {
     constructor(aiDevelopMode = false) {
         this.aiDevelopMode = aiDevelopMode;
+        if (this.aiDevelopMode) {
+            console.log('Welcome to AI Develop Mode!');
+        }
         this.game = null;
         this.gameHistory = null;
         this.gameHistoryTrashCan = null;  // For Redo
@@ -40,7 +43,6 @@ class Controller {
         this.gameHistory = [];
         this.gameHistoryTrashCan = [];
         if (this.aiDevelopMode) {
-            console.log('Welcome to AI Develop Mode!');
             this.game.board.pawns[0].isHumanPlayer = true;
             this.game.board.pawns[1].isHumanPlayer = true;
         }

@@ -25,9 +25,11 @@
     <script src="js/view.js"></script>
     <script src="js/controller.js"></script>
     <script>
+    /*
     if ('caches' in window) {
         console.log("Cache API supported");// The Cache API is supported
     }
+    */
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
             navigator.serviceWorker.register('./sw.js').then(function(registration) {
@@ -442,7 +444,30 @@
         </div>
     </div>
     <script>
+        /*
+        ****************************************
+        **     How to use AI Develop Mode     **
+        ****************************************
+        *
+        * If you want to use aiDevelopMode, use Chrome DevTools.
+        * It needs three steps.
+        *
+        * 1.
+        * In "Local Overrides" (Sources -> Overrides),
+        * (see https://developers.google.com/web/updates/2018/01/devtools#overrides)
+        * Edit the line below this comment to "const aiDevelopMode = true;".
+        *
+        * 2.
+        * Unregister the current service worker in "Service Workers" (Application -> Service Workers).
+        * (see https://stackoverflow.com/a/41907900) 
+        *
+        * 3.
+        * Finally, Reload the page.
+        *
+        * Welcome to AI Develop Mode!
+        */
         const aiDevelopMode = false;
+        
         const controller = new Controller(aiDevelopMode);
         //const aiCompetition = new AICompetition(true, 60000, 120000);  
         

@@ -67,7 +67,9 @@ function create2DArrayInitializedTo(numOfRow, numOfCol, initialValue) {
 
 function set2DArrayEveryElementToValue(arr2D, value) {
     for (let i = 0; i < arr2D.length; i++) {
-        arr2D[i].fill(value);
+        for (let j = 0; j < arr2D[0].length; j++) {
+            arr2D[i][j] = value;
+        }
     }
 }
 

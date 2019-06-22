@@ -165,6 +165,12 @@ class MNode {
     // Levente Kocsis, Csaba Szepesva ́ri (2006 ) "Bandit based Monte-Carlo Planning"
     // Peter Auer, Cesa-Bianchi, Fischer (2002) "Finite-time Analysis of the Multiarmed Bandit Problem"
     // Do google search for "monte carlo tree search uct"
+    // 
+    // The constant this.uctConstant = 0.02 is taken from the paper
+    // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor"
+    // This constant seems to be great.
+    // (In the paper, the author actually set win score per win to 100 and set the constant to 2.
+    //  But it has the same effect to set win score per win to 1 (i.e. this.numWins += 1 per win) and set the constant to 0.02.) 
     get uct() {
         if (this.parent === null || this.parent.numSims === 0) {
             throw "UCT_ERROR"
@@ -275,16 +281,15 @@ class MonteCarloTreeSearch {
                 } else {
                     // Expansion
                     const simulationGame = this.getSimulationGameAtNode(currentNode);
-                    const nextPositionTuples = simulationGame.getArrOfValidNextPositionTuples();
                     let move, childNode;
-                    for (let i = 0; i < nextPositionTuples.length; i++) {
-                        move = [nextPositionTuples[i], null, null];
-                        childNode = new MNode(move, currentNode, this.uctConstant); 
-                        currentNode.addChild(childNode);
-                    }
-                    
-                    if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                        if (simulationGame.pawnOfNotTurn.numberOfLeftWalls > 0) { 
+                    if (simulationGame.pawnOfNotTurn.numberOfLeftWalls > 0) {
+                        const nextPositionTuples = simulationGame.getArrOfValidNextPositionTuples();
+                        for (let i = 0; i < nextPositionTuples.length; i++) {
+                            move = [nextPositionTuples[i], null, null];
+                            childNode = new MNode(move, currentNode, this.uctConstant); 
+                            currentNode.addChild(childNode);
+                        }
+                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
                             const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
                             for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
                                 move = [null, noBlockNextHorizontals[i], null];
@@ -297,7 +302,23 @@ class MonteCarloTreeSearch {
                                 childNode = new MNode(move, currentNode, this.uctConstant); 
                                 currentNode.addChild(childNode);
                             }
-                        } else {    // if opponent has no left walls
+                        }
+                    } else {
+                        // heuristic:
+                        // If opponent has no walls left,
+                        // my pawn moves only to one of the shortest paths.
+                        const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
+                        for (let i = 0; i < nextPositions.length; i++) {
+                            const nextPosition = nextPositions[i];
+                            move = [[nextPosition.row, nextPosition.col], null, null];
+                            childNode = new MNode(move, currentNode, this.uctConstant);
+                            currentNode.addChild(childNode);
+                        }
+                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
+                            // heuristic:
+                            // if opponent has no walls left,
+                            // place walls only to interrupt the opponent's path,
+                            // not to support my pawn.
                             const noBlockNextWallsInterupt =
                             simulationGame.getArrOfValidNoBlackNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
                             const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
@@ -314,7 +335,7 @@ class MonteCarloTreeSearch {
                             }
                         }
                     }
-                    
+
                     this.rollout(currentNode.children[0]);
                     currentNode = this.root;
                 }

@@ -84,7 +84,6 @@ class Controller {
         
         let game = this.gameHistory.pop(); // this pops one-turn-before game state
         while (!game.pawnOfTurn.isHumanPlayer) {
-            console.log("hah")
             this.gameHistoryTrashCan.push(game);
             game = this.gameHistory.pop();  // this pops last game state
         }

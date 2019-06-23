@@ -439,6 +439,7 @@
             <div class="button_container below">
                 <button id="cancel_button" class="button below cancel">cancel</button>
                 <button id="confirm_button" class="button below confirm">confirm</button>
+                <input type="number" id="uctConst" value="0.02" oninput="onEditUctConst()">
                 <button id="aido_button" class="button below aido hidden">AI do</button>
             </div>
         </div>
@@ -466,10 +467,18 @@
         *
         * Welcome to AI Develop Mode!
         */
-        const aiDevelopMode = false;
         
-        const controller = new Controller(aiDevelopMode);
-        //const aiCompetition = new AICompetition(true, 60000, 120000);  
+        /*
+        const aiDevelopMode = true;
+        const controller = new Controller(0.02, aiDevelopMode);
+        if (aiDevelopMode) {
+            function onEditUctConst() {
+                var x = document.getElementById("uctConst").value;
+                controller.uctConst = x;
+            }
+        }
+        */
+        const aiCompetition = new AICompetition(true, 60000, 0.8, 60000, 111, 10);  
         
         // For some touch device, @media (hover: hover) is activated
         // (it is intended not to be activated), so add this workaround.

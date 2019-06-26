@@ -102,7 +102,7 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, variedConst: false, aiDevelopMode: this.aiDevelopMode});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, variedConst: true, aiDevelopMode: this.aiDevelopMode});
     }
 
     renderDistancesForAIDevelopMode() {
@@ -118,7 +118,7 @@ class AICompetition {
         this.numOfGamesToCompete = numOfGamesToCompete;
         this.ais = [
             {numOfMCTSSimulations: numOfMCTSSimulations0, uctConst: uctConst0, variedConst: false, numWinsLight: 0, numWinsDark: 0},
-            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, variedConst: false, numWinsLight: 0, numWinsDark: 0}
+            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, variedConst: true, numWinsLight: 0, numWinsDark: 0}
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...

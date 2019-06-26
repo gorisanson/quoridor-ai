@@ -51,7 +51,7 @@ class Controller {
         this.view.game = this.game;
         this.view.render();
         if (this.aiDevelopMode) {
-            //this.renderDistancesForAIDevelopMode();
+            this.renderDistancesForAIDevelopMode();
         }
         if (!this.aiDevelopMode && !isHumanPlayerFirst) {
             this.aiDo();
@@ -64,7 +64,7 @@ class Controller {
             this.gameHistoryTrashCan = [];
             this.view.render();
             if (this.aiDevelopMode) {
-                //this.renderDistancesForAIDevelopMode();
+                this.renderDistancesForAIDevelopMode();
             }
             if (!this.game.pawnOfTurn.isHumanPlayer) {
                 this.aiDo();
@@ -102,11 +102,12 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, variedConst: true, aiDevelopMode: this.aiDevelopMode});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, variedConst: false, aiDevelopMode: this.aiDevelopMode});
     }
 
     renderDistancesForAIDevelopMode() {
-        this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
+        //this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
+        this.view.render2DArrayToBoard(AI.getRandomShortestPathToGoal(this.game.pawnOfTurn, this.game)[0]);
     }    
 }
 

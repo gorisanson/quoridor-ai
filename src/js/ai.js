@@ -1,5 +1,8 @@
 "use strict";
 
+
+
+
 PawnPosition.clone = function(pawnPosition) {
     return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };
@@ -111,7 +114,7 @@ Game.prototype.getArrOfProbableValidNoBlockNextVerticalWallPositions = function(
     return noBlockNextVerticals;
 };
 
-Game.prototype.getArrOfValidNoBlackNextWallsDisturbPathOf = function(pawn) {
+Game.prototype.getArrOfValidNoBlockNextWallsDisturbPathOf = function(pawn) {
     const validNextWallsInterupt = AI.getValidNextWallsDisturbPathOf(pawn, this);
     const nextHorizontals = indicesOfValueIn2DArray(validNextWallsInterupt.horizontal, true);
     const noBlockNextHorizontals = [];
@@ -252,6 +255,11 @@ class MonteCarloTreeSearch {
         this.uctConst = uctConst;
         this.root = new MNode(null, null, this.uctConst);
         this.totalNumOfSimulations = 0;
+        
+        // ToDo: remove after test
+        this.timeForRollout = 0;
+        this.timeForBackpropagation = 0;
+        this.timeTable = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
 
     static maxDepth(node) {
@@ -320,7 +328,7 @@ class MonteCarloTreeSearch {
                             // place walls only to interrupt the opponent's path,
                             // not to support my pawn.
                             const noBlockNextWallsInterupt =
-                            simulationGame.getArrOfValidNoBlackNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
+                            simulationGame.getArrOfValidNoBlockNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
                             const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
                             for (let i = 0; i < noBlockNextHorizontalsInterupt.length; i++) {
                                 move = [null, noBlockNextHorizontalsInterupt[i], null];
@@ -406,7 +414,7 @@ class MonteCarloTreeSearch {
                             // place walls only to interrupt the opponent's path,
                             // not to support my pawn.
                             const noBlockNextWallsInterupt =
-                            simulationGame.getArrOfValidNoBlackNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
+                            simulationGame.getArrOfValidNoBlockNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
                             const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
                             for (let i = 0; i < noBlockNextHorizontalsInterupt.length; i++) {
                                 move = [null, noBlockNextHorizontalsInterupt[i], null];
@@ -455,6 +463,7 @@ class MonteCarloTreeSearch {
 
     // also called playout
     rollout(node) {
+        const d1 = new Date();
         this.totalNumOfSimulations++;
         const simulationGame = this.getSimulationGameAtNode(node);
         
@@ -483,6 +492,7 @@ class MonteCarloTreeSearch {
         let pawnMoveFlag = false;
         
         while (simulationGame.winner === null) {
+            const t0 = new Date();
             if (!cacheForPawns[0].updated) {
                 const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn0, simulationGame);
                 cacheForPawns[0].next = t[0];
@@ -495,6 +505,8 @@ class MonteCarloTreeSearch {
                 cacheForPawns[1].distanceToGoal = t[1];
                 cacheForPawns[1].updated = true;
             }
+            const t1 = new Date();
+            this.timeTable[0] += t1.getTime() - t0.getTime();
             const pawnOfTurn = simulationGame.pawnOfTurn; 
             const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
             const pawnIndexOfNotTurn = simulationGame.pawnIndexOfNotTurn;    
@@ -505,41 +517,68 @@ class MonteCarloTreeSearch {
             // If my pawn is closer to goal, increase pawnMoveProbability
             // This heuristic is taken from the paper
             // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor".
-            const pawnMoveProbability = 0.8 + 0.2 * (Math.max(0, distanceDiff) / 8);
+            const pawnMoveProbability = 0.8 //+ 0.2 * (Math.max(0, distanceDiff) / 8);
 
+            const t2 = new Date();
+            this.timeTable[1] += t2.getTime() - t1.getTime();
             if (pawnMoveFlag || pawnOfTurn.numberOfLeftWalls === 0 || Math.random() < pawnMoveProbability) {
                 pawnMoveFlag = false;
-                let nextPosition;                
+                const next = cacheForPawns[pawnIndexOfTurn].next;
+                const currentPosition = simulationGame.pawnOfTurn.position;
+                let nextPosition = next[currentPosition.row][currentPosition.col];
+                if (nextPosition === null) {
+                    console.log("really?? already in goal position");
+                    throw "already in goal Position...."
+                }             
                 if (AI.arePawnsAdjacent(simulationGame)) {
-                    const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
-                    nextPosition = randomChoice(nextPositions);
-                    cacheForPawns[pawnIndexOfTurn].updated = false;
-                } else {
-                    const next = cacheForPawns[pawnIndexOfTurn].next;
-                    const currentPosition = simulationGame.pawnOfTurn.position;
-                    nextPosition = next[currentPosition.row][currentPosition.col];
-                    cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
-                    if (nextPosition === null) {
-                        console.log("really?? already in goal position");
-                        throw "already in goal Position...."
+                    const t11 = new Date();
+                    const nextNextPosition = next[nextPosition.row][nextPosition.col];
+                    if (nextNextPosition !== null
+                        && simulationGame.validNextPositions[nextNextPosition.row][nextNextPosition.col] === true) {
+                        nextPosition = nextNextPosition;
+                        cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 2;
+                    } else {
+                        const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
+                        const _nextPosition = randomChoice(nextPositions);
+                        if (_nextPosition.equals(nextPosition)) {
+                            cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
+                        } else {
+                            nextPosition = _nextPosition;
+                            cacheForPawns[pawnIndexOfTurn].updated = false;
+                        }
                     }
+                    const t22 = new Date();
+                    this.timeTable[4] += t22.getTime() - t11.getTime();
+                } else {
+                    cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
                 }
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
             } else {
+                const t11 = new Date();
                 //const nextMove = AI.chooseNextWallRandomly(simulationGame);
                 //const nextMove = AI.chooseNextWallWisely(simulationGame);
                 const nextMove = AI.chooseProbableNextWall(simulationGame);
                 
                 if (nextMove !== null) {
                     simulationGame.doMove(nextMove);
+                    // heuristic:
+                    // radom wall do not favor the pawn who place the wall so
+                    // give the pawn one more turn to play. 
+                    simulationGame.turn--;
                     cacheForPawns[0].updated = false;
                     cacheForPawns[1].updated = false;
                 } else {
                     console.log("No probable walls possible")
                     pawnMoveFlag = true;
                 }
+                const t22 = new Date();
+                this.timeTable[6] += t22.getTime() - t11.getTime();
             }
+            const t3 = new Date();
+            this.timeTable[2] += t3.getTime() - t2.getTime();
         }
+        
+        const d2 = new Date();
 
         // Backpropagation
         let ancestor = node;
@@ -560,6 +599,9 @@ class MonteCarloTreeSearch {
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
         //console.log(`${this.totalNumOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
+        const d3 = new Date();
+        this.timeForRollout += d3.getTime() - d1.getTime();
+        this.timeForBackpropagation += d3.getTime() - d2.getTime();
     }
 }
 
@@ -665,6 +707,9 @@ class AI {
         const endTime = d.getTime();
         const uctConst = mcts.root.children[0].uctConst;
         console.log(`time taken by AI for ${(this.numOfMCTSSimulations)} rollouts, c=${(uctConst)}: ${(endTime - startTime)/1000} sec`);
+        console.log('time for rollout', mcts.timeForRollout/1000);
+        console.log('time for backProp', mcts.timeForBackpropagation/1000);
+        console.log('mcts time table:', mcts.timeTable);
         if (this.aiDevelopMode) {
             console.log("descend maxWinRateChild")
             let node = mcts.root
@@ -689,24 +734,6 @@ class AI {
             console.log(`estimated AI win rate: ${winRate}`);
         }
         return bestMove;
-    }
-
-    static evaluationForNegamax(game) {
-        const isPawn0Turn = game.pawnIndexOfTurn === 0;
-        if (game.winner !== null) {
-            return (isPawn0Turn ? (-Infinity) : Infinity);
-        }
-        const pawn0= game.pawn0;
-        const pawn1 = game.pawn1;
-        const distForPawn0 = AI.getShortestDistanceToGoalFor(pawn0, game);
-        const distForPawn1 = AI.getShortestDistanceToGoalFor(pawn1, game);
-        const diffDist = distForPawn1 - distForPawn0;
-        const diffWall = pawn0.numberOfLeftWalls - pawn1.numberOfLeftWalls;
-        const coefficientWallToDist = 2;
-        
-
-        // ToDo: Add number of left wall...
-        return diffDist /*+ coefficientWallToDist * diffWall*/ + 0.5 * (isPawn0Turn ? 1 : 0);
     }
 
     static chooseShortestPathNextPawnPositionsThoroughly(game) {
@@ -822,26 +849,109 @@ class AI {
                     && Math.abs(game.pawnOfNotTurn.position.row - game.pawnOfTurn.position.row) === 1))
     }
 
-    static getRandomShortestPathToGoal(pawn, game) {
-        const visited = create2DArrayInitializedTo(9, 9, false);
-        const dist = create2DArrayInitializedTo(9, 9, Infinity);
+    static getRandomShortestPathToGoal2(pawn, game) {
+        const goalRow = pawn.goalRow;
+        const heuristicCostEstimate = position => Math.abs(goalRow - position.row);
+        const gScore = create2DArrayInitializedTo(9, 9, Infinity);
+        const fScore = create2DArrayInitializedTo(9, 9, Infinity);
+        const closedSet = create2DArrayInitializedTo(9, 9, false);
+        const openSet = new PriorityQueue((a, b) => fScore[a.row][a.col] < fScore[b.row][b.col]);
+        const openSetOnceIncluded = create2DArrayInitializedTo(9, 9, false);
         const prev = create2DArrayInitializedTo(9, 9, null);
-
-        const moveArrs = shuffle([MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT]);
-
+        const pawnMoveTuples = shuffle([MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT]);
+    
+        const startPosition = pawn.position;
+        gScore[startPosition.row][startPosition.col] = 0;
+        fScore[startPosition.row][startPosition.col] = heuristicCostEstimate(startPosition);
+    
+        openSet.push(startPosition);
+        openSetOnceIncluded[startPosition.row][startPosition.col] = true;
+    
+        while (!openSet.isEmpty()) {
+            const currentPosition = openSet.pop();
+            if (currentPosition.row === goalRow) {
+                const goalPosition = currentPosition
+                return [gScore, prev, goalPosition];
+            }
+            closedSet[currentPosition.row][currentPosition.col] = true;
+            for (let i = 0; i < pawnMoveTuples.length; i++) {
+                const pawnMoveTuple = pawnMoveTuples[i];
+                if (game.isOpenWay(currentPosition.row, currentPosition.col, pawnMoveTuple)) {
+                    const neighborPosition = currentPosition.newAddMove(pawnMoveTuple);
+                    if (closedSet[neighborPosition.row][neighborPosition.col]) {
+                        continue;
+                    }
+                    const tentativeGScore = gScore[currentPosition.row][currentPosition.col] + 1;
+                    if (tentativeGScore >= gScore[neighborPosition.row][neighborPosition.col]) {
+                        continue;
+                    }
+                    prev[neighborPosition.row][neighborPosition.col] = currentPosition;
+                    gScore[neighborPosition.row][neighborPosition.col] = tentativeGScore;
+                    fScore[neighborPosition.row][neighborPosition.col] = gScore[neighborPosition.row][neighborPosition.col] + heuristicCostEstimate(neighborPosition);
+                    if (!openSetOnceIncluded[neighborPosition.row][neighborPosition.col]) {
+                        openSet.push(neighborPosition);
+                        openSetOnceIncluded[neighborPosition.row][neighborPosition.col] = true;
+                    }
+                }
+            }
+        }
+        return [gScore, prev, null];
+    }
+    
+    static getRandomShortestPathToGoal(pawn, game) {
+        // This is one of bottle neck, so did inlining...
+        //const visited = create2DArrayInitializedTo(9, 9, false);
+        //const dist = create2DArrayInitializedTo(9, 9, Infinity);
+        //const prev = create2DArrayInitializedTo(9, 9, null);
+        const visited = [
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false, false],
+        ];
+        const dist = [
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity],
+            [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity]
+        ];
+        const prev = [
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null]
+        ];
+        
+        const pawnMoveTuples = shuffle([MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT]);
         const queue = [];
+        
         visited[pawn.position.row][pawn.position.col] = true;
         dist[pawn.position.row][pawn.position.col] = 0;
-        queue.push(pawn.position)
+        queue.push(pawn.position);
         while (queue.length > 0) {
             let position = queue.shift();
             if (position.row === pawn.goalRow) {
                 const goalPosition = position;
                 return [dist, prev, goalPosition];
             }
-            for (let i = 0; i < moveArrs.length; i++) {
-                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                    const nextPosition = position.newAddMove(moveArrs[i]);
+            for (let i = 0; i < pawnMoveTuples.length; i++) {
+                if (game.isOpenWay(position.row, position.col, pawnMoveTuples[i])) {
+                    const nextPosition = position.newAddMove(pawnMoveTuples[i]);
                     if (!visited[nextPosition.row][nextPosition.col]) {
                         const alt = dist[position.row][position.col] + 1;
                         dist[nextPosition.row][nextPosition.col] = alt;
@@ -869,16 +979,16 @@ class AI {
         const visited = create2DArrayInitializedTo(9, 9, false);
         const dist = create2DArrayInitializedTo(9, 9, Infinity);
     
-        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+        const pawnMoveTuples = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
         const queue = [];
         visited[pawn.position.row][pawn.position.col] = true;
         dist[pawn.position.row][pawn.position.col] = 0;
         queue.push(pawn.position)
         while (queue.length > 0) {
             let position = queue.shift();
-            for (let i = 0; i < moveArrs.length; i++) {
-                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                    const nextPosition = position.newAddMove(moveArrs[i]);
+            for (let i = 0; i < pawnMoveTuples.length; i++) {
+                if (game.isOpenWay(position.row, position.col, pawnMoveTuples[i])) {
+                    const nextPosition = position.newAddMove(pawnMoveTuples[i]);
                     if (!visited[nextPosition.row][nextPosition.col]) {
                         const alt = dist[position.row][position.col] + 1;
                         dist[nextPosition.row][nextPosition.col] = alt;
@@ -898,16 +1008,16 @@ class AI {
         const dist = create2DArrayInitializedTo(9, 9, Infinity);
         const multiPrev = create2DArrayInitializedTo(9, 9, null);
 
-        const moveArrs = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
+        const pawnMoveTuples = [MOVE_UP, MOVE_RIGHT, MOVE_DOWN, MOVE_LEFT];
         const queue = [];
         visited[pawn.position.row][pawn.position.col] = true;
         dist[pawn.position.row][pawn.position.col] = 0;
         queue.push(pawn.position)
         while (queue.length > 0) {
             let position = queue.shift();
-            for (let i = 0; i < moveArrs.length; i++) {
-                if (game.isOpenWay(position.row, position.col, moveArrs[i])) {
-                    const nextPosition = position.newAddMove(moveArrs[i]);
+            for (let i = 0; i < pawnMoveTuples.length; i++) {
+                if (game.isOpenWay(position.row, position.col, pawnMoveTuples[i])) {
+                    const nextPosition = position.newAddMove(pawnMoveTuples[i]);
                     if (!searched[nextPosition.row][nextPosition.col]) {
                         const alt = dist[position.row][position.col] + 1;
                         // when this inequality holds, dist[nextPosition.row][nextPosition.col] === infinity

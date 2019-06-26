@@ -1,5 +1,6 @@
 "use strict";
 
+importScripts('priority_queue.js')
 importScripts('game.js');
 importScripts('ai.js');
 

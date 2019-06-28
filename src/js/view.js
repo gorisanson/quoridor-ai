@@ -532,7 +532,7 @@ class View {
             }
         }
         if (percentage >= 100) {
-            this.progressBarIntervalId = setInterval(frame.bind(this), 5);
+            this.progressBarIntervalId = setInterval(frame.bind(this), 1);
         } else {
             this.progressBarIntervalId = setInterval(frame.bind(this), 10);
         }

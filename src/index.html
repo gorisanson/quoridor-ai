@@ -42,6 +42,9 @@
             <div class="fade_box in about hidden" id="about_box">
                 <div>
                     <h1>Play Quoridor against AI</h1>
+                    <p class="last_updated">
+                            Last Updated: 2019-06-28
+                    </p>
                     <p>
                         Quoridor is a board game where the objective is to get your pawn
                         to the opposite side of the board. You can read
@@ -523,7 +526,7 @@
         * Welcome to AI Develop Mode!
         */
 
-        const aiDevelopMode = true;
+        const aiDevelopMode = false;
         const controller = new Controller(0.5, aiDevelopMode);
         if (aiDevelopMode) {
             const uctConstInput = document.getElementById("uctConst");
@@ -546,8 +549,8 @@
             rolloutNumInput.oninput = onEditRollout;
 
         }
-        
-        //const aiCompetition = new AICompetition(false, 120000, 0.5, 60000, 0.5, 50);  
+                
+        //const aiCompetition = new AICompetition(false, 20000, 0.5, 60000, 0.5, 50);  
     </script>
     <noscript>This site needs JavaScript enabled to work.</noscript>
 </body>

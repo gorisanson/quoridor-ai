@@ -343,10 +343,8 @@ div.pawn.clicked {
 input {
     width: calc(3 * var(--font-size));
 }
-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+p.last_updated {
+    font-size: calc(0.6 * var(--font-size));
 }
 @media only screen and (min-width: 768px), (orientation: landscape) {
     .gridcontainer0 {

@@ -32,13 +32,13 @@ class View {
             const x = e.target;
             if (x.id === "novice_level") {
                 this.aiLevel = "Novice";
-                this.numOfMCTSSimulations = 7500;
+                this.numOfMCTSSimulations = 2500;
             } else if (x.id === "average_level") {
                 this.aiLevel = "Average";
-                this.numOfMCTSSimulations = 15000;
+                this.numOfMCTSSimulations = 7500;
             } else if (x.id === "good_level") {
                 this.aiLevel = "Good";
-                this.numOfMCTSSimulations = 30000;
+                this.numOfMCTSSimulations = 20000;
             } else if (x.id === "strong_level") {
                 this.aiLevel = "Strong";
                 this.numOfMCTSSimulations = 60000;
@@ -84,6 +84,7 @@ class View {
             this.button.aiDo.disabled = true;
             this.button.confirm.disabled = true;
             this.button.cancel.disabled = true;
+            View.removePreviousFadeInoutBox();
             View.cancelPawnClick();
             View.cancelWallShadows();
             this.controller.undo();

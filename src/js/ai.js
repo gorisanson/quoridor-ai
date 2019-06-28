@@ -595,7 +595,6 @@ class AI {
         } else {
             console.log(`estimated AI win rate: ${winRate}`);
         }
-        console.log(mcts.root);
         return bestMove;
     }
 

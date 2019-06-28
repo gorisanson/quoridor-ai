@@ -67,9 +67,9 @@
                 Choose AI level. Higher-level AI takes more time.
                 <div class="button_container in_message_box">
                     <button class="ai_level" id="novice_level">Novice</button>
+                    <button class="ai_level" id="average_level">Average</button>
                     <button class="ai_level" id="good_level">Good</button>
                     <button class="ai_level" id="strong_level">Strong</button>
-                    <button class="ai_level" id="expert_level">Expert</button>
                 </div>
             </div>
             <div class="fade_box in hidden" id="choose_pawn_message_box">
@@ -523,7 +523,7 @@
         * Welcome to AI Develop Mode!
         */
 
-        const aiDevelopMode = false;
+        const aiDevelopMode = true;
         const controller = new Controller(0.5, aiDevelopMode);
         if (aiDevelopMode) {
             const uctConstInput = document.getElementById("uctConst");

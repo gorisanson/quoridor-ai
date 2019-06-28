@@ -262,7 +262,7 @@ button.button {
 button.update, button.ai_level, button.close, button.restart_yes_no {
     display: inline-block;
     height: calc(2 * var(--font-size));
-    width: calc(3.5 * var(--font-size));
+    width: calc(4 * var(--font-size));
     border: none;
     margin: 2px;
     padding: 0;

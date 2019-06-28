@@ -24,14 +24,17 @@ class View {
         // for choosing AI level
         const aiLevelButton = {
             novice: document.getElementById("novice_level"),
+            average: document.getElementById("average_level"),
             good: document.getElementById("good_level"),
-            strong: document.getElementById("strong_level"),
-            expert: document.getElementById("expert_level")
+            strong: document.getElementById("strong_level")
         }
         const onclickAILevelButton = function(e) {
             const x = e.target;
             if (x.id === "novice_level") {
                 this.aiLevel = "Novice";
+                this.numOfMCTSSimulations = 7500;
+            } else if (x.id === "average_level") {
+                this.aiLevel = "Average";
                 this.numOfMCTSSimulations = 15000;
             } else if (x.id === "good_level") {
                 this.aiLevel = "Good";
@@ -39,17 +42,14 @@ class View {
             } else if (x.id === "strong_level") {
                 this.aiLevel = "Strong";
                 this.numOfMCTSSimulations = 60000;
-            } else if (x.id === "expert_level") {
-                this.aiLevel = "Expert";
-                this.numOfMCTSSimulations = 120000;
-            }
+            } 
             this.htmlChooseAILevelMessageBox.classList.add("hidden");
             this.htmlChoosePawnMessageBox.classList.remove("hidden");
         };
         aiLevelButton.novice.onclick = onclickAILevelButton.bind(this);
         aiLevelButton.good.onclick = onclickAILevelButton.bind(this);
         aiLevelButton.strong.onclick = onclickAILevelButton.bind(this);
-        aiLevelButton.expert.onclick = onclickAILevelButton.bind(this);
+        aiLevelButton.average.onclick = onclickAILevelButton.bind(this);
 
         // for choosing pawn
         const pawn0Button = document.getElementsByClassName("pawn pawn0 button")[0];

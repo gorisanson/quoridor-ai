@@ -1,7 +1,7 @@
 "use strict";
 
 class Controller {
-    constructor(aiDevelopMode = false) {
+    constructor(uctConst, aiDevelopMode = false) {
         this.aiDevelopMode = aiDevelopMode;
         if (this.aiDevelopMode) {
             console.log('Welcome to AI Develop Mode!');
@@ -12,6 +12,7 @@ class Controller {
         this.view = new View(this, this.aiDevelopMode);
         this.worker = null;
         this.numOfMCTSSimulations = null;
+        this.uctConst = uctConst;
     }
 
     setNewWorker() {
@@ -50,7 +51,7 @@ class Controller {
         this.view.game = this.game;
         this.view.render();
         if (this.aiDevelopMode) {
-            //this.renderDistancesForAIDevelopMode();
+            this.renderDistancesForAIDevelopMode();
         }
         if (!this.aiDevelopMode && !isHumanPlayerFirst) {
             this.aiDo();
@@ -63,7 +64,7 @@ class Controller {
             this.gameHistoryTrashCan = [];
             this.view.render();
             if (this.aiDevelopMode) {
-                //this.renderDistancesForAIDevelopMode();
+                this.renderDistancesForAIDevelopMode();
             }
             if (!this.game.pawnOfTurn.isHumanPlayer) {
                 this.aiDo();
@@ -101,23 +102,23 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, aiDevelopMode: this.aiDevelopMode});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, aiDevelopMode: this.aiDevelopMode});
     }
 
     renderDistancesForAIDevelopMode() {
-        this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
+        //this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
     }    
 }
 
 
 class AICompetition {
-    constructor(isHumanPlayerFirstArrangement, numOfMCTSSimulations0, numOfMCTSSimulations1, numOfGamesToCompete = 50) {
+    constructor(isHumanPlayerFirstArrangement, numOfMCTSSimulations0, uctConst0, numOfMCTSSimulations1, uctConst1, numOfGamesToCompete = 50) {
         this.isHumanPlayerFirstArrangement = isHumanPlayerFirstArrangement;
         this.numOfGames = 0;
         this.numOfGamesToCompete = numOfGamesToCompete;
         this.ais = [
-            {numOfMCTSSimulations: numOfMCTSSimulations0, numWinsLight: 0, numWinsDark: 0},
-            {numOfMCTSSimulations: numOfMCTSSimulations1, numWinsLight: 0, numWinsDark: 0}
+            {numOfMCTSSimulations: numOfMCTSSimulations0, uctConst: uctConst0, numWinsLight: 0, numWinsDark: 0},
+            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, numWinsLight: 0, numWinsDark: 0}
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...
@@ -158,7 +159,8 @@ class AICompetition {
         this.view.game = this.game;
         this.view.render();
         console.log("Game start!")
-        console.log(this.ais[this.numOfGames%2].numOfMCTSSimulations, "is light-colored pawn!");
+        const ai_light = this.ais[this.numOfGames%2];
+        console.log(ai_light.numOfMCTSSimulations, ai_light.uctConst, "is light-colored pawn!");
         this.aiDo();
     }
 
@@ -176,8 +178,8 @@ class AICompetition {
                 this.numOfGames++;
                 console.log("Game ended! Here the statistics following...")
                 console.log("Number of total games:", this.numOfGames);
-                console.log(this.ais[0].numOfMCTSSimulations, "numWinsLight:", this.ais[0].numWinsLight, "numWinsDark", this.ais[0].numWinsDark);
-                console.log(this.ais[1].numOfMCTSSimulations, "numWinsLight:", this.ais[1].numWinsLight, "numWinsDark", this.ais[1].numWinsDark);
+                console.log(this.ais[0].numOfMCTSSimulations, this.ais[0].uctConst, "numWinsLight:", this.ais[0].numWinsLight, "numWinsDark", this.ais[0].numWinsDark);
+                console.log(this.ais[1].numOfMCTSSimulations, this.ais[1].uctConst, "numWinsLight:", this.ais[1].numWinsLight, "numWinsDark", this.ais[1].numWinsDark);
                 if (this.numOfGames < this.numOfGamesToCompete) {
                     this.startNewGame();
                 } else {
@@ -193,7 +195,7 @@ class AICompetition {
 
     aiDo() {
         const index = (this.numOfGames + this.game.turn) % 2 
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.ais[index].numOfMCTSSimulations, aiDevelopMode: false});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.ais[index].numOfMCTSSimulations, uctConst: this.ais[index].uctConst, aiDevelopMode: false});
     }
 }
 

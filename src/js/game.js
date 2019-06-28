@@ -1,4 +1,5 @@
 "use strict";
+
 /*    
 *          PawnPosition: represents position of pawn
 *              col
@@ -257,7 +258,7 @@ class Game {
                 _probableValidNextWalls.horizontal[i][7] = true;
             }
         }
-
+        
         // heuristic:
         // place wall to diturb opponent or support myself
         // only after several turns
@@ -373,17 +374,7 @@ class Game {
         return true;
     }
 
-    testIfAdjecentToOtherWallForHorizontalWall(row, col) {
-        if (row >= 1) {
-            if (this.board.walls.vertical[row-1][col]) {
-                return true;
-            }
-        }
-        if (row <= 6) {
-            if (this.board.walls.vertical[row+1][col]) {
-                return true;
-            }
-        }
+    testIfAdjecentToOtherWallForHorizontalWallLeft(row, col) {
         if (col >= 1) {
             if (this.board.walls.vertical[row][col-1]) {
                 return true;
@@ -404,6 +395,10 @@ class Game {
                 }
             }
         }
+        return false;
+    }
+
+    testIfAdjecentToOtherWallForHorizontalWallRight(row, col) {
         if (col <= 6) {
             if (this.board.walls.vertical[row][col+1]) {
                 return true;
@@ -427,17 +422,30 @@ class Game {
         return false;
     }
 
-    testIfAdjecentToOtherWallForVerticalWall(row, col) {
-        if (col >= 1) {
-            if (this.board.walls.horizontal[row][col-1]) {
+    testIfAdjecentToOtherWallForHorizontalWallMiddle(row, col) {
+        if (row >= 1) {
+            if (this.board.walls.vertical[row-1][col]) {
                 return true;
             }
         }
-        if (col <= 6) {
-            if (this.board.walls.horizontal[row][col+1]) {
+        if (row <= 6) {
+            if (this.board.walls.vertical[row+1][col]) {
                 return true;
             }
         }
+        return false;
+    }
+
+    testIfConnectedOnTwoPointsForHorizontalWall(row, col) {
+        // if left side is connected with border of board or other wall
+        const left = (col === 0 || this.testIfAdjecentToOtherWallForHorizontalWallLeft(row, col));
+        // if right side is connected with border of board or other wall
+        const right = (col === 7 || this.testIfAdjecentToOtherWallForHorizontalWallRight(row, col));
+        const middle = this.testIfAdjecentToOtherWallForHorizontalWallMiddle(row, col);
+        return (left && right) || (right && middle) || (middle && left);
+    }
+
+    testIfAdjecentToOtherWallForVerticalWallTop(row, col) {
         if (row >= 1) {
             if (this.board.walls.horizontal[row-1][col]) {
                 return true;
@@ -458,6 +466,10 @@ class Game {
                 }
             }
         }
+        return false;
+    }
+
+    testIfAdjecentToOtherWallForVerticalWallBottom(row, col) {
         if (row <= 6) {
             if (this.board.walls.horizontal[row+1][col]) {
                 return true;
@@ -481,10 +493,32 @@ class Game {
         return false;
     }
 
+    testIfAdjecentToOtherWallForVerticalWallMiddle(row, col) {
+        if (col >= 1) {
+            if (this.board.walls.horizontal[row][col-1]) {
+                return true;
+            }
+        }
+        if (col <= 6) {
+            if (this.board.walls.horizontal[row][col+1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    testIfConnectedOnTwoPointsForVerticalWall(row, col) {
+        // if top side is connected with border of board or other wall
+        const top = (row === 0) || this.testIfAdjecentToOtherWallForVerticalWallTop(row, col);
+        // if bottom side is connected with border of board or other wall
+        const bottom = (row === 7) || this.testIfAdjecentToOtherWallForVerticalWallBottom(row, col);
+        const middle = this.testIfAdjecentToOtherWallForVerticalWallMiddle(row, col);
+        return (top && bottom) || (bottom && middle) || (middle && top);
+    }
+
     testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(row, col) {
-        // performance can be improved by the fact?:
-        // wall which does not adjecent other wall do not block path.
-        if (!this.testIfAdjecentToOtherWallForHorizontalWall(row, col)) {
+        // wall which does not connected on two points do not block path.
+        if (!this.testIfConnectedOnTwoPointsForHorizontalWall(row, col)) {
             return true;
         }
         this.openWays.upDown[row][col] = false;
@@ -496,9 +530,8 @@ class Game {
     }
 
     testIfExistPathsToGoalLinesAfterPlaceVerticalWall(row, col) {
-        // performance can be improved by the fact?:
-        // wall which does not adjecent other wall do not block path.
-        if (!this.testIfAdjecentToOtherWallForVerticalWall(row, col)) {
+        // wall which does not connected on two points do not block path.
+        if (!this.testIfConnectedOnTwoPointsForVerticalWall(row, col)) {
             return true;
         }
         this.openWays.leftRight[row][col] = false;

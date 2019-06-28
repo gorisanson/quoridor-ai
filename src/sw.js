@@ -1,11 +1,11 @@
 "use strict";
 
 /* 
-* Service worker script
-* Almost copied from: https://developers.google.com/web/fundamentals/primers/service-workers/
+* Service worker script alomost copied from:
+* https://developers.google.com/web/fundamentals/primers/service-workers/
 */
 
-const CACHE_NAME = 'quoridor-ai-cache-v3';
+const CACHE_NAME = 'quoridor-ai-cache-v17';
 const urlsToCache = [
     './',
     './style.css',
@@ -56,3 +56,8 @@ self.addEventListener('activate', function(event) {
     );
 });
 
+self.addEventListener('message', function (event) {
+    if (event.data.action === 'skipWaiting') {
+        self.skipWaiting();
+    }
+});

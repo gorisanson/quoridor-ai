@@ -218,6 +218,9 @@ div.wall_num {
 #about_box {
     background-color: rgba(255, 255, 255, 0.8);
 }
+#update_notification_message_box {
+    background-color:rgba(226, 230, 36, 0.85);
+}
 #choose_ai_level_message_box, #choose_pawn_message_box, #restart_message_box, #game_result_message_box, button.restart {
     background-color:rgba(0, 81, 255, 0.85);
 }
@@ -256,7 +259,7 @@ button.button {
     text-decoration: none;
     margin: 2%;
 }
-button.ai_level, button.close, button.restart_yes_no {
+button.update, button.ai_level, button.close, button.restart_yes_no {
     display: inline-block;
     height: calc(2 * var(--font-size));
     width: calc(3.5 * var(--font-size));
@@ -269,6 +272,10 @@ button.ai_level, button.close, button.restart_yes_no {
     text-align: center;
     text-decoration: none;
     border-radius: 10px;
+}
+button.update {
+    height: calc(3 * var(--font-size));
+    width: 100%;
 }
 button.close {
     background-color: rgb(50, 50, 50);
@@ -326,12 +333,15 @@ div.pawn.hidden {
 div.pawn.clicked {
     opacity: 0.7;
 }
-.fade_box.in.hidden, button.button.hidden {
+.fade_box.in.hidden, button.button.hidden, input.hidden {
     display: none;
 }
 .button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+input {
+    width: calc(3 * var(--font-size));
 }
 footer {
     display: flex;
@@ -377,10 +387,10 @@ footer {
     div.pawn.shadow:hover {
         opacity: 0.7;
     }
-    div.pawn.button, button.ai_level, button.restart_yes_no {
+    div.pawn.button, button.ai_level, button.restart_yes_no, button.update {
         opacity: 0.9;
     }
-    div.pawn.button:hover, button.ai_level:hover, button.restart_yes_no:hover {
+    div.pawn.button:hover, button.ai_level:hover, button.restart_yes_no:hover, button.update:hover {
         opacity: 1;
     }
 }

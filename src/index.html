@@ -20,29 +20,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="meta/manifest.json">
     <link rel="icon" href="meta/icons_512.png">
-    
+
     <script src="js/game.js"></script>
     <script src="js/ai.js"></script>
     <script src="js/view.js"></script>
     <script src="js/controller.js"></script>
-    <script>
-    /*
-    if ('caches' in window) {
-        console.log("Cache API supported");// The Cache API is supported
-    }
-    */
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./sw.js').then(function(registration) {
-                // Registration was successful
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function(err) {
-                // registration failed :(
-                console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-    }
-    </script>
 </head>
 <body>
     <div class="gridcontainer0">
@@ -80,7 +62,7 @@
                 </div>
             </div>
             <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
-            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->           
+            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
             <div class="fade_box in" id="choose_ai_level_message_box">
                 Choose AI level. Higher-level AI takes more time.
                 <div class="button_container in_message_box">
@@ -90,7 +72,6 @@
                     <button class="ai_level" id="expert_level">Expert</button>
                 </div>
             </div>
-            
             <div class="fade_box in hidden" id="choose_pawn_message_box">
                 Choose your pawn.<br>(Light-colored pawn moves first.)
                 <div class="button_container in_message_box">
@@ -103,6 +84,13 @@
                 <div class="button_container in_message_box">
                     <button class="restart_yes_no" id="restart_no">cancel</button>
                     <button class="restart_yes_no" id="restart_yes">start</button>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="update_notification_message_box">
+                New version is available. Update now?
+                <div class="button_container in_message_box">
+                    <button class="update" id="update_now">Update Now (current status will be lost)</button>
+                    <button class="update" id="later">Later (automatically at relaunching)</button>
                 </div>
             </div>
             <table id="board_table">
@@ -440,11 +428,77 @@
             <div class="button_container below">
                 <button id="cancel_button" class="button below cancel">cancel</button>
                 <button id="confirm_button" class="button below confirm">confirm</button>
-                <input type="number" id="uctConst" value="0.02" oninput="onEditUctConst()">
                 <button id="aido_button" class="button below aido hidden">AI do</button>
+                <input class="hidden" type="number" id="uctConst">
+                <input class="hidden" type="number" id="rollout_num">
             </div>
         </div>
     </div>
+    <script>
+        // For some touch device, @media (hover: hover) is activated
+        // (it is intended not to be activated), so add this workaround.
+        window.addEventListener('touchstart', function onFirstTouch() {
+            controller.view.isHoverPossible = false;
+            controller.view.button.confirm.style.display = "inline-block";
+            controller.view.button.cancel.style.display = "inline-block";
+            controller.view.setUIForTouchDevice();
+            window.removeEventListener('touchstart', onFirstTouch, false);
+        }, false);
+    </script>
+    <script>    
+        /*
+        if ('caches' in window) {
+            console.log("Cache API supported");// The Cache API is supported
+        }
+        */
+        
+        /*
+        * service worker update notification code below is based on:
+        * https://deanhume.com/displaying-a-new-version-available-progressive-web-app/
+        */
+        let newWorker;
+        const notificationBox = document.getElementById('update_notification_message_box');
+        const updateNowButton = document.getElementById('update_now');
+        const laterButton = document.getElementById('later');
+        updateNowButton.addEventListener('click', function() {
+            notificationBox.classList.add("hidden");
+            newWorker.postMessage({ action: 'skipWaiting' });
+        });
+        laterButton.addEventListener('click', function() {
+            notificationBox.classList.add("hidden");
+        });
+    
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // Register the service worker
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    registration.addEventListener('updatefound', () => {
+                        // An updated service worker has appeared in registration.installing!
+                        newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            // Has service worker state changed?
+                            // There is a new service worker available, show the notification
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                const elementList = document.getElementsByClassName('fade_box');
+                                for (const element of elementList) {
+                                    element.classList.add("hidden");
+                                }
+                                notificationBox.classList.remove("hidden");
+                            }
+                        });
+                    });
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log("ServiceWorker registration failed: ", err);
+                });
+                // The event listener that is fired when the service worker updates
+                // Here we reload the page
+                navigator.serviceWorker.addEventListener('controllerchange', function () {
+                    window.location.reload();
+                });
+            });
+        }
+    </script>
     <script>
         /*
         ****************************************
@@ -468,28 +522,32 @@
         *
         * Welcome to AI Develop Mode!
         */
-        
-        
-        const aiDevelopMode = true;
-        const controller = new Controller(0.02, aiDevelopMode);
+
+        const aiDevelopMode = false;
+        const controller = new Controller(0.5, aiDevelopMode);
         if (aiDevelopMode) {
-            function onEditUctConst() {
-                var x = document.getElementById("uctConst").value;
+            const uctConstInput = document.getElementById("uctConst");
+            const rolloutNumInput = document.getElementById("rollout_num");
+            uctConstInput.classList.remove("hidden");
+            rolloutNumInput.classList.remove("hidden");
+            uctConstInput.value = controller.uctConst;
+            rolloutNumInput.value = 60000;
+
+            function onEditUctConst(e) {
+                var x = e.target.value;
                 controller.uctConst = x;
             }
+            function onEditRollout(e) {
+                var x = e.target.value;
+                controller.numOfMCTSSimulations = x;
+            }
+
+            uctConstInput.oninput = onEditUctConst;
+            rolloutNumInput.oninput = onEditRollout;
+
         }
         
-        //const aiCompetition = new AICompetition(true, 60000, 0.5, 60000, 8001, 50);  
-        
-        // For some touch device, @media (hover: hover) is activated
-        // (it is intended not to be activated), so add this workaround.
-        window.addEventListener('touchstart', function onFirstTouch() {
-            controller.view.isHoverPossible = false;
-            controller.view.button.confirm.style.display = "inline-block";
-            controller.view.button.cancel.style.display = "inline-block";
-            controller.view.setUIForTouchDevice();
-            window.removeEventListener('touchstart', onFirstTouch, false);
-        }, false);
+        //const aiCompetition = new AICompetition(false, 120000, 0.5, 60000, 0.5, 50);  
     </script>
     <noscript>This site needs JavaScript enabled to work.</noscript>
 </body>

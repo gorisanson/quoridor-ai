@@ -140,7 +140,6 @@ class MNode {
         this.uctConst = uctConst;
         this.numWins = 0;   // number of wins
         this.numSims = 0;   // number of simulations
-        this.bonusScore = 0;
         this.children = [];
         this.isTerminal = false;
     }
@@ -170,8 +169,7 @@ class MNode {
         if (this.numSims === 0) {
             return Infinity;
         }
-        return (((this.numWins + this.bonusScore) / this.numSims) +
-                Math.sqrt((this.uctConst * Math.log(this.parent.numSims)) / this.numSims));
+        return (this.numWins / this.numSims) + Math.sqrt((this.uctConst * Math.log(this.parent.numSims)) / this.numSims);
     }
 
     get winRate() {
@@ -528,10 +526,10 @@ class AI {
         
         // heuristic:
         // For initial phase of a game, AI get difficulty, so help AI.
-        // And if AI is loosing seriously or winning seriously, it get difficulty too.
-        // So, if it is initial phase of a game or estimated winRate is low enough or high enough,
+        // And if AI is loosing seriously, it get difficulty too.
+        // So, if it is initial phase of a game or estimated winRate is low enough,
         // help AI to find shortest path pawn move.
-        if (((game.turn < 6 && game.pawnOfTurn.position.col === 4) || winRate < 0.1 /*|| winRate > 0.9*/) && bestMove[0] !== null) {
+        if (((game.turn < 6 && game.pawnOfTurn.position.col === 4) || winRate < 0.1) && bestMove[0] !== null) {
             let rightMove = false;
             const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(game);
             for (const nextPosition of nextPositions) {

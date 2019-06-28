@@ -107,7 +107,6 @@ class Controller {
 
     renderDistancesForAIDevelopMode() {
         //this.view.render2DArrayToBoard(AI.getShortestDistanceToEveryPosition(this.game.pawnOfTurn, this.game));
-        this.view.render2DArrayToBoard(AI.getRandomShortestPathToGoal(this.game.pawnOfTurn, this.game)[0]);
     }    
 }
 
@@ -119,7 +118,7 @@ class AICompetition {
         this.numOfGamesToCompete = numOfGamesToCompete;
         this.ais = [
             {numOfMCTSSimulations: numOfMCTSSimulations0, uctConst: uctConst0, variedConst: false, numWinsLight: 0, numWinsDark: 0},
-            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, variedConst: true, numWinsLight: 0, numWinsDark: 0}
+            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, variedConst: false, numWinsLight: 0, numWinsDark: 0}
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...

@@ -1,4 +1,5 @@
 "use strict";
+
 /*    
 *          PawnPosition: represents position of pawn
 *              col

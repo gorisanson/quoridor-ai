@@ -102,7 +102,7 @@ class Controller {
     }
 
     aiDo() {
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, variedConst: false, aiDevelopMode: this.aiDevelopMode});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.numOfMCTSSimulations, uctConst: this.uctConst, aiDevelopMode: this.aiDevelopMode});
     }
 
     renderDistancesForAIDevelopMode() {
@@ -117,8 +117,8 @@ class AICompetition {
         this.numOfGames = 0;
         this.numOfGamesToCompete = numOfGamesToCompete;
         this.ais = [
-            {numOfMCTSSimulations: numOfMCTSSimulations0, uctConst: uctConst0, variedConst: false, numWinsLight: 0, numWinsDark: 0},
-            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, variedConst: false, numWinsLight: 0, numWinsDark: 0}
+            {numOfMCTSSimulations: numOfMCTSSimulations0, uctConst: uctConst0, numWinsLight: 0, numWinsDark: 0},
+            {numOfMCTSSimulations: numOfMCTSSimulations1, uctConst: uctConst1, numWinsLight: 0, numWinsDark: 0}
         ];
         this.game = null;
         this.gameHistory = []; // for view check this length propery...
@@ -195,7 +195,7 @@ class AICompetition {
 
     aiDo() {
         const index = (this.numOfGames + this.game.turn) % 2 
-        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.ais[index].numOfMCTSSimulations, uctConst: this.ais[index].uctConst, variedConst: this.ais[index].variedConst, aiDevelopMode: false});
+        this.worker.postMessage({game: this.game, numOfMCTSSimulations: this.ais[index].numOfMCTSSimulations, uctConst: this.ais[index].uctConst, aiDevelopMode: false});
     }
 }
 

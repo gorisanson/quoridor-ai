@@ -1,8 +1,5 @@
 "use strict";
 
-
-
-
 PawnPosition.clone = function(pawnPosition) {
     return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };
@@ -68,9 +65,7 @@ Game.prototype.getArrOfValidNoBlockNextHorizontalWallPositions = function() {
     for (let i = 0; i < nextHorizontals.length; i++) {
         if (this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
             noBlockNextHorizontals.push(nextHorizontals[i]);
-        } //else {
-            //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
-        //}
+        }
     }
     return noBlockNextHorizontals;
 };
@@ -81,9 +76,7 @@ Game.prototype.getArrOfValidNoBlockNextVerticalWallPositions = function() {
     for (let i = 0; i < nextVerticals.length; i++) {
         if (this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
             noBlockNextVerticals.push(nextVerticals[i]);
-        } //else {
-            //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
-        //}
+        }
     }
     return noBlockNextVerticals;
 };
@@ -94,9 +87,7 @@ Game.prototype.getArrOfProbableValidNoBlockNextHorizontalWallPositions = functio
     for (let i = 0; i < nextHorizontals.length; i++) {
         if (this.testIfExistPathsToGoalLinesAfterPlaceHorizontalWall(nextHorizontals[i][0], nextHorizontals[i][1])) {   
             noBlockNextHorizontals.push(nextHorizontals[i]);
-        } //else {
-            //console.log(`nextHorizontals[${i}], ${nextHorizontals[i][0]}, ${nextHorizontals[i][1]}`)
-        //}
+        }
     }
     return noBlockNextHorizontals;
 };
@@ -107,9 +98,7 @@ Game.prototype.getArrOfProbableValidNoBlockNextVerticalWallPositions = function(
     for (let i = 0; i < nextVerticals.length; i++) {
         if (this.testIfExistPathsToGoalLinesAfterPlaceVerticalWall(nextVerticals[i][0], nextVerticals[i][1])) {
             noBlockNextVerticals.push(nextVerticals[i]);
-        } //else {
-            //console.log(`nextVerticals[${i}], ${nextVerticals[i][0]}, ${nextVerticals[i][1]}`)
-        //}
+        }
     }
     return noBlockNextVerticals;
 };
@@ -269,10 +258,6 @@ class MonteCarloTreeSearch {
     }
 
     search(numOfSimulations) {
-        // heuristic:
-        // With totalNumberOfLeftWalls being decreased, decrease uctConst to search deeper.
-        //const totalNumberOfLeftWalls = this.game.pawn0.numberOfLeftWalls + this.game.pawn1.numberOfLeftWalls;
-        //const uctConst = 0.001 * Math.pow(800, totalNumberOfLeftWalls/20);
         const uctConst = this.uctConst;
 
         let currentNode = this.root;   
@@ -280,7 +265,6 @@ class MonteCarloTreeSearch {
         while (this.totalNumOfSimulations < limitOfTotalNumOfSimulations) {         
             // Selection
             if (currentNode.isTerminal) {
-                //console.log("one more terminal rollout...")
                 this.rollout(currentNode);
                 currentNode = this.root;
             } else if (currentNode.isLeaf) {
@@ -345,174 +329,6 @@ class MonteCarloTreeSearch {
                         }
                     }
                     this.rollout(randomChoice(currentNode.children));
-                    currentNode = this.root;
-                }
-            } else {
-                currentNode = currentNode.maxUCTChild;
-            }
-        }
-    }
-
-    search_varied(numOfSimulations) {
-        // heuristic:
-        // With totalNumberOfLeftWalls being decreased, decrease uctConst to search deeper.
-        const totalNumberOfLeftWalls = this.game.pawn0.numberOfLeftWalls + this.game.pawn1.numberOfLeftWalls;
-        const uctConst = 0.001 * Math.pow(800, totalNumberOfLeftWalls/20);
-        //const uctConst = this.uctConst;
-
-        let currentNode = this.root;   
-        const limitOfTotalNumOfSimulations = this.totalNumOfSimulations + numOfSimulations;
-        while (this.totalNumOfSimulations < limitOfTotalNumOfSimulations) {         
-            // Selection
-            if (currentNode.isTerminal) {
-                //console.log("one more terminal rollout...")
-                this.rollout(currentNode);
-                currentNode = this.root;
-            } else if (currentNode.isLeaf) {
-                if (currentNode.isNew) {
-                    this.rollout(currentNode);
-                    currentNode = this.root;
-                } else {
-                    // Expansion
-                    const simulationGame = this.getSimulationGameAtNode(currentNode);
-                    let move, childNode;
-                    if (simulationGame.pawnOfNotTurn.numberOfLeftWalls > 0) {
-                        const nextPositionTuples = simulationGame.getArrOfValidNextPositionTuples();
-                        for (let i = 0; i < nextPositionTuples.length; i++) {
-                            move = [nextPositionTuples[i], null, null];
-                            childNode = new MNode(move, currentNode, uctConst); 
-                            currentNode.addChild(childNode);
-                        }
-                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                            const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
-                            for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
-                                move = [null, noBlockNextHorizontals[i], null];
-                                childNode = new MNode(move, currentNode, uctConst); 
-                                currentNode.addChild(childNode);
-                            }
-                            const noBlockNextVerticals = simulationGame.getArrOfProbableValidNoBlockNextVerticalWallPositions();
-                            for (let i = 0; i < noBlockNextVerticals.length; i++) {
-                                move = [null, null, noBlockNextVerticals[i]];
-                                childNode = new MNode(move, currentNode, uctConst); 
-                                currentNode.addChild(childNode);
-                            }
-                        }
-                    } else {
-                        // heuristic:
-                        // If opponent has no walls left,
-                        // my pawn moves only to one of the shortest paths.
-                        const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
-                        for (let i = 0; i < nextPositions.length; i++) {
-                            const nextPosition = nextPositions[i];
-                            move = [[nextPosition.row, nextPosition.col], null, null];
-                            childNode = new MNode(move, currentNode, uctConst);
-                            currentNode.addChild(childNode);
-                        }
-                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                            // heuristic:
-                            // if opponent has no walls left,
-                            // place walls only to interrupt the opponent's path,
-                            // not to support my pawn.
-                            const noBlockNextWallsInterupt =
-                            simulationGame.getArrOfValidNoBlockNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
-                            const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
-                            for (let i = 0; i < noBlockNextHorizontalsInterupt.length; i++) {
-                                move = [null, noBlockNextHorizontalsInterupt[i], null];
-                                childNode = new MNode(move, currentNode, uctConst);
-                                currentNode.addChild(childNode);
-                            }
-                            const noBlockNextVerticalsInterupt = noBlockNextWallsInterupt.arrOfVertical;
-                            for (let i = 0; i < noBlockNextVerticalsInterupt.length; i++) {
-                                move = [null, null, noBlockNextVerticalsInterupt[i]];
-                                childNode = new MNode(move, currentNode, uctConst);
-                                currentNode.addChild(childNode);
-                            }
-                        }
-                    }
-                    this.rollout(randomChoice(currentNode.children));
-                    currentNode = this.root;
-                }
-            } else {
-                currentNode = currentNode.maxUCTChild;
-            }
-        }
-    }
-
-    search_test(numOfSimulations) {
-        // heuristic:
-        // With totalNumberOfLeftWalls being decreased, decrease uctConst to search deeper.
-        const uctConst = this.uctConst;
-
-        let currentNode = this.root;   
-        const limitOfTotalNumOfSimulations = this.totalNumOfSimulations + numOfSimulations;
-        while (this.totalNumOfSimulations < limitOfTotalNumOfSimulations) {         
-            // Selection
-            if (currentNode.isTerminal) {
-                //console.log("one more terminal rollout...")
-                this.rollout_test(currentNode);
-                currentNode = this.root;
-            } else if (currentNode.isLeaf) {
-                if (currentNode.isNew) {
-                    this.rollout_test(currentNode);
-                    currentNode = this.root;
-                } else {
-                    // Expansion
-                    const simulationGame = this.getSimulationGameAtNode(currentNode);
-                    let move, childNode;
-                    if (simulationGame.pawnOfNotTurn.numberOfLeftWalls > 0) {
-                        const nextPositionTuples = simulationGame.getArrOfValidNextPositionTuples();
-                        for (let i = 0; i < nextPositionTuples.length; i++) {
-                            move = [nextPositionTuples[i], null, null];
-                            childNode = new MNode(move, currentNode, uctConst); 
-                            currentNode.addChild(childNode);
-                        }
-                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                            const noBlockNextHorizontals = simulationGame.getArrOfProbableValidNoBlockNextHorizontalWallPositions();
-                            for (let i = 0; i < noBlockNextHorizontals.length; i++) { 
-                                move = [null, noBlockNextHorizontals[i], null];
-                                childNode = new MNode(move, currentNode, uctConst); 
-                                currentNode.addChild(childNode);
-                            }
-                            const noBlockNextVerticals = simulationGame.getArrOfProbableValidNoBlockNextVerticalWallPositions();
-                            for (let i = 0; i < noBlockNextVerticals.length; i++) {
-                                move = [null, null, noBlockNextVerticals[i]];
-                                childNode = new MNode(move, currentNode, uctConst); 
-                                currentNode.addChild(childNode);
-                            }
-                        }
-                    } else {
-                        // heuristic:
-                        // If opponent has no walls left,
-                        // my pawn moves only to one of the shortest paths.
-                        const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
-                        for (let i = 0; i < nextPositions.length; i++) {
-                            const nextPosition = nextPositions[i];
-                            move = [[nextPosition.row, nextPosition.col], null, null];
-                            childNode = new MNode(move, currentNode, uctConst);
-                            currentNode.addChild(childNode);
-                        }
-                        if (simulationGame.pawnOfTurn.numberOfLeftWalls > 0) {
-                            // heuristic:
-                            // if opponent has no walls left,
-                            // place walls only to interrupt the opponent's path,
-                            // not to support my pawn.
-                            const noBlockNextWallsInterupt =
-                            simulationGame.getArrOfValidNoBlockNextWallsDisturbPathOf(simulationGame.pawnOfNotTurn);
-                            const noBlockNextHorizontalsInterupt = noBlockNextWallsInterupt.arrOfHorizontal;
-                            for (let i = 0; i < noBlockNextHorizontalsInterupt.length; i++) {
-                                move = [null, noBlockNextHorizontalsInterupt[i], null];
-                                childNode = new MNode(move, currentNode, uctConst);
-                                currentNode.addChild(childNode);
-                            }
-                            const noBlockNextVerticalsInterupt = noBlockNextWallsInterupt.arrOfVertical;
-                            for (let i = 0; i < noBlockNextVerticalsInterupt.length; i++) {
-                                move = [null, null, noBlockNextVerticalsInterupt[i]];
-                                childNode = new MNode(move, currentNode, uctConst);
-                                currentNode.addChild(childNode);
-                            }
-                        }
-                    }
-                    this.rollout_test(randomChoice(currentNode.children));
                     currentNode = this.root;
                 }
             } else {
@@ -585,18 +401,9 @@ class MonteCarloTreeSearch {
                 cacheForPawns[1].distanceToGoal = t[1];
                 cacheForPawns[1].updated = true;
             }
+
             const pawnOfTurn = simulationGame.pawnOfTurn; 
             const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
-            //const pawnIndexOfNotTurn = simulationGame.pawnIndexOfNotTurn;    
-            //const distanceToGoalForPawnOfTurn = cacheForPawns[pawnIndexOfTurn].distanceToGoal;
-            //const distanceToGoalForOfPawnOfNotTurn = cacheForPawns[pawnIndexOfNotTurn].distanceToGoal;
-            //const distanceDiff = distanceToGoalForOfPawnOfNotTurn - distanceToGoalForPawnOfTurn
-            
-            // If my pawn is closer to goal, increase pawnMoveProbability
-            // This heuristic is taken from the paper
-            // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor".
-            //const pawnMoveProbability = 0.8 + 0.2 * (Math.max(0, distanceDiff) / 8);
-
             if (Math.random() < 0.7) {
                 // move pawn to one of shortest paths
                 pawnMoveFlag = false;
@@ -637,10 +444,6 @@ class MonteCarloTreeSearch {
                 
                 if (nextMove !== null) {
                     simulationGame.doMove(nextMove);
-                    // heuristic:
-                    // radom wall do not favor the pawn who place the wall so
-                    // give the pawn one more turn to play. 
-                    //simulationGame.turn--;
                     cacheForPawns[0].updated = false;
                     cacheForPawns[1].updated = false;
                 } else {
@@ -661,172 +464,20 @@ class MonteCarloTreeSearch {
                 }
                 simulationGame.movePawn(nextRandomPosition.row, nextRandomPosition.col);
             }
-            
         }
 
         // Backpropagation
         let ancestor = node;
         let ancestorPawnIndex = nodePawnIndex;
-
-        //const numberOfLeftWalls = simulationGame.winner.numberOfLeftWalls;
-        // heuristic:
-        // keep 3-4 walls to the end of game is good strategy.
-        // this is a quite effective heuristic!  
-        //const bonusScore = Math.min(0.9, numberOfLeftWalls * 0.25);
         while(ancestor !== null) {
             ancestor.numSims++;
             if (simulationGame.winner.index === ancestorPawnIndex) {
                 ancestor.numWins += 1;
-                //ancestor.bonusScore += bonusScore;
             }
             ancestor = ancestor.parent;
             ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
         }
-        //console.log(`${this.totalNumOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
     }
-
-    // also called playout
-    rollout_test(node) {
-        this.totalNumOfSimulations++;
-        const simulationGame = this.getSimulationGameAtNode(node);
-        
-        // the pawn of this node is the pawn who moved immediately before,
-        // put it another way, the pawn who leads to this node right before,
-        // i.e. pawn of not turn.
-        const nodePawnIndex = simulationGame.pawnIndexOfNotTurn;
-        if (simulationGame.winner !== null) {
-            node.isTerminal = true;
-        }
-        
-        // Simulation
-        // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
-        const cacheForPawns = [
-            {
-                updated: false,
-                next: null,
-                distanceToGoal: null
-            },
-            {
-                updated: false,
-                next: null,
-                distanceToGoal: null
-            }
-        ];
-        let pawnMoveFlag = false;
-        
-        while (simulationGame.winner === null) {
-            if (!cacheForPawns[0].updated) {
-                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn0, simulationGame);
-                cacheForPawns[0].next = t[0];
-                cacheForPawns[0].distanceToGoal = t[1];
-                cacheForPawns[0].updated = true;
-            }
-            if (!cacheForPawns[1].updated) {
-                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn1, simulationGame);
-                cacheForPawns[1].next = t[0];
-                cacheForPawns[1].distanceToGoal = t[1];
-                cacheForPawns[1].updated = true;
-            }
-            const pawnOfTurn = simulationGame.pawnOfTurn; 
-            const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
-            //const pawnIndexOfNotTurn = simulationGame.pawnIndexOfNotTurn;    
-            //const distanceToGoalForPawnOfTurn = cacheForPawns[pawnIndexOfTurn].distanceToGoal;
-            //const distanceToGoalForOfPawnOfNotTurn = cacheForPawns[pawnIndexOfNotTurn].distanceToGoal;
-            //const distanceDiff = distanceToGoalForOfPawnOfNotTurn - distanceToGoalForPawnOfTurn
-            
-            // If my pawn is closer to goal, increase pawnMoveProbability
-            // This heuristic is taken from the paper
-            // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor".
-            //const pawnMoveProbability = 0.8 + 0.2 * (Math.max(0, distanceDiff) / 8);
-
-            if (Math.random() < 0.7) {
-                // move pawn to one of shortest paths
-                pawnMoveFlag = false;
-                const next = cacheForPawns[pawnIndexOfTurn].next;
-                const currentPosition = pawnOfTurn.position;
-                let nextPosition = next[currentPosition.row][currentPosition.col];
-                if (nextPosition === null) {
-                    console.log("really?? already in goal position");
-                    throw "already in goal Position...."
-                }             
-                if (AI.arePawnsAdjacent(simulationGame)) {
-                    const nextNextPosition = next[nextPosition.row][nextPosition.col];
-                    if (nextNextPosition !== null
-                        && simulationGame.validNextPositions[nextNextPosition.row][nextNextPosition.col] === true) {
-                        nextPosition = nextNextPosition;
-                        cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 2;
-                    } else {
-                        const nextPositions = AI.chooseShortestPathNextPawnPositionsThoroughly(simulationGame);
-                        const _nextPosition = randomChoice(nextPositions);
-                        if (_nextPosition.equals(nextPosition)) {
-                            cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
-                        } else {
-                            nextPosition = _nextPosition;
-                            cacheForPawns[pawnIndexOfTurn].updated = false;
-                        }
-                    }
-                } else {
-                    cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
-                }
-                simulationGame.movePawn(nextPosition.row, nextPosition.col);
-            } else if (!pawnMoveFlag && pawnOfTurn.numberOfLeftWalls > 0 && Math.random() < 0.5) {
-                // place a wall
-                // (If a pawn has no wall, this fall in to next else clause so move pawn randomly.
-                // So, consuming all wall early gives no advantage, it rather gives a disadvantage)
-                const nextMove = AI.chooseProbableNextWall(simulationGame);
-                //const nextMove = AI.chooseNextWallRandomly(simulationGame);
-                //const nextMove = AI.chooseNextWallWisely(simulationGame);
-                
-                if (nextMove !== null) {
-                    simulationGame.doMove(nextMove);
-                    // heuristic:
-                    // radom wall do not favor the pawn who place the wall so
-                    // give the pawn one more turn to play. 
-                    //simulationGame.turn--;
-                    cacheForPawns[0].updated = false;
-                    cacheForPawns[1].updated = false;
-                } else {
-                    console.log("No probable walls possible")
-                    pawnMoveFlag = true;
-                }
-            } else {
-                // move pawn randomly
-                pawnMoveFlag = false;
-                const nextRandomPosition = AI.chooseNextPawnPositionRandomly(simulationGame);
-                const next = cacheForPawns[pawnIndexOfTurn].next;
-                const currentPosition = pawnOfTurn.position;
-                const nextPosition = next[currentPosition.row][currentPosition.col];
-                if (nextRandomPosition.equals(nextPosition)) {
-                    cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
-                } else {
-                    cacheForPawns[pawnIndexOfTurn].updated = false;
-                }
-                simulationGame.movePawn(nextRandomPosition.row, nextRandomPosition.col);
-            }
-            
-        }
-
-        // Backpropagation
-        let ancestor = node;
-        let ancestorPawnIndex = nodePawnIndex;
-
-        const numberOfLeftWalls = simulationGame.winner.numberOfLeftWalls;
-        // heuristic:
-        // keep 3-4 walls to the end of game is good strategy.
-        // this is a quite effective heuristic!  
-        const bonusScore = Math.min(0.9, numberOfLeftWalls * 0.25);
-        while(ancestor !== null) {
-            ancestor.numSims++;
-            if (simulationGame.winner.index === ancestorPawnIndex) {
-                ancestor.numWins += 1;
-                ancestor.bonusScore += bonusScore;
-            }
-            ancestor = ancestor.parent;
-            ancestorPawnIndex = (ancestorPawnIndex + 1) % 2;
-        }
-        //console.log(`${this.totalNumOfSimulations}: ${simulationGame.turn}, ${simulationGame.winner.index}`);
-    }
-
 }
 
 /*
@@ -840,7 +491,7 @@ class AI {
         this.forWorker = forWorker; // boolean;
     }
 
-    chooseNextMove(game, varied_const = false) {
+    chooseNextMove(game) {
         const d0 = new Date();
         
         // heuristic:
@@ -864,19 +515,11 @@ class AI {
             const nBatch = Math.ceil(this.numOfMCTSSimulations / nSearch);
             postMessage(0);
             for (let i = 0; i < nSearch; i++) {
-                if (varied_const) {
-                    mcts.search_test(nBatch);
-                } else {
-                    mcts.search(nBatch);
-                }
+                mcts.search(nBatch);
                 postMessage((i+1)/nSearch);
             }
         } else {
-            if (varied_const) {
-                mcts.search2(this.numOfMCTSSimulations);
-            } else {
-                mcts.search(this.numOfMCTSSimulations);
-            }
+            mcts.search(this.numOfMCTSSimulations);
         }
 
         const best = mcts.selectBestMove();
@@ -903,7 +546,7 @@ class AI {
                 bestMove = [[nextPosition.row, nextPosition.col], null, null];
             }
         }
-        // heuristic:
+        // heuristic: common openings
         if (game.turn < 5 && game.pawnOfNotTurn.position.col === 4 && game.pawnOfNotTurn.position.row === 6 && Math.random() < 0.5) {
             const bestMoves = [
                 [null, [5, 3], null], 
@@ -1030,7 +673,6 @@ class AI {
                 console.log("Is it really possible???")
                 return null;  // is it possible?? I'm not sure..
             }
-            //console.log("rechoose wall");
             nextMoveIndex = randomIndex(nextMoves);
         }
         return nextMoves[nextMoveIndex];
@@ -1056,7 +698,6 @@ class AI {
                 console.log("Is it really possible???")
                 return null;  // is it possible?? I'm not sure..
             }
-            //console.log("rechoose wall");
             nextMoveIndex = randomIndex(nextMoves);
         }
         return nextMoves[nextMoveIndex];
@@ -1303,7 +944,6 @@ class AI {
                 continue; // this can be "break;"
                 // because if condition holds ture only if current position is start position.
             }
-            //console.log(`prevs.length: ${prevs.length}`)
             for (let i = 0; i < prevs.length; i++) {
                 let prevPosition = prevs[i];
                 const pawnMoveTuple = position.getDisplacementPawnMoveTupleFrom(prevPosition);
@@ -1337,7 +977,6 @@ class AI {
                     }  
                 }
                                 
-                //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
                 if (!visited[prevPosition.row][prevPosition.col]) {
                     visited[prevPosition.row][prevPosition.col] = true;
                     queue.push(prevPosition);
@@ -1367,7 +1006,6 @@ class AI {
                 paths.push(path);
                 return;
             }
-            //console.log(`next.length: ${nexts.length}`)
             for (let i = 0; i < nexts.length; i++) {
                 addPathToGoalToPaths(nexts[i], [...path]); // pass cloned array because javascript use call by sharing
             }
@@ -1456,119 +1094,3 @@ function shuffle(arr) {
     }
     return arr;
 }
-
-
-// functions not used, but could be used for futue development?
-/*
-function pathIncludePosition(path, position) {
-    for (let i = 0; i < path.length; i++) {
-        if (position.equals(path[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function printPaths(paths) {
-    for (let i = 0; i < paths.length; i++) {
-        const path = paths[i];
-        console.log(`path${i}: \n`)
-        for (let j = 0; j < path.length; j++) {
-            console.log(`row: ${path[j].row}, col: ${path[j].col}`);
-        }
-    }
-}
-
-// note that prev is generated with start position designated.
-// "next" which is partial reverse of "prev" needs a goal position.
-function getMultiNextByReversingMultiPrev(multiPrev, goalPosition) {
-    const multiNext = create2DArrayInitializedTo(9, 9, null);
-    const visited = create2DArrayInitializedTo(9, 9, false);
-    const queue = [];
-    queue.push(goalPosition);
-    while (queue.length > 0) {
-        let position = queue.shift();
-        let prevs = multiPrev[position.row][position.col];
-        if (prevs === null) {
-            // for debug
-            if (queue.length !== 0) {
-                throw "some error occured...."
-            }
-            continue; // this can be "break;"
-            // because if condition holds ture only if current position is start position.
-        }
-        //console.log(`prevs.length: ${prevs.length}`)
-        for (let i = 0; i < prevs.length; i++) {
-            let prevPosition = prevs[i];
-            //console.log(`prevPosition.row: ${prevPosition.row}, .col: ${prevPosition.col}`)
-            if (multiNext[prevPosition.row][prevPosition.col] === null) {
-                multiNext[prevPosition.row][prevPosition.col] = [position];
-            } else {
-                multiNext[prevPosition.row][prevPosition.col].push(position);
-            }
-            if (!visited[prevPosition.row][prevPosition.col]) {
-                visited[prevPosition.row][prevPosition.col] = true;
-                queue.push(prevPosition);
-            }
-        }
-    }
-    return multiNext;
-}
-
-function chooseNextWallWisely(game) {
-    const validInterruptWalls = AI.getValidNextWallsDisturbPathOf(game.pawnOfNotTurn, game);
-    const nextMoves = [];
-    const nextHorizontals = indicesOfValueIn2DArray(validInterruptWalls.horizontal, true);
-    for (let i = 0; i < nextHorizontals.length; i++) {
-        nextMoves.push([null, nextHorizontals[i], null]);
-    }
-    const nextVerticals = indicesOfValueIn2DArray(validInterruptWalls.vertical, true);
-    for (let i = 0; i < nextVerticals.length; i++) {
-        nextMoves.push([null, null, nextVerticals[i]]);
-    }
-    // optimization in effect??
-    if (nextMoves.length === 0) {
-        return null;
-    }
-
-    const currentDistanceForMe = AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
-    const currentDistanceForOpponent = AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-    const futureDiffDiffs = [];
-    for (let i = 0; i < nextMoves.length; i++) {
-        const nextMove = nextMoves[i];
-        if (nextMove[1] !== null) {
-            const row = nextMove[1][0];
-            const col = nextMove[1][1];
-            game.openWays.upDown[row][col] = false;
-            game.openWays.upDown[row][col + 1] = false;
-            // getShortestDistanceFror only depends on game.openWays so...
-            const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
-            const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-            futureDiffDiffs.push(diffForOpponent - diffForMe);
-            game.openWays.upDown[row][col] = true;
-            game.openWays.upDown[row][col + 1] = true;
-        } else { // nextMove[2] !== null
-            const row = nextMove[2][0];
-            const col = nextMove[2][1];
-            game.openWays.leftRight[row][col] = false;
-            game.openWays.leftRight[row+1][col] = false;
-            const diffForMe = currentDistanceForMe -  AI.getShortestDistanceToGoalFor(game.pawnOfTurn, game);
-            const diffForOpponent = currentDistanceForOpponent - AI.getShortestDistanceToGoalFor(game.pawnOfNotTurn, game);
-            futureDiffDiffs.push(diffForOpponent - diffForMe);
-            game.openWays.leftRight[row][col] = true;
-            game.openWays.leftRight[row+1][col] = true;
-        }
-    }
-    const indices = indicesOfSemiMax(futureDiffDiffs);
-    if (indices.length === 0) {
-        // console.log("no walls to place", game.turn);
-        return null;
-    }
-    if (futureDiffDiffs[indices[0]] < 5) {
-        return null;
-    } 
-    const index = randomChoice(indices);
-    return nextMoves[index];
-}
-*/
-

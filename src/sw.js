@@ -5,7 +5,7 @@
 * https://developers.google.com/web/fundamentals/primers/service-workers/
 */
 
-const CACHE_NAME = 'quoridor-ai-cache-v0.2.2';
+const CACHE_NAME = 'quoridor-ai-cache-v0.2.3';
 const urlsToCache = [
     './',
     './style.css',
@@ -17,6 +17,8 @@ const urlsToCache = [
     './meta/manifest.json',
     './meta/icons_192.png',
     './meta/icons_512.png',
+    './meta/apple_splash.png',
+    './meta/icons_square.png'
 ];
 
 self.addEventListener('install', function(event) {

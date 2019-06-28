@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>  
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
@@ -474,7 +474,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 // Register the service worker
-                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                navigator.serviceWorker.register('./sw.js').then(function(registration) {
                     registration.addEventListener('updatefound', () => {
                         // An updated service worker has appeared in registration.installing!
                         newWorker = registration.installing;

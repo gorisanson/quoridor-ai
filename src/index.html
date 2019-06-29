@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
-    <title>Quoridor AI</title>
+    <title>Play Quoridor against the AI</title>
 
-    <meta name="description" content="Play Quoridor against AI based on Monte Carlo tree search">
+    <meta name="description" content="Play Quoridor against the AI agent which is based on Monte Carlo tree search">
     <meta name="author" content="Lee Kyutae">
 
     <meta name="mobile-web-app-capable" content="yes">
@@ -39,9 +39,9 @@
             </div>
         </div>
         <div id="board_table_container">
-            <div class="fade_box in about hidden" id="about_box">
+            <div class="fade_box in about" id="about_box">
                 <div>
-                    <h1>Play Quoridor against AI</h1>
+                    <h1>Play Quoridor against the AI</h1>
                     <p class="last_updated">
                             Last Updated: 2019-06-29
                     </p>
@@ -66,8 +66,8 @@
             </div>
             <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
             <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
-            <div class="fade_box in" id="choose_ai_level_message_box">
-                Choose AI level. Higher-level AI takes more time.
+            <div class="fade_box in hidden" id="choose_ai_level_message_box">
+                Choose the AI level. Higher-level AI takes more time.
                 <div class="button_container in_message_box">
                     <button class="ai_level" id="novice_level">Novice</button>
                     <button class="ai_level" id="average_level">Average</button>
@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div class="fade_box in hidden" id="restart_message_box">
-                Are you sure to start a new game?<br>(Current game will be gone.)
+                Are you sure to start a new game?<br>(Current game will be lost.)
                 <div class="button_container in_message_box">
                     <button class="restart_yes_no" id="restart_no">cancel</button>
                     <button class="restart_yes_no" id="restart_yes">start</button>
@@ -92,7 +92,7 @@
             <div class="fade_box in hidden" id="update_notification_message_box">
                 New version is available. Update now?
                 <div class="button_container in_message_box">
-                    <button class="update" id="update_now">Update Now (current status will be lost)</button>
+                    <button class="update" id="update_now">Update Now (current game will be lost)</button>
                     <button class="update" id="later">Later (automatically at relaunching)</button>
                 </div>
             </div>
@@ -438,6 +438,7 @@
         </div>
     </div>
     <script>
+        "use strict";
         // For some touch device, @media (hover: hover) is activated
         // (it is intended not to be activated), so add this workaround.
         window.addEventListener('touchstart', function onFirstTouch() {
@@ -448,7 +449,8 @@
             window.removeEventListener('touchstart', onFirstTouch, false);
         }, false);
     </script>
-    <script>    
+    <script>
+        "use strict";
         /*
         if ('caches' in window) {
             console.log("Cache API supported");// The Cache API is supported
@@ -503,6 +505,7 @@
         }
     </script>
     <script>
+        "use strict";
         /*
         ****************************************
         **     How to use AI Develop Mode     **

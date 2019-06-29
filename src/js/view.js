@@ -12,8 +12,6 @@ class View {
 
         this.htmlBoardTable = document.getElementById("board_table");
         this.htmlPawns = [document.getElementById("pawn0"), document.getElementById("pawn1")];
-        this.htmlPawns[0].classList.add("hidden")
-        this.htmlPawns[1].classList.add("hidden");
         this.htmlMessageBox = document.getElementById("message_box");
         
         this.htmlAboutBox = document.getElementById("about_box");
@@ -153,8 +151,13 @@ class View {
             this.htmlAboutBox.classList.add("hidden");
             this.enableUndoRedoButtonIfNecessary();
         }
+        const onclickCloseButtonInAboutFirst = function(e) {
+            this.htmlAboutBox.classList.add("hidden");
+            this.htmlChooseAILevelMessageBox.classList.remove("hidden");
+            closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
+        }
         const closeButtonInAbout = document.getElementById("about_close_button");
-        closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
+        closeButtonInAbout.onclick = onclickCloseButtonInAboutFirst.bind(this);
 
         if (this.aiDevelopMode) {
             const onclickAiDoButton = function(e) {

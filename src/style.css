@@ -9,6 +9,17 @@
     --wall-width: calc(var(--short-length) - 2 * var(--wall-gap));
     --font-size: 18px;
 }
+/* size of iPad screen is 768px x 1024px in portrait mode */
+@media only screen and (min-width: 768px) and (min-height: 768px) {
+    :root {
+        --font-size: 30px;
+    }
+}
+@media only screen and (min-width: 768px), (orientation: landscape) {
+    :root {
+        --board-table-side-length: 70vmin;
+    }
+}
 html {
     box-sizing: border-box;
 }
@@ -41,17 +52,6 @@ body {
     align-content: center;
     grid-template-rows: 1fr 1fr;
     grid-template-columns: 1fr 1fr;
-}
-/* size of iPad screen is 768px x 1024px in portrait mode */
-@media only screen and (min-width: 768px) and (min-height: 768px) {
-    :root {
-        --font-size: 30px;
-    }
-}
-@media only screen and (min-width: 768px), (orientation: landscape) {
-    :root {
-        --board-table-side-length: 70vmin;
-    }
 }
 h1 {
     font-size: calc(1.2 * var(--font-size));

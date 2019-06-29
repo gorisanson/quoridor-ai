@@ -122,7 +122,6 @@ Game.prototype.getArrOfValidNoBlockNextWallsDisturbPathOf = function(pawn) {
     return {arrOfHorizontal: noBlockNextHorizontals, arrOfVertical: noBlockNextVerticals};
 }
 
-
 /*
 * If it is named "Node", the code work erroneously
 * because maybe "Node" is already used name in Web APIs?
@@ -156,12 +155,6 @@ class MNode {
     // Levente Kocsis, Csaba Szepesva ́ri (2006 ) "Bandit based Monte-Carlo Planning"
     // Peter Auer, Cesa-Bianchi, Fischer (2002) "Finite-time Analysis of the Multiarmed Bandit Problem"
     // Do google search for "monte carlo tree search uct"
-    // 
-    // The constant this.uctConst = 0.02 is taken from the paper
-    // Victor Massagué Respall, Joseph Alexander Brown (2018) "Monte Carlo Tree Search for Quoridor"
-    // This constant seems to be great.
-    // (In the paper, the author actually set win score per win to 10 and set the constant to 2.
-    //  But it has the same effect to set win score per win to 1 (i.e. this.numWins += 1 per win) and set the constant to 0.02.) 
     get uct() {
         if (this.parent === null || this.parent.numSims === 0) {
             throw "UCT_ERROR"
@@ -1013,7 +1006,6 @@ class AI {
 
 }
  
-
 function indicesOfMin(arr) {
     let min = Infinity;
     let indices = [];

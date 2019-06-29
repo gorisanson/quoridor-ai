@@ -174,10 +174,10 @@ div.wall_num {
     flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
-    top: calc((var(--board-table-side-length) - 8 * var(--long-length)) / 2);
+    top: calc((var(--board-table-side-length) - 9 * var(--long-length)) / 2);
     left: 0;
     width: var(--board-table-side-length);
-    height: calc(8 * var(--long-length));
+    height: calc(9 * var(--long-length));
     font-size: var(--font-size);
     padding-left: var(--font-size);
     padding-right: var(--font-size);
@@ -366,10 +366,10 @@ p.last_updated {
 }
 @media only screen and (min-width: 768px) and (min-height: 768px) {
     .fade_box {
-        top: calc((var(--board-table-side-length) - 5 * var(--long-length)) / 2);
+        top: calc((var(--board-table-side-length) - 7 * var(--long-length)) / 2);
         left: 0;
         width: var(--board-table-side-length);
-        height: calc(5 * var(--long-length));
+        height: calc(7 * var(--long-length));
     }
 }
 /* For iPhone 5&6 landscape */

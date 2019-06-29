@@ -1,5 +1,6 @@
 {
-    "name": "Quoridor AI",
+    "name": "Play Quoridor against the AI",
+    "short_name": "Quoridor AI",
     "icons": [
       {
         "src": "./icons_192.png",

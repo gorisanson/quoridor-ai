@@ -30,7 +30,7 @@ There are some previous works done by others.
 ## Result
 The following table is a comparison of my 60k agent (Strong) to other agent types. Each agent from "2.5k agent (Novice)" to "180k agent" is my AI agent in this repository's source code just with different number of rollouts. The games were played half as light-colored pawn and half as dark-colored pawn for 60k (assuming light-colored pawn moves first). But, against Dainel's Quoridor AI, the games were played as light-colored pawn only since his AI only takes dark-colored pawn. Against Daniel's Quoridor AI and Martijin's SmartBrain 4, the matches are done manually, taking the moves from my 60k agent and playing the moves against them, and vice versa.
 
-| Opponent with various number of rollouts | Number of games played (as light-colored / as dark-colored for 60k) | Wins as light-colored for 60k | Wins as dark-colored for 60k | Percentage of Wins for 60k | Lower Confidence Bound (95%) | Upper Confidence Bound (95%)
+| Opponent | Number of games played (as light-colored / as dark-colored for 60k) | Wins as light-colored for 60k | Wins as dark-colored for 60k | Percentage of Wins for 60k | Lower Confidence Bound (95%) | Upper Confidence Bound (95%)
 | -------------------- | ----- | ---- | ---- | --- | --- | --- |
 | 2.5k agent (Novice)  | 100 (50/50) | 46 | 38 | 84% | 75.3% | 90.6% |
 | 7.5k agent (Average) | 100 (50/50) | 39 | 36 | 75% | 65.3% | 83.1% |

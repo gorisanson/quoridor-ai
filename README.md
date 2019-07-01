@@ -2,8 +2,7 @@
 
 [Quoridor](https://en.wikipedia.org/wiki/Quoridor) is an abstract strategy game played on a board of 81 (9x9) square spaces where the objective is to get your pawn to the opposite side of the board.
 
-This AI agent that plays Quoridor is based on [Monte Carlo tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search).
-Pure Monte Carlo tree search resulted in a poor performance. The performance was significantly improved after applying some heuristics. I added heuristics to the selection, expansion and simulation phase of the tree search (and also to post processes after search). You can see the heuristics on the comments of the source code (Find the word "heuristic".)
+This AI agent that plays Quoridor is based on [Monte Carlo tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search). Pure Monte Carlo tree search resulted in a poor performance. The performance was significantly improved after applying some heuristics. I added heuristics to the selection, expansion and simulation phase of the tree search (and also to post processes after search). You can see the heuristics on the comments of the source code. (Find the word "heuristic".)
 
 You can play against this AI on the website https://gorisanson.github.io/quoridor-ai/.
 The number of rollouts per move for each AI level on the website are following. 
@@ -42,7 +41,7 @@ The following table is a comparison of my 60k agent (Strong) to other agent type
 
 I thought Martijn's SmartBrain 4 was stronger than Daniel's Quoridor AI when I played against them by myself. But, interestingly, the 60k agent seemed to play better against Martijin's SmartBrain 4. In some matches, the play of Daniel's Quoridor AI somehow made the 60k agent exhaust walls so quickly and lose the game.
 
-Martijn's implementation of Quoridor allow diagonal jump even if there is no wall and no board edge behind the pawn to be jumped. (Original Quoridor rule allow diagonal jump "only if" there is a wall or the board edge behind the pawn to be jumped.) In a match against Martijn's SmartBrain 4, the 60k agent won the match although this illegal diagonal jump occured twice by SmartBrain 4. This match is included on the statistics of the table above. And in another match, this illegal diagonal jump occured by SmartBrain 4 when there were no left walls for both players, and the win or lose would be decided by whether the illegal jump accepted or not. So, I nullified this match.
+Martijn's implementation of Quoridor allows diagonal jump even if there is not a wall or the board edge behind the pawn to be jumped. (Original Quoridor rule allows diagonal jump "only if" there is a wall or the board edge behind the pawn to be jumped.) In a match against Martijn's SmartBrain 4, the 60k agent won the match although this illegal diagonal jump was played twice by SmartBrain 4. This match is included on the statistics of the table above. And in another match, this illegal diagonal jump was played by SmartBrain 4 when there were no left walls for both players, and the win or lose would be decided by whether the illegal jump accepted or not. So, I nullified this match.
 
 
 ## References

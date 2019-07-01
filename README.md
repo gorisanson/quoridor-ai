@@ -22,7 +22,7 @@ There are some previous works done by others.
 
 - Victor Massagué Respall, Joseph Alexander Brown and Hamma Aslam. *[Monte Carlo Tree Search for Quoridor](https://www.researchgate.net/publication/327679826_Monte_Carlo_Tree_Search_for_Quoridor)*. 2018. - This paper led me to apply Monte Carlo tree search on my agent. Although I couldn't find the source code or the AI agent on this paper, just to know the viability in advance was very encouraging to me.
 
-- [Daniel Borowski's Quoridor AI](https://danielborowski.github.io/site/quoridor-ai/display.html) - It's hard for me to figure out his AI algorithm from his source code. But I found [his comment on reddit](https://www.reddit.com/r/learnprogramming/comments/461woc/cminimax_implementation_for_quoridor/d01yo1m?utm_source=share&utm_medium=web2x) which says "I "sort of" implemented minimax with a depth of ~2 (hehe)."
+- [Daniel Borowski's Quoridor AI](https://danielborowski.github.io/site/quoridor-ai/display.html) - It's hard for me to figure out his AI algorithm from his source code. But I could found [his comment on reddit](https://www.reddit.com/r/learnprogramming/comments/461woc/cminimax_implementation_for_quoridor/d01yo1m?utm_source=share&utm_medium=web2x) which says "I "sort of" implemented minimax with a depth of ~2 (hehe)."
 
 - [Martijn van Steenbergen's SmartBrain 4](https://github.com/MedeaMelana/quoridorai) - This agent uses negamax of depth 4 with some heuristics (In his implementation, there are also SmartBrain 1, SmartBrain 2 and SmartBrain 3 each of which uses negamax of depth 1, 2 and 3. But, obviously, SmartBrain 4 is the strongest.)
 

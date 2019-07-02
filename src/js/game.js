@@ -263,7 +263,7 @@ class Game {
             vertical: create2DArrayClonedFrom(this._probableNextWalls.vertical)
         }
 
-        // leftmost side, rightmost side horizontal wall
+        // leftmost and rightmost horizontal walls
         // after several turns
         if (this.turn >= 6) {
             for (let i = 0; i < 8; i++) {

@@ -2,10 +2,13 @@
 
 [Quoridor](https://en.wikipedia.org/wiki/Quoridor) is an abstract strategy game played on a board of 81 (9x9) square spaces where the objective is to get your pawn to the opposite side of the board.
 
-This AI agent that plays Quoridor is based on [Monte Carlo tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search). Pure Monte Carlo tree search resulted in a poor performance. The performance was significantly improved after applying some heuristics. I added heuristics to the selection, expansion and simulation phase of the tree search (and also to post processes after search). You can see the heuristics on the comments of the source code. (Find the word "heuristic".)
+This AI agent that plays Quoridor is based on [Monte Carlo tree search (MCTS)](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search). Pure MCTS resulted in a poor performance. The performance was significantly improved after applying some heuristics. I added heuristics to the selection, expansion and simulation phase of the tree search (and also to post processes after search). You can see some heuristics on the "Some Heuristics Included" section below. If you want to see all heuristics or its implementation details, refor to the comments of the source code. (Find the word "heuristic".)
 
-You can play against this AI on the website https://gorisanson.github.io/quoridor-ai/.
-The number of rollouts per move for each AI level on the website are following. 
+You can play against this AI on the website (or web app) https://gorisanson.github.io/quoridor-ai/.
+
+[![Play-Quoridor-against-AI-logo](./src/meta/icons_192.png "Play Quoridor againt AI")](https://gorisanson.github.io/quoridor-ai/)
+
+The number of rollouts per move for each AI level on the website are following.
 
 | Level   | Rollouts per Move |
 | -----   | ---- |
@@ -14,17 +17,30 @@ The number of rollouts per move for each AI level on the website are following.
 | Good    | 20,000 |
 | Strong  | 60,000 |
 
+## Some Heuristics Included
+* The branching factor of Quoridor is high due to bunch of possible positions to place a wall. (There are 64 (8x8) possible positions if there is no wall on the board.) So I used a heuristic which only considers "probable" next walls to lower the branching factor. I used this heuristic on selection/expansion phase and rollout phase of MCTS. "Probable" next walls are the followings.
+    
+    1. Near pawns (to disturb opponent's pawn or support my pawn)
+    1. Near already placed walls
+    1. Leftmost side or Rightmost side horizontal walls
 
-## Previous works
+* On rollout phase of MCTS, move pawn to one of the shortest paths with a certain probability. (And with the rest probability, half place a ("probable" next) wall randomly / half move pawn randomly.) This heuristic shorten the time taken by rollout phase.
+
+* On selection/expansion phase of MCTS, if the opponent has no walls left, my pawn moves only to one of the shortest paths or places a wall only to interrupt the opponent's path (not to support my pawn). This heuristic lowers the branching factor on the end phase of a game.
+
+* Some common openings are included. This heuristic is only effective less than 6 plies.  
+
+
+## Previous Works
 
 There are some previous works done by others.
 (For available previous agents, I matched my agent against them to compare. You can see the results on the "Result" section below.)
 
-- Victor Massagué Respall, Joseph Alexander Brown and Hamma Aslam. *[Monte Carlo Tree Search for Quoridor](https://www.researchgate.net/publication/327679826_Monte_Carlo_Tree_Search_for_Quoridor)*. 2018. - This paper led me to apply Monte Carlo tree search on my agent. Although I couldn't find the source code or the AI agent on this paper, just to know the viability in advance was very encouraging to me.
+* Victor Massagué Respall, Joseph Alexander Brown and Hamma Aslam. *[Monte Carlo Tree Search for Quoridor](https://www.researchgate.net/publication/327679826_Monte_Carlo_Tree_Search_for_Quoridor)*. 2018. - This paper led me to apply Monte Carlo tree search on my agent. Although I couldn't find the source code or the AI agent on this paper, just to know the viability in advance was very encouraging to me.
 
-- [Daniel Borowski's Quoridor AI](https://danielborowski.github.io/site/quoridor-ai/display.html) - It's hard for me to figure out his AI algorithm from his source code. But I could find [his comment on reddit](https://www.reddit.com/r/learnprogramming/comments/461woc/cminimax_implementation_for_quoridor/d01yo1m?utm_source=share&utm_medium=web2x) which says "I "sort of" implemented minimax with a depth of ~2 (hehe)."
+* [Daniel Borowski's Quoridor AI](https://danielborowski.github.io/site/quoridor-ai/display.html) - It's hard for me to figure out his AI algorithm from his source code. But I could find [his comment on reddit](https://www.reddit.com/r/learnprogramming/comments/461woc/cminimax_implementation_for_quoridor/d01yo1m?utm_source=share&utm_medium=web2x) which says "I "sort of" implemented minimax with a depth of ~2 (hehe)."
 
-- [Martijn van Steenbergen's SmartBrain 4](https://github.com/MedeaMelana/quoridorai) - This agent uses negamax of depth 4 with some heuristics (In his implementation, there are also SmartBrain 1, SmartBrain 2 and SmartBrain 3 each of which uses negamax of depth 1, 2 and 3. But, obviously, SmartBrain 4 is the strongest.)
+* [Martijn van Steenbergen's SmartBrain 4](https://github.com/MedeaMelana/quoridorai) - This agent uses negamax of depth 4 with some heuristics (In his implementation, there are also SmartBrain 1, SmartBrain 2 and SmartBrain 3 each of which uses negamax of depth 1, 2 and 3. But, obviously, SmartBrain 4 is the strongest.)
 
 ## Result
 The following table is a comparison of my 60k agent (Strong) to other agent types. Each agent from "2.5k agent (Novice)" to "180k agent" is my AI agent in this repository's source code just with different number of rollouts. The games were played half as light-colored pawn and half as dark-colored pawn for 60k (assuming light-colored pawn moves first). But, against Dainel's Quoridor AI, the games were played as light-colored pawn only since his AI only takes dark-colored pawn. Against Daniel's Quoridor AI and Martijin's SmartBrain 4, the matches are done manually, taking the moves from my 60k agent and playing the moves against them, and vice versa.
@@ -46,10 +62,10 @@ Martijn's implementation of Quoridor allows diagonal jump even if there is not a
 
 ## References
 
-- Victor Massagué Respall, Joseph Alexander Brown and Hamma Aslam. *[Monte Carlo Tree Search for Quoridor](https://www.researchgate.net/publication/327679826_Monte_Carlo_Tree_Search_for_Quoridor)*. 2018.
+* Victor Massagué Respall, Joseph Alexander Brown and Hamma Aslam. *[Monte Carlo Tree Search for Quoridor](https://www.researchgate.net/publication/327679826_Monte_Carlo_Tree_Search_for_Quoridor)*. 2018.
 
-- Levente Kocsis and Csaba Szepesva ́ri. *Bandit based Monte-Carlo Planning*. 2006.
+* Levente Kocsis and Csaba Szepesva ́ri. *Bandit based Monte-Carlo Planning*. 2006.
 
-- Peter Auer, Cesa-Bianchi and Fischer. *Finite-time Analysis of the Multiarmed Bandit Problem*. 2002.
+* Peter Auer, Cesa-Bianchi and Fischer. *Finite-time Analysis of the Multiarmed Bandit Problem*. 2002.
 
 

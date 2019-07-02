@@ -250,7 +250,7 @@ class Game {
     // Probable next walls are
     // 1. near pawns (to disturb opponent or support myself)
     // 2. near already placed walls
-    // 3. leftest side, rightest side horizontal wall
+    // 3. leftest side, rightest side horizontal walls
     get probableValidNextWalls() {
         if (this._probableValidNextWallsUpdated) {
             return this._probableValidNextWalls;
@@ -263,7 +263,7 @@ class Game {
             vertical: create2DArrayClonedFrom(this._probableNextWalls.vertical)
         }
 
-        // leftest side, rightest side horizontal wall
+        // leftmost side, rightmost side horizontal wall
         // after several turns
         if (this.turn >= 6) {
             for (let i = 0; i < 8; i++) {

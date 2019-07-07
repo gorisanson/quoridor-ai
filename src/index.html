@@ -39,38 +39,6 @@
             </div>
         </div>
         <div id="board_table_container">
-            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
-            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
-            <div class="fade_box in" id="choose_ai_level_message_box">
-                Choose AI level. Higher-level AI takes more time.
-                <div class="button_container in_message_box">
-                    <button class="ai_level" id="novice_level">Novice</button>
-                    <button class="ai_level" id="average_level">Average</button>
-                    <button class="ai_level" id="good_level">Good</button>
-                    <button class="ai_level" id="strong_level">Strong</button>
-                </div>
-            </div>
-            <div class="fade_box in hidden" id="choose_pawn_message_box">
-                Choose your pawn.<br>(Light-colored pawn moves first.)
-                <div class="button_container in_message_box">
-                    <div class="pawn pawn0 button"></div>
-                    <div class="pawn pawn1 button"></div>
-                </div>
-            </div>
-            <div class="fade_box in hidden" id="restart_message_box">
-                Are you sure to start a new game?<br>(Current game will be lost.)
-                <div class="button_container in_message_box">
-                    <button class="restart_yes_no" id="restart_no">cancel</button>
-                    <button class="restart_yes_no" id="restart_yes">start</button>
-                </div>
-            </div>
-            <div class="fade_box in hidden" id="update_notification_message_box">
-                New version is available. Update now?
-                <div class="button_container in_message_box">
-                    <button class="update" id="update_now">Update Now (current game will be lost)</button>
-                    <button class="update" id="later">Later (automatically at relaunching)</button>
-                </div>
-            </div>
             <div class="fade_box in about hidden" id="about_box">
                 <div>
                     <h1>Play Quoridor against AI</h1>
@@ -102,6 +70,38 @@
                     <button id="about_close_button" class="close">close</button>
                 </div>
             </div>
+            <div class="fade_box in" id="choose_ai_level_message_box">
+                Choose AI level. Higher-level AI takes more time.
+                <div class="button_container in_message_box">
+                    <button class="ai_level" id="novice_level">Novice</button>
+                    <button class="ai_level" id="average_level">Average</button>
+                    <button class="ai_level" id="good_level">Good</button>
+                    <button class="ai_level" id="strong_level">Strong</button>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="choose_pawn_message_box">
+                Choose your pawn.<br>(Light-colored pawn moves first.)
+                <div class="button_container in_message_box">
+                    <div class="pawn pawn0 button"></div>
+                    <div class="pawn pawn1 button"></div>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="restart_message_box">
+                Are you sure to start a new game?<br>(Current game will be lost.)
+                <div class="button_container in_message_box">
+                    <button class="restart_yes_no" id="restart_no">cancel</button>
+                    <button class="restart_yes_no" id="restart_yes">start</button>
+                </div>
+            </div>
+            <div class="fade_box in hidden" id="update_notification_message_box">
+                New version is available. Update now?
+                <div class="button_container in_message_box">
+                    <button class="update" id="update_now">Update Now (current game will be lost)</button>
+                    <button class="update" id="later">Later (automatically at relaunching)</button>
+                </div>
+            </div>
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
+            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
             <table id="board_table">
                 <tr class="row row0">
                     <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>

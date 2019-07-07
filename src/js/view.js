@@ -151,13 +151,8 @@ class View {
             this.htmlAboutBox.classList.add("hidden");
             this.enableUndoRedoButtonIfNecessary();
         }
-        const onclickCloseButtonInAboutFirst = function(e) {
-            this.htmlAboutBox.classList.add("hidden");
-            this.htmlChooseAILevelMessageBox.classList.remove("hidden");
-            closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
-        }
         const closeButtonInAbout = document.getElementById("about_close_button");
-        closeButtonInAbout.onclick = onclickCloseButtonInAboutFirst.bind(this);
+        closeButtonInAbout.onclick = onclickCloseButtonInAbout.bind(this);
 
         if (this.aiDevelopMode) {
             const onclickAiDoButton = function(e) {

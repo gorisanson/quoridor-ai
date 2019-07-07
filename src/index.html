@@ -39,37 +39,6 @@
             </div>
         </div>
         <div id="board_table_container">
-            <div class="fade_box in about hidden" id="about_box">
-                <div>
-                    <h1>Play Quoridor against AI</h1>
-                    <p class="last_updated">
-                            Last Updated: 2019-07-07
-                    </p>
-                    <p>
-                        Quoridor is a board game where the objective is to get your pawn
-                        to the opposite side of the board. You can read
-                        the simple rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
-                    </p>
-                    <p>
-                        This Quoridor AI is based on Monte Carlo tree search.
-                        It is developed by <span class="no_wrap">Lee Kyutae</span>.
-                        You can view the source code and other detailed description <a href="https://github.com/gorisanson/quoridor-ai" target="_blank">here</a>.
-                    </p>
-                    <p>
-                        <span class="thick">Tip:</span><br>
-                        If you <span class="no_wrap">"Add to Home Screen"</span> this page on a mobile device,
-                        it becomes an app which doesn't need an internet connection.
-                    </p>
-                    <p>
-                        <span class="thick">Credit:</span><br>
-                        <a href="https://danielborowski.github.io/site/quoridor-ai/display.html" target="_blank">Daniel Borowski's Quoridor AI</a>
-                        - Thanks to his Quoridor AI webpage, I could see that it is viable to implement an AI agent in JavaScript and demonstrate it right on the browser.
-                        So I could initiate my own Quoridor AI project which imitates his demonstration model.<br>
-                        P.S. When I was a novice, I trained myself with the AI agent on his webpage for playing Quoridor:)
-                    </p>
-                    <button id="about_close_button" class="close">close</button>
-                </div>
-            </div>
             <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
             <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
             <div class="fade_box in" id="choose_ai_level_message_box">
@@ -100,6 +69,37 @@
                 <div class="button_container in_message_box">
                     <button class="update" id="update_now">Update Now (current game will be lost)</button>
                     <button class="update" id="later">Later (automatically at relaunching)</button>
+                </div>
+            </div>
+            <div class="fade_box in about hidden" id="about_box">
+                <div>
+                    <h1>Play Quoridor against AI</h1>
+                    <p class="last_updated">
+                            Last Updated: 2019-07-07
+                    </p>
+                    <p>
+                        Quoridor is a board game where the objective is to get your pawn
+                        to the opposite side of the board. You can read
+                        the simple rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
+                    </p>
+                    <p>
+                        This Quoridor AI is based on Monte Carlo tree search.
+                        It is developed by <span class="no_wrap">Lee Kyutae</span>.
+                        You can view the source code and other detailed description <a href="https://github.com/gorisanson/quoridor-ai" target="_blank">here</a>.
+                    </p>
+                    <p>
+                        <span class="thick">Tip:</span><br>
+                        If you <span class="no_wrap">"Add to Home Screen"</span> this page on a mobile device,
+                        it becomes an app which doesn't need an internet connection.
+                    </p>
+                    <p>
+                        <span class="thick">Credit:</span><br>
+                        <a href="https://danielborowski.github.io/site/quoridor-ai/display.html" target="_blank">Daniel Borowski's Quoridor AI</a>
+                        - Thanks to his Quoridor AI webpage, I could see that it is viable to implement an AI agent in JavaScript and demonstrate it right on the browser.
+                        So I could initiate my own Quoridor AI project which imitates his demonstration model.<br>
+                        P.S. When I was a novice, I trained myself with the AI agent on his webpage for playing Quoridor:)
+                    </p>
+                    <button id="about_close_button" class="close">close</button>
                 </div>
             </div>
             <table id="board_table">

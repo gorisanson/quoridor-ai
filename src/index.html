@@ -43,7 +43,7 @@
                 <div>
                     <h1>Play Quoridor against AI</h1>
                     <p class="last_updated">
-                        Last Updated: 2019-07-16
+                        Last Updated: 2019-07-16 (v0.3.1)
                     </p>
                     <p>
                         Quoridor is a board game where the objective is to get your pawn
@@ -536,7 +536,7 @@
         */
 
         const aiDevelopMode = false;
-        const controller = new Controller(0.5, aiDevelopMode);
+        const controller = new Controller(0.2, aiDevelopMode);
         if (aiDevelopMode) {
             const uctConstInput = document.getElementById("uctConst");
             const rolloutNumInput = document.getElementById("rollout_num");

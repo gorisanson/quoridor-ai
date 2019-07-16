@@ -24,7 +24,7 @@ The number of rollouts per move for each AI level on the website is following.
     1. Near the already placed walls
     1. Leftmost or rightmost horizontal walls
 
-* On the rollout phase of MCTS, move the pawn to one of the shortest paths with a certain probability A. (And with the rest probability 1-A, half (with probablility (1-A)/2) place a ("probable" next) wall randomly / half (with probablility (1-A)/2) move the pawn randomly.) This heuristic shortens the time taken by the rollout phase. (I set A = 0.7)
+* On the rollout phase of MCTS, move the pawn to one of the shortest paths with a certain probability A. And with the rest probability 1-A, place a ("probable" next) wall randomly if there are walls left, otherwise, move the pawn backwards to give penalty to having no left walls. (I set A = 0.7)
 
 * On the selection/expansion phase of MCTS, if the opponent has no walls left, the player moves their pawn only to one of the shortest paths or places a wall only to interrupt the opponent's path (not to support their pawn). This heuristic lowers the branching factor on the end phase of a game.
 
@@ -42,7 +42,7 @@ There are some previous works done by others.
 
 * [Martijn van Steenbergen's SmartBrain 4](https://github.com/MedeaMelana/quoridorai) - This agent uses negamax of depth 4 with some heuristics (In his implementation, there are also SmartBrain 1, SmartBrain 2 and SmartBrain 3, each of which uses negamax of depth 1, 2 and 3 respectively. But, obviously, SmartBrain 4 is the strongest.)
 
-## Result
+## Result (This is old result. The AI agent has changed, but this result is not updated yet...)
 The following table is a comparison of my 60k agent (Strong) to other agent types. The agents from "2.5k agent (Novice)" to "180k agent" are all my AI agents with only difference between them being the number of rollouts. For the 60k agent, half of the games were played as the light-colored pawn and the other half as the dark-colored pawn (assuming the light-colored pawn moves first). But against Dainel's Quoridor AI, the games were played as the light-colored pawn only, since his AI only takes the dark-colored pawn. Against Daniel's Quoridor AI and Martijin's SmartBrain 4, the matches are done manually by referring to the move from my 60k agent and playing it against them, and vice versa.
 
 | Opponent | Number of games played (as the light-colored / as the dark-colored for 60k) | Wins as the light-colored for 60k | Wins as the dark-colored for 60k | Percentage of Wins for 60k | Lower Confidence Bound (95%) | Upper Confidence Bound (95%)

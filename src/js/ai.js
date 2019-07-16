@@ -367,11 +367,13 @@ class MonteCarloTreeSearch {
         const cacheForPawns = [
             {
                 updated: false,
+                prev: null,
                 next: null,
                 distanceToGoal: null
             },
             {
                 updated: false,
+                prev: null,
                 next: null,
                 distanceToGoal: null
             }
@@ -380,15 +382,17 @@ class MonteCarloTreeSearch {
         
         while (simulationGame.winner === null) {
             if (!cacheForPawns[0].updated) {
-                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn0, simulationGame);
-                cacheForPawns[0].next = t[0];
-                cacheForPawns[0].distanceToGoal = t[1];
+                const t = AI.get2DArrayPrevAndNextAndDistanceToGoalFor(simulationGame.pawn0, simulationGame);
+                cacheForPawns[0].prev = t[0];
+                cacheForPawns[0].next = t[1];
+                cacheForPawns[0].distanceToGoal = t[2];
                 cacheForPawns[0].updated = true;
             }
             if (!cacheForPawns[1].updated) {
-                const t = AI.get2DArrayNextAndDistanceToGoalFor(simulationGame.pawn1, simulationGame);
-                cacheForPawns[1].next = t[0];
-                cacheForPawns[1].distanceToGoal = t[1];
+                const t = AI.get2DArrayPrevAndNextAndDistanceToGoalFor(simulationGame.pawn1, simulationGame);
+                cacheForPawns[1].prev = t[0];
+                cacheForPawns[1].next = t[1];
+                cacheForPawns[1].distanceToGoal = t[2];
                 cacheForPawns[1].updated = true;
             }
 
@@ -428,7 +432,7 @@ class MonteCarloTreeSearch {
                     cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
                 }
                 simulationGame.movePawn(nextPosition.row, nextPosition.col);
-            } else if (!pawnMoveFlag && pawnOfTurn.numberOfLeftWalls > 0 && Math.random() < 0.5) {
+            } else if (!pawnMoveFlag && pawnOfTurn.numberOfLeftWalls > 0 /*&& Math.random() < 0.5*/ ) {
                 // place a wall
                 // (If a pawn has no wall, this fall in to next else clause so move pawn randomly.
                 // So, consuming all wall early gives no advantage, it rather gives a disadvantage)
@@ -445,18 +449,20 @@ class MonteCarloTreeSearch {
                     pawnMoveFlag = true;
                 }
             } else {
-                // move pawn randomly
+                // move pawn backwards
                 pawnMoveFlag = false;
-                const nextRandomPosition = AI.chooseNextPawnPositionRandomly(simulationGame);
-                const next = cacheForPawns[pawnIndexOfTurn].next;
+                //const nextRandomPosition = AI.chooseNextPawnPositionRandomly(simulationGame);
+                const prev = cacheForPawns[pawnIndexOfTurn].prev;
                 const currentPosition = pawnOfTurn.position;
-                const nextPosition = next[currentPosition.row][currentPosition.col];
-                if (nextRandomPosition.equals(nextPosition)) {
-                    cacheForPawns[pawnIndexOfTurn].distanceToGoal -= 1;
-                } else {
+                let prevPosition = prev[currentPosition.row][currentPosition.col];
+                if (prevPosition === null || !simulationGame.validNextPositions[prevPosition.row][prevPosition.col]) {
+                    const prevPositions = AI.chooseLongestPathNextPawnPositionsThoroughly(simulationGame);
+                    prevPosition = randomChoice(prevPositions);
                     cacheForPawns[pawnIndexOfTurn].updated = false;
+                } else {
+                    cacheForPawns[pawnIndexOfTurn].distanceToGoal += 1;
                 }
-                simulationGame.movePawn(nextRandomPosition.row, nextRandomPosition.col);
+                simulationGame.movePawn(prevPosition.row, prevPosition.col);
             }
         }
 
@@ -608,15 +614,31 @@ class AI {
         return nextPositions;
     }
 
+    static chooseLongestPathNextPawnPositionsThoroughly(game) {
+        const valids = indicesOfValueIn2DArray(game.validNextPositions, true);
+        const distances = [];
+        for (let i = 0; i < valids.length; i++) {
+            const clonedGame = Game.clone(game);
+            clonedGame.movePawn(valids[i][0], valids[i][1]);
+            const distance = AI.getShortestDistanceToGoalFor(clonedGame.pawnOfNotTurn, clonedGame);
+            distances.push(distance);
+        }
+        const nextPositions = [];
+        for (const index of (indicesOfMax(distances))) {
+            nextPositions.push(new PawnPosition(valids[index][0], valids[index][1]));
+        }
+        return nextPositions;
+    }
+
     // get 2D array "next" to closest goal in the game
-    static get2DArrayNextAndDistanceToGoalFor(pawn, game) {
+    static get2DArrayPrevAndNextAndDistanceToGoalFor(pawn, game) {
         const t = this.getRandomShortestPathToGoal(pawn, game);
         const dist = t[0];
         const prev = t[1];
         const goalPosition = t[2];
         const distanceToGoal = dist[goalPosition.row][goalPosition.col];
         const next = AI.getNextByReversingPrev(prev, goalPosition);
-        return [next, distanceToGoal];
+        return [prev, next, distanceToGoal];
     }
 
     static chooseShortestPathNextPawnPosition(game) {
@@ -630,7 +652,7 @@ class AI {
             const nextPositions = this.chooseShortestPathNextPawnPositionsThoroughly(game);
             nextPosition = randomChoice(nextPositions);
         } else { 
-            const next = AI.get2DArrayNextAndDistanceToGoalFor(game.pawnOfTurn, game)[0];
+            const next = AI.get2DArrayPrevAndNextAndDistanceToGoalFor(game.pawnOfTurn, game)[1];
             const currentPosition = game.pawnOfTurn.position
             nextPosition = next[currentPosition.row][currentPosition.col]; 
 

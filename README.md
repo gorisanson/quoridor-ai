@@ -42,7 +42,7 @@ There are some previous works done by others.
 
 * [Martijn van Steenbergen's SmartBrain 4](https://github.com/MedeaMelana/quoridorai) - This agent uses negamax of depth 4 with some heuristics (In his implementation, there are also SmartBrain 1, SmartBrain 2 and SmartBrain 3, each of which uses negamax of depth 1, 2 and 3 respectively. But, obviously, SmartBrain 4 is the strongest.)
 
-## Result (This is old result. The AI agent has changed, but this result is not updated yet...)
+## Result of v0.2 (with uctConst = 0.5)
 The following table is a comparison of my 60k agent (Strong) to other agent types. The agents from "2.5k agent (Novice)" to "180k agent" are all my AI agents with only difference between them being the number of rollouts. For the 60k agent, half of the games were played as the light-colored pawn and the other half as the dark-colored pawn (assuming the light-colored pawn moves first). But against Dainel's Quoridor AI, the games were played as the light-colored pawn only, since his AI only takes the dark-colored pawn. Against Daniel's Quoridor AI and Martijin's SmartBrain 4, the matches are done manually by referring to the move from my 60k agent and playing it against them, and vice versa.
 
 | Opponent | Number of games played (as the light-colored / as the dark-colored for 60k) | Wins as the light-colored for 60k | Wins as the dark-colored for 60k | Percentage of Wins for 60k | Lower Confidence Bound (95%) | Upper Confidence Bound (95%)
@@ -58,6 +58,12 @@ The following table is a comparison of my 60k agent (Strong) to other agent type
 When I played against them by myself, I thought Martijn's SmartBrain 4 was stronger than Daniel's Quoridor AI. But, interestingly, the 60k agent seems to play better against Martijin's SmartBrain 4. In some matches, the play of Daniel's Quoridor AI somehow made the 60k agent exhaust walls too quickly and lose the game.
 
 Martijn's implementation of Quoridor allows the diagonal jump even if there is not a wall or the board edge behind the pawn to be jumped. (The original Quoridor rule allows the diagonal jump "only if" there is a wall or the board edge behind the opponent's pawn to be jumped.) In a match against Martijn's SmartBrain 4, the 60k agent won the match although this out-of-the-rule diagonal jump was played twice by SmartBrain 4. This match is included on the statistics of the table above. And in another match, the out-of-the-rule diagonal jump was played by SmartBrain 4 when there were no left walls for both players and the win or lose was to be decided by whether the jump is accepted or not. So I nullified this match.
+
+## Result of v0.3 (with uctConst = 0.2)
+
+| Opponent | Number of games played (as the light-colored / as the dark-colored for 60k) | Wins as the light-colored for 60k | Wins as the dark-colored for 60k | Percentage of Wins for 60k | Lower Confidence Bound (95%) | Upper Confidence Bound (95%)
+| -------------------- | ----- | ---- | ---- | --- | --- | --- |
+| Daniel's Quoridor AI | 10 (10/0) | 10 | 0 | 100% | 69.2% | 100% | 
 
 
 ## References

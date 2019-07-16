@@ -364,7 +364,6 @@ class MonteCarloTreeSearch {
         }
         
         // Simulation
-        // ToDo: apply heuristic not to uniformly select between pawn moves and walls.
         const cacheForPawns = [
             {
                 updated: false,
@@ -395,6 +394,10 @@ class MonteCarloTreeSearch {
 
             const pawnOfTurn = simulationGame.pawnOfTurn; 
             const pawnIndexOfTurn = simulationGame.pawnIndexOfTurn;
+            // heuristic:
+            // With a certain probability, move pawn to one of the shortest paths.
+            // And with the rest probability, half place a wall randomly / half move pawn randomly.
+            // This heuristic shorten the time taken by rollout phase.
             if (Math.random() < 0.7) {
                 // move pawn to one of shortest paths
                 pawnMoveFlag = false;

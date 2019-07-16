@@ -196,7 +196,8 @@ div.wall_num {
 .fade_box.in.about {
     justify-content: flex-start;
     top: 0;
-    height: calc(2 *var(--board-table-side-length));
+    height: calc(3 *var(--board-table-side-length));
+    overflow: visible;
     text-align: left;
 }
 @keyframes fade_in {

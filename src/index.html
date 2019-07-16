@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     
-    <title>Play Quoridor against the AI</title>
+    <title>Play Quoridor against AI</title>
 
-    <meta name="description" content="Play Quoridor against the AI agent which is based on Monte Carlo tree search">
+    <meta name="description" content="Play Quoridor against an AI agent based on Monte Carlo tree search">
     <meta name="author" content="Lee Kyutae">
 
     <meta name="mobile-web-app-capable" content="yes">
@@ -41,33 +41,37 @@
         <div id="board_table_container">
             <div class="fade_box in about" id="about_box">
                 <div>
-                    <h1>Play Quoridor against <span class="no_wrap">the AI</span></h1>
+                    <h1>Play Quoridor against AI</h1>
                     <p class="last_updated">
-                            Last Updated: 2019-06-29
+                        Last Updated: 2019-07-07
                     </p>
                     <p>
                         Quoridor is a board game where the objective is to get your pawn
                         to the opposite side of the board. You can read
-                        the rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
-                        They are simple.
+                        the simple rules <a href="https://en.wikipedia.org/wiki/Quoridor#Rules_of_the_game" target="_blank">here</a>.
                     </p>
                     <p>
                         This Quoridor AI is based on Monte Carlo tree search.
                         It is developed by <span class="no_wrap">Lee Kyutae</span>.
-                        You can view the source code on <a href="https://github.com/gorisanson/quoridor-ai" target="_blank">GitHub</a>.
+                        You can view the source code and other detailed description on <a href="https://github.com/gorisanson/quoridor-ai" target="_blank">GitHub</a>.
                     </p>
                     <p>
                         <span class="thick">Tip:</span><br>
                         If you <span class="no_wrap">"Add to Home Screen"</span> this page on a mobile device,
                         it becomes an app which doesn't need an internet connection.
                     </p>
+                    <p>
+                        <span class="thick">Credit:</span><br>
+                        <a href="https://danielborowski.github.io/site/quoridor-ai/display.html" target="_blank">Daniel Borowski's Quoridor AI</a>
+                        - Thanks to his Quoridor AI webpage, I could see that it is viable to implement an AI agent in JavaScript and demonstrate it right on the browser.
+                        So I could initiate my own Quoridor AI project which imitates his demonstration model.<br>
+                        P.S. When I was a novice, I trained myself with the AI agent on his webpage for playing Quoridor:)
+                    </p>
                     <button id="about_close_button" class="close">close</button>
                 </div>
             </div>
-            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
-            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
             <div class="fade_box in hidden" id="choose_ai_level_message_box">
-                Choose the AI level. Higher-level AI takes more time.
+                Choose AI level. Higher-level AI takes more time.
                 <div class="button_container in_message_box">
                     <button class="ai_level" id="novice_level">Novice</button>
                     <button class="ai_level" id="average_level">Average</button>
@@ -96,6 +100,8 @@
                     <button class="update" id="later">Later (automatically at relaunching)</button>
                 </div>
             </div>
+            <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
+            <!--<div class="fade_box inout" id="note_message_box">"There must remain at least one path to the goal for each pawn."</div>-->
             <table id="board_table">
                 <tr class="row row0">
                     <td class="col col0"><div class="pawn pawn0" id="pawn0"></div></td>

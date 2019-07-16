@@ -241,17 +241,30 @@ class Game {
         return this.board.pawns[this.pawnIndexOfNotTurn];
     }
 
+    // heuristic:
+    // In expansion phase,
+    // do not consider all possible wall positions,
+    // only consider probable next walls.
+    // This heuristic decreases the branching factor.
+    //
+    // Probable next walls are
+    // 1. near pawns (to disturb opponent or support myself)
+    // 2. near already placed walls
+    // 3. leftest side, rightest side horizontal walls
     get probableValidNextWalls() {
         if (this._probableValidNextWallsUpdated) {
             return this._probableValidNextWalls;
         }
         this._probableValidNextWallsUpdated = true;
+        
+        // near already placed walls
         const _probableValidNextWalls = {
             horizontal: create2DArrayClonedFrom(this._probableNextWalls.horizontal),
             vertical: create2DArrayClonedFrom(this._probableNextWalls.vertical)
         }
 
-        //heuristic: left side, right side horizontal wall
+        // leftmost and rightmost horizontal walls
+        // after several turns
         if (this.turn >= 6) {
             for (let i = 0; i < 8; i++) {
                 _probableValidNextWalls.horizontal[i][0] = true;
@@ -259,8 +272,8 @@ class Game {
             }
         }
         
-        // heuristic:
-        // place wall to diturb opponent or support myself
+        // near pawns
+        // place walls to diturb opponent or support myself
         // only after several turns
         if (this.turn >= 3) {
             // disturb opponent

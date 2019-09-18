@@ -1,5 +1,11 @@
 "use strict";
 
+/*
+* ai.js
+*
+* Implementation of Quoridor AI based on MonteCarlo tree search
+*/
+
 PawnPosition.clone = function(pawnPosition) {
     return new PawnPosition(pawnPosition.row, pawnPosition.col);
 };

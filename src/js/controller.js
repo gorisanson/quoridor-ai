@@ -1,5 +1,8 @@
 "use strict";
 
+/*
+* Controller part in the MVC pattern
+*/
 class Controller {
     constructor(uctConst, aiDevelopMode = false) {
         this.aiDevelopMode = aiDevelopMode;

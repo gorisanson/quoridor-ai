@@ -1,5 +1,11 @@
 "use strict";
 
+/*
+* game.js
+*
+* Model part in the MVC pattern.
+*/
+
 /*    
 *          PawnPosition: represents position of pawn
 *              col

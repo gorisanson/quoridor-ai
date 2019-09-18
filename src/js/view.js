@@ -1,5 +1,8 @@
 "use strict";
 
+/*
+* View part in the MVC pattern
+*/
 class View {
     constructor(controller, aiDevelopMode = false) {
         this.controller = controller;

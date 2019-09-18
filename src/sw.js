@@ -1,7 +1,11 @@
 "use strict";
 
 /* 
-* Service worker script alomost copied from:
+* A service worker is required for an webpage (or web app) to keep cache
+* so that the webpage can be loaded without an internet connection
+* if the cache was once saved on the local device.
+*
+* This service worker script alomost copied from:
 * https://developers.google.com/web/fundamentals/primers/service-workers/
 */
 

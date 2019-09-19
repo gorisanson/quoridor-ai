@@ -344,6 +344,9 @@ div.pawn.clicked {
 input {
     width: calc(3 * var(--font-size));
 }
+p.developed_by {
+    font-size: calc(0.6 * var(--font-size));
+}
 p.last_updated {
     font-size: calc(0.6 * var(--font-size));
 }

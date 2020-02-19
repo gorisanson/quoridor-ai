@@ -1,0 +1,398 @@
+:root {
+    --board-table-side-length: 90vmin;
+    --long-short-ratio: 3.2;
+    --short-length-number-in-board-table: calc(9 * var(--long-short-ratio) + 8);
+    --short-length: calc(var(--board-table-side-length) / var(--short-length-number-in-board-table));
+    --long-length: calc(var(--long-short-ratio) * var(--short-length));
+    --wall-gap: calc(var(--short-length) * 0.25);
+    --wall-length: calc(2 * var(--long-length) + var(--short-length) - 2 * var(--wall-gap));
+    --wall-width: calc(var(--short-length) - 2 * var(--wall-gap));
+    --font-size: 18px;
+}
+/* size of iPad screen is 768px x 1024px in portrait mode */
+@media only screen and (min-width: 768px) and (min-height: 768px) {
+    :root {
+        --font-size: 30px;
+    }
+}
+@media only screen and (min-width: 768px), (orientation: landscape) {
+    :root {
+        --board-table-side-length: 70vmin;
+    }
+}
+html {
+    box-sizing: border-box;
+}
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+.gridcontainer0 {
+    display: grid;
+    width: 100%;
+    height: 100vh;
+    justify-content: center;
+    align-content: center;
+    grid-template-rows: calc(3 * var(--font-size)) var(--board-table-side-length) calc(8 * var(--font-size));
+    grid-template-columns: var(--board-table-side-length);
+    grid-gap: 10px;
+}
+.gridcontainer1 {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+.gridcontainer2 {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+}
+h1 {
+    font-size: calc(1.2 * var(--font-size));
+}
+#board_table_container {
+    position: relative;
+    grid-row-start: 2;
+}
+table {
+    table-layout: fixed;
+    border-radius: 0.5%;            
+    background-color: rgb(68, 117, 221);
+    border-collapse: collapse;
+    text-align: center;
+    width: var(--board-table-side-length);
+    height: var(--board-table-side-length);
+    padding:0;
+}
+td {
+    position: relative;
+    padding: 0;
+}
+tr.row {
+    height: var(--long-length);
+}
+td.col {
+    width: var(--long-length);
+}
+tr.between_rows {
+    height: var(--short-length);
+}
+td.between_cols {
+    width: var(--short-length);
+}
+tr.row td.col {
+    background-color: rgb(207, 207, 207);
+    border-radius: 5%;
+}
+div.pawn {
+    display: inline-block;
+    width: calc(var(--long-length) * 0.7);
+    height: calc(var(--long-length) * 0.7);
+    border-radius: 50%;
+    vertical-align: middle;
+}
+div.pawn.pawn0 {
+    background-color: rgb(195, 164, 23);
+}
+div.pawn.pawn1 {
+    background-color: rgb(51, 25, 25);
+}
+div.horizontal_wall, div.vertical_wall {
+    display: inline-block;
+    position: absolute;
+    left: var(--wall-gap);
+    top: var(--wall-gap);
+    background-color: rgb(202, 168, 106);
+}
+div.horizontal_wall {
+    width: var(--wall-length);
+    height: var(--wall-width);
+}
+div.vertical_wall {
+    width: var(--wall-width);
+    height: var(--wall-length);
+}
+div.horizontal_wall.shadow, div.vertical_wall.shadow {
+    opacity: 0.5;
+}
+div.pawn.shadow {
+    opacity: 0.3;
+}
+#number_of_left_walls_box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size);
+    text-align: center;
+    vertical-align: middle;
+}
+div.pawn.symbol {
+    vertical-align: middle;
+    width: var(--font-size);
+    height: var(--font-size);
+    margin-right: calc(var(--font-size) / 2);
+}
+div.pawn.button {
+    margin-left: var(--short-length);
+    margin-right: var(--short-length);
+}
+div.horizontal_wall.symbol {
+    position: initial;
+    vertical-align: middle;
+    width: calc(var(--font-size) * (5 / 3));
+    height: calc(var(--font-size) * (2 / 5));
+    margin-left: calc(var(--font-size) / 6);
+    margin-right: calc(var(--font-size) / 6);;
+}
+div.mul_sign_wall_num_container {
+    display: inline-block;
+    vertical-align: middle;
+}
+div.multiplication_sign {
+    display: inline;
+    vertical-align: middle;
+    margin-left: calc(var(--font-size) / 6);;
+    margin-right: calc(var(--font-size) / 6);;
+}
+div.wall_num {
+    display: inline-block;
+    vertical-align: middle;
+    width: var(--font-size);
+    text-align: center;
+}
+.fade_box {
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    top: calc((var(--board-table-side-length) - 9 * var(--long-length)) / 2);
+    left: 0;
+    width: var(--board-table-side-length);
+    height: calc(9 * var(--long-length));
+    font-size: var(--font-size);
+    padding-left: var(--font-size);
+    padding-right: var(--font-size);
+    text-align: center;
+    z-index: -1;
+    visibility: hidden;
+    opacity: 0;
+}
+.fade_box.in {
+    z-index: 10;
+    visibility: visible;
+    opacity: 1;
+    animation-name: fade_in;
+    animation-duration: 1s;
+}
+.fade_box.in.about {
+    justify-content: flex-start;
+    top: 0;
+    height: calc(3 *var(--board-table-side-length));
+    overflow: visible;
+    text-align: left;
+}
+@keyframes fade_in {
+    0%   {opacity: 0;}
+    100% {opacity: 1;}
+}
+.fade_box.inout {
+    z-index: -1;
+    visibility: hidden;
+    opacity: 0;
+    animation-name: fade_inout;
+}
+@keyframes fade_inout {
+    0%   {visibility: visible; z-index: 10; opacity: 0;}
+    25%  {opacity: 1;}
+    75%  {opacity: 1;}
+    100% {visibility: hidden; z-index: 10; opacity: 0;}
+}
+#about_box {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+#update_notification_message_box {
+    background-color:rgba(226, 230, 36, 0.85);
+}
+#choose_ai_level_message_box, #choose_pawn_message_box, #restart_message_box, #game_result_message_box, button.restart {
+    background-color:rgba(0, 81, 255, 0.85);
+}
+#note_message_box{
+    background-color:rgba(255, 0, 0, 0.8);
+    animation-duration: 3s;
+}
+#game_result_message_box{
+    animation-duration: 10s;
+}
+.button_container.above.left, .button_container.below {
+    grid-column: 1 / span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.button_container.above.left {
+    grid-column: 1 / span 3;
+}
+.button_container.above.right {
+    grid-column-start: 5;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+button.button {
+    display: inline-block;
+    height: calc(3 * var(--font-size));
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+    color: white;
+    font-size: calc(var(--font-size) * 1.2);
+    text-align: center;
+    text-decoration: none;
+    margin: 2%;
+}
+button.update, button.ai_level, button.close, button.restart_yes_no {
+    display: inline-block;
+    height: calc(2 * var(--font-size));
+    width: calc(4 * var(--font-size));
+    border: none;
+    margin: 2px;
+    padding: 0;
+    background-color: white;
+    color: black;
+    font-size: var(--font-size);
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+}
+button.update {
+    height: calc(3 * var(--font-size));
+    width: 100%;
+}
+button.close {
+    background-color: rgb(50, 50, 50);
+    color: white;
+    display: block;
+    margin: 0 auto;
+}
+.button.cancel {
+    background-color: white;
+    color: black;
+    border: 2px solid rgb(85, 85, 85);
+}
+.button.confirm {
+    background-color: rgb(0, 71, 186);
+}
+.button.undo {
+    background-color: rgb(36, 160, 112);
+}
+.button.redo {
+    background-color: rgb(36, 131, 160);
+}
+.button.aido {
+    background-color: rgb(36, 84, 160);
+}
+.button.about {
+    background-color: rgb(50, 50, 50);
+}
+#message_box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size);
+    text-align: center;
+    text-decoration: none;
+}
+#progress_bar {
+    position: absolute;
+    z-index: -1;
+    top: 15%;
+    left: 0;
+    /*width: width is set on style property of progress_bar element;*/
+    height: 70%;
+    background-color: rgb(82, 153, 247);
+}
+span.no_wrap {
+    white-space: nowrap;
+}
+span.thick {
+    font-weight: 900;
+}
+div.pawn.hidden {
+    visibility: hidden;
+}
+div.pawn.clicked {
+    opacity: 0.7;
+}
+.fade_box.in.hidden, button.button.hidden, input.hidden {
+    display: none;
+}
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+input {
+    width: calc(3 * var(--font-size));
+}
+p.developed_by {
+    font-size: calc(0.6 * var(--font-size));
+}
+p.last_updated {
+    font-size: calc(0.6 * var(--font-size));
+}
+@media only screen and (min-width: 768px), (orientation: landscape) {
+    .gridcontainer0 {
+        grid-template-rows: calc(3 * var(--font-size)) var(--board-table-side-length);
+        grid-template-columns: var(--board-table-side-length) calc(95vmin - var(--board-table-side-length));
+    }
+    .gridcontainer2 {
+        display:grid;
+        grid-row-start: 2;
+        grid-column-start: 2;
+        grid-template-columns: 1fr;
+        grid-template-rows: calc(4 * var(--font-size)) calc(4 * var(--font-size)) 1fr;
+    }
+    .button_container.below {
+        grid-column: unset;
+        flex-direction: column-reverse;
+        justify-content: flex-start;
+    }
+}
+@media only screen and (min-width: 768px) and (min-height: 768px) {
+    .fade_box {
+        top: calc((var(--board-table-side-length) - 7 * var(--long-length)) / 2);
+        left: 0;
+        width: var(--board-table-side-length);
+        height: calc(7 * var(--long-length));
+    }
+}
+/* For iPhone 5&6 landscape */
+@media only screen and (max-height: 375px) and (min-width: 568px) and (orientation:landscape) {
+    .gridcontainer0 {
+        grid-template-columns: var(--board-table-side-length) calc(105vmin - var(--board-table-side-length));
+    }
+}
+@media (hover: hover) {
+    #confirm_button, #cancel_button {
+        display: none;
+    }
+    div.pawn.shadow:hover {
+        opacity: 0.7;
+    }
+    div.pawn.button, button.ai_level, button.restart_yes_no, button.update {
+        opacity: 0.9;
+    }
+    div.pawn.button:hover, button.ai_level:hover, button.restart_yes_no:hover, button.update:hover {
+        opacity: 1;
+    }
+}

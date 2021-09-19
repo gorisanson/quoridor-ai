@@ -31,12 +31,11 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     color: var(--color-black);
 }
-a {
+a,
+a:link,
+a:visited {
     color: #0074cc;
     text-decoration: none;
-}
-a:visited {
-    color: #0063bf;
 }
 a:hover {
     color: #0a95ff;

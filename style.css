@@ -8,6 +8,7 @@
     --wall-length: calc(2 * var(--long-length) + var(--short-length) - 2 * var(--wall-gap));
     --wall-width: calc(var(--short-length) - 2 * var(--wall-gap));
     --font-size: 18px;
+    --color-black: #232629;
 }
 /* size of iPad screen is 768px x 1024px in portrait mode */
 @media only screen and (min-width: 768px) and (min-height: 768px) {
@@ -28,6 +29,20 @@ html {
 }
 body {
     font-family: Arial, Helvetica, sans-serif;
+    color: var(--color-black);
+}
+a {
+    color: #0074cc;
+    text-decoration: none;
+}
+a:visited {
+    color: #0063bf;
+}
+a:hover {
+    color: #0a95ff;
+}
+a:active {
+    color: #0a95ff;
 }
 .gridcontainer0 {
     display: grid;
@@ -268,7 +283,7 @@ button.update, button.ai_level, button.close, button.restart_yes_no {
     margin: 2px;
     padding: 0;
     background-color: white;
-    color: black;
+    color: var(--color-black);
     font-size: var(--font-size);
     text-align: center;
     text-decoration: none;
@@ -286,7 +301,7 @@ button.close {
 }
 .button.cancel {
     background-color: white;
-    color: black;
+    color: var(--color-black);
     border: 2px solid rgb(85, 85, 85);
 }
 .button.confirm {
@@ -397,3 +412,4 @@ p.release_date, p.last_updated {
         opacity: 1;
     }
 }
+ 

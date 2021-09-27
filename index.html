@@ -49,12 +49,12 @@
     <div class="gridcontainer0">
         <div class="gridcontainer1">
             <div class="button_container above left">
-                <button id="restart_button" class="button above restart">new game</button>
-                <button id="undo_button" class="button above undo">undo</button>
-                <button id="redo_button" class="button above redo">redo</button>
+                <button type="button" id="restart_button" class="button above restart">new game</button>
+                <button type="button" id="undo_button" class="button above undo">undo</button>
+                <button type="button" id="redo_button" class="button above redo">redo</button>
             </div>
             <div class="button_container above right">
-                <button id="about_button" class="button above about">about</button>
+                <button type="button" id="about_button" class="button above about">about</button>
             </div>
         </div>
         <div id="board_table_container">
@@ -90,16 +90,16 @@
                         I learned that an AI agent could be implemented in JavaScript and executed right in the browser. As a result, I built my own Quoridor AI based on his demo.<br>
                         P.S. When I was a novice Quoridor player, I trained myself with the Quoridor AI agent on Daniel Borowski's webpage:)
                     </p>
-                    <button id="about_close_button" class="close">close</button>
+                    <button type="button" id="about_close_button" class="close">close</button>
                 </div>
             </div>
             <div class="fade_box in hidden" id="choose_ai_level_message_box">
                 Choose AI level. Higher-level AI takes more time.
                 <div class="button_container in_message_box">
-                    <button class="ai_level" id="novice_level">Novice</button>
-                    <button class="ai_level" id="average_level">Average</button>
-                    <button class="ai_level" id="good_level">Good</button>
-                    <button class="ai_level" id="strong_level">Strong</button>
+                    <button type="button" class="ai_level" id="novice_level">Novice</button>
+                    <button type="button" class="ai_level" id="average_level">Average</button>
+                    <button type="button" class="ai_level" id="good_level">Good</button>
+                    <button type="button" class="ai_level" id="strong_level">Strong</button>
                 </div>
             </div>
             <div class="fade_box in hidden" id="choose_pawn_message_box">
@@ -112,15 +112,15 @@
             <div class="fade_box in hidden" id="restart_message_box">
                 Are you sure to start a new game?<br>(Current game will be lost.)
                 <div class="button_container in_message_box">
-                    <button class="restart_yes_no" id="restart_no">cancel</button>
-                    <button class="restart_yes_no" id="restart_yes">start</button>
+                    <button type="button" class="restart_yes_no" id="restart_no">cancel</button>
+                    <button type="button" class="restart_yes_no" id="restart_yes">start</button>
                 </div>
             </div>
             <div class="fade_box in hidden" id="update_notification_message_box">
                 A new version is available. Update now?
                 <div class="button_container in_message_box">
-                    <button class="update" id="update_now">Update Now (current game will be lost)</button>
-                    <button class="update" id="later">Later (automatically at relaunching)</button>
+                    <button type="button" class="update" id="update_now">Update Now (current game will be lost)</button>
+                    <button type="button" class="update" id="later">Later (automatically at relaunching)</button>
                 </div>
             </div>
             <!--<div class="fade_box inout" id="game_result_message_box"><div>You win!</div></div>-->
@@ -458,9 +458,9 @@
             </div>
             <div id="message_box">Your turn<div id="progress_bar" style="width:0%;"></div></div>
             <div class="button_container below">
-                <button id="cancel_button" class="button below cancel">cancel</button>
-                <button id="confirm_button" class="button below confirm">confirm</button>
-                <button id="aido_button" class="button below aido hidden">AI do</button>
+                <button type="button" id="cancel_button" class="button below cancel">cancel</button>
+                <button type="button" id="confirm_button" class="button below confirm">confirm</button>
+                <button type="button" id="aido_button" class="button below aido hidden">AI do</button>
                 <input class="hidden" type="number" id="uctConst">
                 <input class="hidden" type="number" id="rollout_num">
             </div>

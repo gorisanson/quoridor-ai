@@ -9,7 +9,7 @@
 * https://developers.google.com/web/fundamentals/primers/service-workers/
 */
 
-const CACHE_NAME = 'quoridor-ai-cache-v0.3.17';
+const CACHE_NAME = 'quoridor-ai-cache-v0.3.18';
 const urlsToCache = [
     './',
     './style.css',
@@ -30,7 +30,12 @@ self.addEventListener('install', function(event) {
     event.waitUntil(
         caches.open(CACHE_NAME).then(function(cache) {
             //console.log('Opened cache');
-            return cache.addAll(urlsToCache);
+            return cache.addAll(urlsToCache.map(function(url) {
+                // Without this "no-cache" option,
+                // the browser may use resources in its HTTP cache (disk cache)
+                // without checking them by communicating with the remote server.
+                return new Request(url, {cache: "no-cache"});
+            }));
         })
     );
 });

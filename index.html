@@ -469,6 +469,8 @@
         "use strict";
         // For some touch device, @media (hover: hover) is activated
         // (it is intended not to be activated), so add this workaround.
+        // Code below is based on:
+        // https://codeburst.io/the-only-way-to-detect-touch-with-javascript-7791a3346685
         window.addEventListener('touchstart', function onFirstTouch() {
             controller.view.isHoverPossible = false;
             controller.view.button.confirm.style.display = "inline-block";
